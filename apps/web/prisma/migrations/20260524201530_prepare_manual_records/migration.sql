@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "FinancialEntry" ADD COLUMN     "deletedAt" TIMESTAMP(3),
+ADD COLUMN     "editable" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "isManual" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "sourceType" TEXT NOT NULL DEFAULT 'SPREADSHEET';

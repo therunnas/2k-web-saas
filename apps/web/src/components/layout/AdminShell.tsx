@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import {
   BarChart3,
+  CircleMinus,
+  CirclePlus,
   CalendarClock,
   CalendarDays,
   Clapperboard,
@@ -35,6 +37,16 @@ const navItems = [
     label: "Financeiro",
     href: "/financeiro",
     icon: BarChart3,
+  },
+  {
+    label: "Entradas",
+    href: "/entradas",
+    icon: CirclePlus,
+  },
+  {
+    label: "Saídas",
+    href: "/saidas",
+    icon: CircleMinus,
   },
   {
     label: "Clientes",
@@ -78,7 +90,7 @@ const navItems = [
   },
   {
     label: "Configurações",
-    href: "/setup",
+    href: "/configuracoes",
     icon: Settings,
   },
 ];

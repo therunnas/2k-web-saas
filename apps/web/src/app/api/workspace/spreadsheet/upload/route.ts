@@ -167,6 +167,9 @@ function buildEntradaEntries(params: {
         costAmount: decimal(0),
         profitAmount: decimal(0),
         marginPercent: null,
+        sourceType: "SPREADSHEET",
+        isManual: false,
+        editable: false,
         sourceSheet: params.sheetName,
         sourceRow: index + 5,
       };
@@ -221,6 +224,9 @@ function buildSaidaEntries(params: {
         costAmount: decimal(valor),
         profitAmount: decimal(0),
         marginPercent: null,
+        sourceType: "SPREADSHEET",
+        isManual: false,
+        editable: false,
         sourceSheet: params.sheetName,
         sourceRow: index + 6,
       };
@@ -333,6 +339,7 @@ export async function POST(request: Request) {
     await prisma.financialEntry.deleteMany({
       where: {
         workspaceId: session.workspaceId,
+        sourceType: "SPREADSHEET",
       },
     });
 

@@ -101,6 +101,8 @@ enum FinancialEntryType {
   RECEIVABLE
   PAYABLE
   UNKNOWN
+  LEAD
+  CANCELED
 }
 
 model FinancialEntry {
@@ -126,8 +128,31 @@ model FinancialEntry {
   sourceSheet String?
   sourceRow   Int?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sourceType       String    @default("SPREADSHEET")
+  isManual         Boolean   @default(false)
+  editable         Boolean   @default(false)
+  deletedAt        DateTime?
+  manualKind       String?
+  documentNumber   String?
+  commercialStatus String?
+  financialStatus  String?
+  issuedAt         DateTime?
+  dueAt            DateTime?
+  paidAt           DateTime?
+  supplierName     String?
+  subCategory      String?
+  nature           String?
+  recurrence       String?
+  notes            String?
+  linkedClient     String?
+  costCenter       String?
+  paymentMethod    String?
+  accountName      String?
+  proofUrl         String?
+  expectedAmount   Decimal?  @db.Decimal(14, 2)
+  paidAmount       Decimal?  @db.Decimal(14, 2)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   import    Import?   @relation(fields: [importId], references: [id], onDelete: SetNull)
@@ -138,4 +163,18 @@ model FinancialEntry {
   @@index([date])
   @@index([client])
   @@index([groupName])
+}
+
+model ManualCatalogItem {
+  id          String   @id @default(cuid())
+  workspaceId String
+  type        String
+  name        String
+  parentName  String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([workspaceId, type, name])
+  @@index([workspaceId, type])
 }
