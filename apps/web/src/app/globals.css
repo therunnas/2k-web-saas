@@ -1,0 +1,117 @@
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+
+:root {
+  --background: #070b13;
+  --foreground: #f8fafc;
+
+  --font-dashboard:
+    "Inter Variable",
+    Inter,
+    "Segoe UI",
+    "SF Pro Display",
+    "SF Pro Text",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  --font-mono-dashboard:
+    "SF Mono",
+    "Cascadia Code",
+    "Roboto Mono",
+    Consolas,
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 32%),
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 28%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-dashboard);
+  font-feature-settings:
+    "cv02",
+    "cv03",
+    "cv04",
+    "cv11",
+    "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.28);
+  color: #ffffff;
+}
+
+.dashboard-ui {
+  font-family: var(--font-dashboard);
+  letter-spacing: -0.012em;
+  font-weight: 500;
+}
+
+.dashboard-ui h1 {
+  font-weight: 720;
+  letter-spacing: -0.055em;
+}
+
+.dashboard-ui h2 {
+  font-weight: 680;
+  letter-spacing: -0.04em;
+}
+
+.dashboard-ui h3,
+.dashboard-ui strong {
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.dashboard-label {
+  font-weight: 620;
+  letter-spacing: 0.115em;
+  text-transform: uppercase;
+}
+
+.dashboard-number {
+  font-family: var(--font-dashboard);
+  font-variant-numeric: tabular-nums;
+  font-weight: 680;
+  letter-spacing: -0.045em;
+}
+
+.dashboard-soft {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-code {
+  font-family: var(--font-mono-dashboard);
+  font-variant-numeric: tabular-nums;
+}
