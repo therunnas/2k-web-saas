@@ -7,12 +7,11 @@ const SESSION_COOKIE_NAME = "2k_admin_session";
  * Rotas privadas reais do painel.
  *
  * Mantenha esta lista sincronizada com o `config.matcher` no final do arquivo —
- * o matcher define o que dispara o middleware no edge, e este array define o
- * que ele efetivamente protege. Manter os dois alinhados evita brechas
- * silenciosas (rota no matcher mas não no array = passa sem checagem).
+ * o matcher define o que dispara o proxy no edge, e este array define o
+ * que ele efetivamente protege.
  *
  * APIs em `/api/*` não estão aqui porque cada rota faz sua própria checagem
- * via `getSession()`/`requireAdminSession()` (necessário porque o middleware
+ * via `getSession()`/`requireAdminSession()` (necessário porque o proxy
  * de edge não tem acesso ao Prisma).
  */
 const protectedRoutes = [
@@ -71,7 +70,7 @@ async function isValidAdminSession(token: string | undefined) {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   if (!isProtectedRoute(pathname)) {
