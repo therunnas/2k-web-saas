@@ -59,7 +59,7 @@ export function LoginScreen() {
 
       <section className="relative z-10 w-full max-w-md overflow-hidden rounded-sm border border-violet-500/80 bg-[#07040d] shadow-[0_0_38px_rgba(124,58,237,0.72)]">
         <div className="flex min-h-[520px] flex-col justify-center px-10 py-12 sm:px-14">
-          <div className="mb-10 flex items-center gap-3">
+          <div className="mb-12 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-sm font-black text-white shadow-[0_0_24px_rgba(124,58,237,0.45)]">
               2K
             </div>
@@ -68,14 +68,6 @@ export function LoginScreen() {
               STUDIOS
             </span>
           </div>
-
-          <p className="mb-3 text-xs font-black uppercase tracking-[0.28em] text-cyan-200">
-            Painel privado
-          </p>
-
-          <h1 className="mb-8 text-3xl font-black tracking-[-0.04em]">
-            Login administrativo
-          </h1>
 
           <form onSubmit={handleSubmit} className="space-y-7">
             <label className="block">
