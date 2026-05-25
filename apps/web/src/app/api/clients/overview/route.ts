@@ -119,6 +119,7 @@ export async function GET(request: Request) {
     const entries = (await prisma.financialEntry.findMany({
       where: {
         workspaceId: session.workspaceId,
+        deletedAt: null,
       },
       orderBy: [
         {

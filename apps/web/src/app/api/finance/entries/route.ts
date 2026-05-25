@@ -24,6 +24,18 @@ type FinanceEntry = {
   createdAt: Date;
 };
 
+const validTypes = ["REVENUE", "RECEIVABLE", "EXPENSE", "PAYABLE"] as const;
+
+function cleanText(value: unknown) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
+}
+
+function toNullableText(value: unknown) {
+  const text = cleanText(value);
+  return text ? text : null;
+}
+
 function toNumber(value: unknown) {
   if (value === null || value === undefined) return 0;
 
@@ -32,7 +44,12 @@ function toNumber(value: unknown) {
   }
 
   if (typeof value === "string") {
-    const parsed = Number(value);
+    const normalized = value
+      .replace(/\s/g, "")
+      .replace(/\./g, "")
+      .replace(",", ".");
+
+    const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : 0;
   }
 
@@ -46,6 +63,18 @@ function toNumber(value: unknown) {
 
 function roundMoney(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function parseDate(value: unknown) {
+  const text = cleanText(value);
+
+  if (!text) return null;
+
+  const date = new Date(text);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date;
 }
 
 function isRevenue(entry: FinanceEntry) {
@@ -125,6 +154,14 @@ function getEntryDirection(entry: FinanceEntry) {
   return "outro";
 }
 
+function financialStatusFromType(type: string) {
+  if (type === "REVENUE") return "PAGO";
+  if (type === "RECEIVABLE") return "A_RECEBER";
+  if (type === "EXPENSE") return "PAGO";
+  if (type === "PAYABLE") return "A_PAGAR";
+  return null;
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getSession();
@@ -147,6 +184,7 @@ export async function GET(request: Request) {
     const entries = (await prisma.financialEntry.findMany({
       where: {
         workspaceId: session.workspaceId,
+        deletedAt: null,
       },
       orderBy: [
         {
@@ -288,6 +326,190 @@ export async function GET(request: Request) {
           error instanceof Error
             ? error.message
             : "Erro desconhecido ao carregar lançamentos financeiros.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          status: "unauthorized",
+          message: "Sessão inválida.",
+        },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const id = cleanText(body.id);
+    const type = cleanText(body.type).toUpperCase();
+    const value = Math.max(toNumber(body.value), 0);
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "ID do lançamento não informado.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!validTypes.includes(type as (typeof validTypes)[number])) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Tipo de lançamento inválido.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.financialEntry.findFirst({
+      where: {
+        id,
+        workspaceId: session.workspaceId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Lançamento não encontrado ou já excluído.",
+        },
+        { status: 404 }
+      );
+    }
+
+    const isEntrada = type === "REVENUE" || type === "RECEIVABLE";
+    const isSaida = type === "EXPENSE" || type === "PAYABLE";
+
+    const grossAmount = isEntrada ? value : 0;
+    const costAmount = isSaida ? value : 0;
+    const profitAmount = grossAmount - costAmount;
+
+    const data: any = {
+      type,
+      date: parseDate(body.date),
+      competence: toNullableText(body.competence),
+      client: toNullableText(body.client),
+      groupName: toNullableText(body.groupName),
+      project: toNullableText(body.project),
+      description: toNullableText(body.description),
+      category: toNullableText(body.category),
+      status: toNullableText(body.status) ?? financialStatusFromType(type),
+      grossAmount,
+      costAmount,
+      profitAmount,
+      financialStatus: financialStatusFromType(type),
+      manualKind: isEntrada ? "ENTRADA" : "SAIDA",
+      supplierName: isSaida ? toNullableText(body.client) : null,
+      editable: true,
+      updatedAt: new Date(),
+    };
+
+    const updated = await prisma.financialEntry.update({
+      where: {
+        id,
+      },
+      data,
+    });
+
+    return NextResponse.json({
+      status: "ok",
+      message: "Lançamento atualizado com sucesso.",
+      entry: updated,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao editar lançamento.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          status: "unauthorized",
+          message: "Sessão inválida.",
+        },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const id = typeof body.id === "string" ? body.id.trim() : "";
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "ID do lançamento não informado.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.financialEntry.findFirst({
+      where: {
+        id,
+        workspaceId: session.workspaceId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Lançamento não encontrado ou já excluído.",
+        },
+        { status: 404 }
+      );
+    }
+
+    await prisma.financialEntry.update({
+      where: {
+        id,
+      },
+      data: {
+        deletedAt: new Date(),
+        editable: false,
+      },
+    });
+
+    return NextResponse.json({
+      status: "ok",
+      message: "Lançamento excluído com sucesso.",
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao excluir lançamento.",
       },
       { status: 500 }
     );

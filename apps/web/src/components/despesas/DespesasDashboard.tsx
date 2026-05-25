@@ -11,6 +11,7 @@ import {
   Search,
   Tags,
   TrendingDown,
+  Trash2,
   Users,
   Wallet,
 } from "lucide-react";
@@ -138,6 +139,7 @@ export function DespesasDashboard() {
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function loadDespesas(params?: { status?: string; search?: string }) {
@@ -190,6 +192,42 @@ export function DespesasDashboard() {
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAppliedSearch(search);
+  }
+  async function handleDeleteExpense(id: string) {
+    const confirmed = window.confirm(
+      "Tem certeza que deseja excluir esta despesa? Ela sairá dos cálculos do dashboard."
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(id);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch("/api/despesas/overview", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const json = await response.json();
+
+      if (!response.ok || json.status !== "ok") {
+        setErrorMessage(json.message ?? "Erro ao excluir despesa.");
+        return;
+      }
+
+      await loadDespesas({
+        status: activeFilter,
+        search: appliedSearch,
+      });
+    } catch {
+      setErrorMessage("Erro ao conectar com a API de exclusão.");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   const summaryCards = useMemo(() => {
@@ -374,19 +412,20 @@ export function DespesasDashboard() {
 
           <div className="overflow-x-auto rounded-2xl border border-white/10">
             <div className="min-w-[1080px]">
-              <div className="grid grid-cols-[1.35fr_1.75fr_1fr_1fr_1fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+              <div className="grid grid-cols-[1.25fr_1.6fr_0.9fr_1fr_0.9fr_0.8fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
                 <span>Fornecedor</span>
                 <span>Descrição</span>
                 <span>Competência</span>
                 <span>Categoria</span>
                 <span>Valor</span>
                 <span>Status</span>
+                <span>Ações</span>
               </div>
 
               {expenses.map((item) => (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[1.35fr_1.75fr_1fr_1fr_1fr_0.8fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                  className="grid grid-cols-[1.25fr_1.6fr_0.9fr_1fr_0.9fr_0.8fr_0.8fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-rose-400/10 text-xs font-semibold text-rose-200">
@@ -434,6 +473,16 @@ export function DespesasDashboard() {
                   >
                     {item.status || item.kind}
                   </span>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteExpense(item.id)}
+                    disabled={deletingId === item.id}
+                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-rose-400/20 bg-rose-400/10 px-3 py-1.5 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Trash2 size={13} />
+                    {deletingId === item.id ? "Excluindo..." : "Excluir"}
+                  </button>
                 </div>
               ))}
 

@@ -84,7 +84,7 @@ function buildSaidaPayload(body: Record<string, unknown>) {
   const linkedClient = text(body.linkedClient);
   const financialStatus = text(body.financialStatus || "A_PAGAR");
   const recurrence = text(body.recurrence || "PONTUAL");
-  const subCategory = text(body.subCategory);
+  const subCategory = text(body.subCategory) || "Sem subcategoria";
   const nature = text(body.nature || "VARIAVEL");
   const costCenter = text(body.costCenter);
   const paymentMethod = text(body.paymentMethod);
@@ -133,7 +133,7 @@ function buildSaidaPayload(body: Record<string, unknown>) {
 
 function validateSaida(payload: ReturnType<typeof buildSaidaPayload>) {
   if (!payload.category) return "Informe a categoria.";
-  if (!payload.subCategory) return "Informe a subcategoria.";
+
   if (!payload.supplierName) return "Informe o fornecedor/nome.";
   if (!payload.description) return "Informe a descrição.";
   if (payload.resolvedValue <= 0) return "Informe um valor maior que zero.";

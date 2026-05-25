@@ -176,6 +176,7 @@ export async function GET(request: Request) {
     const entries = (await prisma.financialEntry.findMany({
       where: {
         workspaceId: session.workspaceId,
+        deletedAt: null,
       },
       orderBy: [
         {
@@ -312,6 +313,78 @@ export async function GET(request: Request) {
           error instanceof Error
             ? error.message
             : "Erro desconhecido ao carregar despesas.",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          status: "unauthorized",
+          message: "Sessão inválida.",
+        },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const id = typeof body.id === "string" ? body.id.trim() : "";
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "ID da despesa não informado.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const existing = await prisma.financialEntry.findFirst({
+      where: {
+        id,
+        workspaceId: session.workspaceId,
+        deletedAt: null,
+        OR: [{ type: "EXPENSE" }, { type: "PAYABLE" }],
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Despesa não encontrada ou já excluída.",
+        },
+        { status: 404 }
+      );
+    }
+
+    await prisma.financialEntry.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        editable: false,
+      },
+    });
+
+    return NextResponse.json({
+      status: "ok",
+      message: "Despesa excluída com sucesso.",
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao excluir despesa.",
       },
       { status: 500 }
     );
