@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -64,7 +65,10 @@ function competenceFromDate(date: Date | null) {
   return `${month}/${year}`;
 }
 
-function mapEntradaType(commercialStatus: string, financialStatus: string): FinancialEntryTypeValue {
+function mapEntradaType(
+  commercialStatus: string,
+  financialStatus: string,
+): FinancialEntryTypeValue {
   if (commercialStatus === "CANCELADO" || financialStatus === "CANCELADO") {
     return "CANCELED";
   }
@@ -86,7 +90,9 @@ function buildEntradaPayload(body: Record<string, unknown>) {
   const project = text(body.project);
   const description = text(body.description);
   const documentNumber = text(body.documentNumber);
-  const commercialStatus = text(body.commercialStatus || "AGUARDANDO_PAGAMENTO");
+  const commercialStatus = text(
+    body.commercialStatus || "AGUARDANDO_PAGAMENTO",
+  );
   const financialStatus = text(body.financialStatus || "A_RECEBER");
   const notes = text(body.notes);
 
@@ -130,7 +136,7 @@ export async function GET() {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -141,10 +147,7 @@ export async function GET() {
         manualKind: "ENTRADA",
         deletedAt: null,
       },
-      orderBy: [
-        { date: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       take: 200,
     });
 
@@ -153,16 +156,9 @@ export async function GET() {
       entries,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao listar entradas manuais.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.entradas", error, {
+      fallback: "Erro desconhecido ao listar entradas manuais.",
+    });
   }
 }
 
@@ -173,7 +169,7 @@ export async function POST(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -184,7 +180,7 @@ export async function POST(request: Request) {
     if (validationError) {
       return NextResponse.json(
         { status: "error", message: validationError },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -232,16 +228,9 @@ export async function POST(request: Request) {
       entry,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao criar entrada manual.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.entradas", error, {
+      fallback: "Erro desconhecido ao criar entrada manual.",
+    });
   }
 }
 
@@ -252,7 +241,7 @@ export async function PATCH(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -262,7 +251,7 @@ export async function PATCH(request: Request) {
     if (!id) {
       return NextResponse.json(
         { status: "error", message: "ID da entrada não informado." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -279,8 +268,11 @@ export async function PATCH(request: Request) {
 
     if (!existing) {
       return NextResponse.json(
-        { status: "error", message: "Entrada manual não encontrada ou não editável." },
-        { status: 404 }
+        {
+          status: "error",
+          message: "Entrada manual não encontrada ou não editável.",
+        },
+        { status: 404 },
       );
     }
 
@@ -290,7 +282,7 @@ export async function PATCH(request: Request) {
     if (validationError) {
       return NextResponse.json(
         { status: "error", message: validationError },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -326,16 +318,9 @@ export async function PATCH(request: Request) {
       entry,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao editar entrada manual.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.entradas", error, {
+      fallback: "Erro desconhecido ao editar entrada manual.",
+    });
   }
 }
 export async function DELETE(request: Request) {
@@ -345,7 +330,7 @@ export async function DELETE(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -355,7 +340,7 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json(
         { status: "error", message: "ID da entrada não informado." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -372,7 +357,7 @@ export async function DELETE(request: Request) {
     if (!existing) {
       return NextResponse.json(
         { status: "error", message: "Entrada manual não encontrada." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -391,15 +376,8 @@ export async function DELETE(request: Request) {
       message: "Entrada excluída com sucesso.",
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao excluir entrada manual.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.entradas", error, {
+      fallback: "Erro desconhecido ao excluir entrada manual.",
+    });
   }
 }

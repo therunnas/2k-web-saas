@@ -3,13 +3,34 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SESSION_COOKIE_NAME = "2k_admin_session";
 
+/**
+ * Rotas privadas reais do painel.
+ *
+ * Mantenha esta lista sincronizada com o `config.matcher` no final do arquivo —
+ * o matcher define o que dispara o middleware no edge, e este array define o
+ * que ele efetivamente protege. Manter os dois alinhados evita brechas
+ * silenciosas (rota no matcher mas não no array = passa sem checagem).
+ *
+ * APIs em `/api/*` não estão aqui porque cada rota faz sua própria checagem
+ * via `getSession()`/`requireAdminSession()` (necessário porque o middleware
+ * de edge não tem acesso ao Prisma).
+ */
 const protectedRoutes = [
   "/setup",
   "/dashboard",
   "/financeiro",
-  "/producoes",
+  "/entradas",
+  "/saidas",
   "/clientes",
-  "/agenda"];
+  "/grupos",
+  "/vencimentos",
+  "/despesas",
+  "/producoes",
+  "/agenda",
+  "/relatorios",
+  "/metas",
+  "/configuracoes",
+];
 
 function getSecretKey() {
   const secret = process.env.AUTH_SECRET;
@@ -75,9 +96,16 @@ export const config = {
     "/setup/:path*",
     "/dashboard/:path*",
     "/financeiro/:path*",
-    "/producoes/:path*",
+    "/entradas/:path*",
+    "/saidas/:path*",
     "/clientes/:path*",
+    "/grupos/:path*",
+    "/vencimentos/:path*",
+    "/despesas/:path*",
+    "/producoes/:path*",
     "/agenda/:path*",
-    "/discord/:path*",
-    "/automacoes/:path*"],
+    "/relatorios/:path*",
+    "/metas/:path*",
+    "/configuracoes/:path*",
+  ],
 };

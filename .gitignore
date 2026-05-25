@@ -1,46 +1,71 @@
-# Dependencies
+# =====================================================================
+# 2K Web SaaS — .gitignore (raiz do monorepo)
+# =====================================================================
+
+# ----- Dependências -----
 node_modules/
 **/node_modules/
 
-# Next.js
+# ----- Next.js -----
 .next/
 **/.next/
 out/
 **/out/
+build/
+**/build/
 
-# Environment variables
+# ----- Variáveis de ambiente (BLOQUEADAS) -----
+# Bloqueamos qualquer .env* recursivo e liberamos o template .env.example.
 .env
-.env.local
-.env.*.local
+.env.*
 **/.env
-**/.env.local
-**/.env.*.local
+**/.env.*
+!.env.example
+!**/.env.example
 
-# Prisma / local database
+# ----- Prisma / cliente gerado / banco local -----
+**/src/generated/prisma
 *.db
 *.db-journal
-prisma/dev.db
+**/*.db
 **/prisma/dev.db
 
-# Logs
+# ----- Logs -----
 *.log
+**/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Backups
+# ----- Backups / caches -----
 .cleanup-backup/
 **/.cleanup-backup/
+.turbo/
+**/.turbo/
 
-# OS / editor
+# ----- Vercel -----
+.vercel/
+**/.vercel/
+
+# ----- TypeScript -----
+*.tsbuildinfo
+**/*.tsbuildinfo
+next-env.d.ts
+**/next-env.d.ts
+
+# ----- OS / editor -----
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.pem
+*.tmp
+*.swp
+*~
 
-# Build/cache
+# ----- Misc -----
 dist/
-build/
-.turbo/
-.vercel/
+**/dist/
+coverage/
+**/coverage/

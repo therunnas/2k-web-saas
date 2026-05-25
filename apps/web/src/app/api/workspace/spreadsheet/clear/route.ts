@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ function cleanText(value: unknown) {
 
 function unique(values: Array<string | null | undefined>) {
   return Array.from(
-    new Set(values.map((value) => cleanText(value)).filter(Boolean))
+    new Set(values.map((value) => cleanText(value)).filter(Boolean)),
   );
 }
 
@@ -95,7 +96,7 @@ async function preserveCatalogFromSpreadsheet(workspaceId: string) {
 
   const expenseCategories = unique(saidaEntries.map((entry) => entry.category));
   const expenseSubCategories = unique(
-    saidaEntries.map((entry) => entry.subCategory)
+    saidaEntries.map((entry) => entry.subCategory),
   );
 
   for (const name of groupNames) {
@@ -157,12 +158,12 @@ export async function DELETE() {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
     const preservedCatalog = await preserveCatalogFromSpreadsheet(
-      session.workspaceId
+      session.workspaceId,
     );
 
     const beforeCount = await prisma.financialEntry.count({
@@ -196,19 +197,13 @@ export async function DELETE() {
       preservedCatalog,
       rules: {
         deleted: "Somente sourceType SPREADSHEET foi removido.",
-        preserved: "Registros MANUAL e bases de configuração foram preservados.",
+        preserved:
+          "Registros MANUAL e bases de configuração foram preservados.",
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao limpar dados importados.",
-      },
-      { status: 500 }
-    );
+    return apiError("workspace.spreadsheet.clear", error, {
+      fallback: "Erro desconhecido ao limpar dados importados.",
+    });
   }
 }

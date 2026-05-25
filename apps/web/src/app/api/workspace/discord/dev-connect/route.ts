@@ -1,21 +1,24 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError, blockedInProduction, unauthorized } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
 export async function POST() {
+  // Rota de desenvolvimento — popula a conexão Discord com valores fake
+  // para permitir avançar o setup local sem OAuth real. Bloqueada em produção.
+  if (process.env.NODE_ENV === "production") {
+    return blockedInProduction(
+      "Conexão Discord em modo desenvolvimento está desabilitada em produção.",
+    );
+  }
+
   try {
     const session = await getSession();
 
     if (!session) {
-      return NextResponse.json(
-        {
-          status: "unauthorized",
-          message: "Sessão inválida.",
-        },
-        { status: 401 }
-      );
+      return unauthorized();
     }
 
     const discordConnection = await prisma.discordConnection.upsert({
@@ -64,15 +67,8 @@ export async function POST() {
       settings,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao conectar Discord.",
-      },
-      { status: 500 }
-    );
+    return apiError("workspace.discord.dev-connect", error, {
+      fallback: "Erro desconhecido ao conectar Discord.",
+    });
   }
 }

@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -9,6 +10,36 @@ const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 type SheetMatrix = unknown[][];
+
+/**
+ * Shape de uma linha financeira pronta para `prisma.financialEntry.createMany`.
+ *
+ * Não derivamos de `Prisma.FinancialEntryCreateManyInput` para evitar acoplar
+ * este builder ao cliente gerado — assim o arquivo segue compilando mesmo se
+ * `prisma generate` ainda não tiver rodado.
+ */
+type FinancialEntryInput = {
+  workspaceId: string;
+  importId: string;
+  type: "REVENUE" | "RECEIVABLE" | "EXPENSE" | "PAYABLE";
+  date: Date | null;
+  competence: string | null;
+  client: string | null;
+  groupName: string | null;
+  project: string | null;
+  description: string | null;
+  category: string | null;
+  status: string | null;
+  grossAmount: string;
+  costAmount: string;
+  profitAmount: string;
+  marginPercent: string | null;
+  sourceType: string;
+  isManual: boolean;
+  editable: boolean;
+  sourceSheet: string;
+  sourceRow: number;
+};
 
 function normalizeText(value: string) {
   return value
@@ -122,17 +153,17 @@ function buildEntradaEntries(params: {
   sheetName: string;
   workspaceId: string;
   importId: string;
-}) {
+}): FinancialEntryInput[] {
   const rows = params.matrix.slice(4);
 
   return rows
-    .map((row, index) => {
+    .map((row, index): FinancialEntryInput | null => {
       const mesRef = row[0];
       const grupo = text(row[1]);
       const marca = text(row[2]);
       const projeto = text(row[3]);
       const valor = money(row[4]);
-      const nf = text(row[5]);
+      // row[5] = NF (não capturado — schema atual não persiste número da NF)
       const status = text(row[6]);
       const dataEmissao = row[7];
       const prevRecebimento = row[8];
@@ -146,10 +177,12 @@ function buildEntradaEntries(params: {
       const statusNormalized = normalizeText(`${status} ${recebido}`);
 
       const isPaid =
-        statusNormalized.includes("pago") ||
-        statusNormalized.includes("sim");
+        statusNormalized.includes("pago") || statusNormalized.includes("sim");
 
-      const date = excelDate(mesRef) ?? excelDate(dataEmissao) ?? excelDate(prevRecebimento);
+      const date =
+        excelDate(mesRef) ??
+        excelDate(dataEmissao) ??
+        excelDate(prevRecebimento);
 
       return {
         workspaceId: params.workspaceId,
@@ -174,7 +207,7 @@ function buildEntradaEntries(params: {
         sourceRow: index + 5,
       };
     })
-    .filter(Boolean);
+    .filter((entry): entry is FinancialEntryInput => entry !== null);
 }
 
 function buildSaidaEntries(params: {
@@ -182,11 +215,11 @@ function buildSaidaEntries(params: {
   sheetName: string;
   workspaceId: string;
   importId: string;
-}) {
+}): FinancialEntryInput[] {
   const rows = params.matrix.slice(5);
 
   return rows
-    .map((row, index) => {
+    .map((row, index): FinancialEntryInput | null => {
       const mesRef = row[0];
       const data = row[1];
       const categoria = text(row[2]);
@@ -231,7 +264,7 @@ function buildSaidaEntries(params: {
         sourceRow: index + 6,
       };
     })
-    .filter(Boolean);
+    .filter((entry): entry is FinancialEntryInput => entry !== null);
 }
 
 function isAllowedSpreadsheet(fileName: string) {
@@ -250,7 +283,7 @@ export async function POST(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -263,7 +296,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Nenhum arquivo foi enviado.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -273,7 +306,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Envie uma planilha .xlsx ou .xls.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -283,7 +316,7 @@ export async function POST(request: Request) {
           status: "error",
           message: `Arquivo acima do limite de ${MAX_FILE_SIZE_MB}MB.`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -304,7 +337,7 @@ export async function POST(request: Request) {
           message:
             "Não encontrei as abas obrigatórias 💰 ENTRADAS e 💸 SAÍDAS.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -344,21 +377,26 @@ export async function POST(request: Request) {
     });
 
     if (financialEntries.length > 0) {
+      // Cast pontual e localizado: o cliente Prisma tipa Decimal como
+      // `Decimal | DecimalJsLike | string | number`, e neste builder usamos
+      // strings (`decimal()` retorna `"0.00"`). O Prisma converte na inserção.
       await prisma.financialEntry.createMany({
-        data: financialEntries as any[],
+        data: financialEntries as unknown as Parameters<
+          typeof prisma.financialEntry.createMany
+        >[0]["data"],
       });
     }
 
     const groupsCount = new Set(
       entradaEntries
-        .map((entry: any) => entry.groupName)
-        .filter(Boolean)
+        .map((entry) => entry.groupName)
+        .filter((name): name is string => Boolean(name)),
     ).size;
 
     const brandsCount = new Set(
       entradaEntries
-        .map((entry: any) => entry.client)
-        .filter(Boolean)
+        .map((entry) => entry.client)
+        .filter((name): name is string => Boolean(name)),
     ).size;
 
     const updatedImport = await prisma.import.update({
@@ -394,7 +432,7 @@ export async function POST(request: Request) {
       currentSettings.companyConfigured &&
       currentSettings.discordConfigured &&
       currentSettings.defaultChannelConfigured &&
-      true;
+      currentSettings.spreadsheetConfigured;
 
     const settings = await prisma.workspaceSettings.update({
       where: {
@@ -444,15 +482,8 @@ export async function POST(request: Request) {
       settings,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao importar planilha.",
-      },
-      { status: 500 }
-    );
+    return apiError("workspace.spreadsheet.upload", error, {
+      fallback: "Erro desconhecido ao importar planilha.",
+    });
   }
 }

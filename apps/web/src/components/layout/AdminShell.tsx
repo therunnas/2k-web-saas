@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BarChart3,
   CircleMinus,
@@ -22,6 +22,20 @@ import {
   Users,
   X,
 } from "lucide-react";
+
+/**
+ * Subconjunto do payload da sessão consumido pela sidebar.
+ *
+ * Bate com o que `/api/auth/session` retorna no campo `session` e com o
+ * `SessionPayload` de `@/lib/auth`. Mantido como type local em vez de
+ * importar do server para evitar acoplar este client component a módulos
+ * server-side (e quebrar a fronteira "use client").
+ */
+type SessionUser = {
+  name: string;
+  email: string;
+  role: "ADMIN";
+};
 
 type AdminShellProps = {
   children: ReactNode;
@@ -118,12 +132,28 @@ function Brand() {
   );
 }
 
+function getInitials(name?: string | null) {
+  if (!name) return "2K";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "2K";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function roleLabel(role?: string | null) {
+  if (role === "ADMIN") return "Administrador";
+  if (!role) return "Usuário";
+  return role;
+}
+
 function SidebarContent({
   pathname,
+  user,
   onNavigate,
   onLogout,
 }: {
   pathname: string;
+  user: SessionUser | null;
   onNavigate?: () => void;
   onLogout: () => void;
 }) {
@@ -134,9 +164,7 @@ function SidebarContent({
       </div>
 
       <div className="mx-4 mb-4 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-        <p className="dashboard-label text-[10px] text-slate-500">
-          Workspace
-        </p>
+        <p className="dashboard-label text-[10px] text-slate-500">Workspace</p>
 
         <div className="mt-3 flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-sm font-semibold text-white">
@@ -195,15 +223,15 @@ function SidebarContent({
         <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-300 text-xs font-semibold text-white">
-              VM
+              {getInitials(user?.name)}
             </span>
 
             <div className="min-w-0">
               <strong className="block truncate text-sm font-semibold">
-                Vinicius Macaneiro
+                {user?.name ?? "Carregando..."}
               </strong>
               <span className="text-xs font-medium text-slate-500">
-                Administrador
+                {user ? roleLabel(user.role) : "—"}
               </span>
             </div>
           </div>
@@ -227,19 +255,67 @@ export function AdminShell({ children }: AdminShellProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // `undefined` = ainda carregando, `null` = não autenticado.
+  // Em prática, se o middleware está fazendo o trabalho dele, todo
+  // mount do AdminShell ocorre com sessão válida — mas tratamos o caso
+  // de borda (cookie expirado durante navegação) sem quebrar a UI.
+  const [user, setUser] = useState<SessionUser | null | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSession() {
+      try {
+        const response = await fetch("/api/auth/session", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+
+        if (!response.ok) {
+          if (!cancelled) setUser(null);
+          return;
+        }
+
+        const json = (await response.json()) as {
+          authenticated: boolean;
+          session: SessionUser | null;
+        };
+
+        if (cancelled) return;
+
+        setUser(json.authenticated && json.session ? json.session : null);
+      } catch {
+        if (!cancelled) setUser(null);
+      }
+    }
+
+    loadSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   async function handleLogout() {
     await fetch("/api/auth/logout", {
       method: "POST",
+      credentials: "same-origin",
     });
 
     router.push("/login");
     router.refresh();
   }
 
+  const sidebarUser = user === undefined ? null : user;
+
   return (
     <main className="dashboard-ui min-h-screen bg-[#070b13] text-white">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] border-r border-white/10 bg-[#070b13]/95 backdrop-blur-xl xl:block">
-        <SidebarContent pathname={pathname} onLogout={handleLogout} />
+        <SidebarContent
+          pathname={pathname}
+          user={sidebarUser}
+          onLogout={handleLogout}
+        />
       </aside>
 
       {mobileMenuOpen ? (
@@ -265,6 +341,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
             <SidebarContent
               pathname={pathname}
+              user={sidebarUser}
               onNavigate={() => setMobileMenuOpen(false)}
               onLogout={handleLogout}
             />

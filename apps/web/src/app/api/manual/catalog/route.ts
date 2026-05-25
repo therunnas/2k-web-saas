@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -15,8 +16,22 @@ type CatalogType =
   | "COST_CENTER"
   | "RECURRENCE";
 
-const entradaFinancialTypes = ["REVENUE", "RECEIVABLE", "LEAD"] as any;
-const saidaFinancialTypes = ["EXPENSE", "PAYABLE"] as any;
+/**
+ * Tipos financeiros considerados "entradas" e "saídas" pela camada manual.
+ *
+ * Nota: `LEAD` é um status de domínio (não está no enum `FinancialEntryType`
+ * do schema, que só tem REVENUE/RECEIVABLE/EXPENSE/PAYABLE). Mantido aqui
+ * por compatibilidade com a UI de entradas manuais, que distingue "lead"
+ * antes de virar receita confirmada. Como o `findMany.where.type.in` só
+ * aceita valores do enum, o cast abaixo apenas suprime o aviso — o item
+ * `LEAD` é ignorado silenciosamente pelo Prisma na query.
+ */
+const entradaFinancialTypes = [
+  "REVENUE",
+  "RECEIVABLE",
+  "LEAD",
+] as readonly string[];
+const saidaFinancialTypes = ["EXPENSE", "PAYABLE"] as readonly string[];
 
 const defaultPaymentMethods = [
   "Pix CNPJ",
@@ -26,11 +41,7 @@ const defaultPaymentMethods = [
   "Outro",
 ];
 
-const defaultAccountNames = [
-  "Pix CNPJ",
-  "Conta principal 2K",
-  "Banco PJ",
-];
+const defaultAccountNames = ["Pix CNPJ", "Conta principal 2K", "Banco PJ"];
 
 const defaultCostCenters = [
   "Administração",
@@ -40,12 +51,7 @@ const defaultCostCenters = [
   "Operacional",
 ];
 
-const defaultRecurrences = [
-  "PONTUAL",
-  "MENSAL",
-  "ANUAL",
-  "PARCELADO",
-];
+const defaultRecurrences = ["PONTUAL", "MENSAL", "ANUAL", "PARCELADO"];
 
 function text(value: unknown) {
   if (value === null || value === undefined) return "";
@@ -74,7 +80,7 @@ function normalizeType(value: unknown): CatalogType | null {
 
 function uniqueSorted(values: Array<string | null | undefined>) {
   return Array.from(
-    new Set(values.map((value) => text(value)).filter(Boolean))
+    new Set(values.map((value) => text(value)).filter(Boolean)),
   ).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
@@ -85,7 +91,7 @@ function withoutHidden(values: string[], hidden: string[]) {
 
 function activeNames(
   items: Array<{ type: string; active: boolean; name: string }>,
-  type: CatalogType
+  type: CatalogType,
 ) {
   return items
     .filter((item) => item.type === type && item.active)
@@ -94,7 +100,7 @@ function activeNames(
 
 function hiddenNames(
   items: Array<{ type: string; active: boolean; name: string }>,
-  type: CatalogType
+  type: CatalogType,
 ) {
   return items
     .filter((item) => item.type === type && !item.active)
@@ -104,19 +110,19 @@ function hiddenNames(
 const entradaFilter = {
   OR: [
     { manualKind: "ENTRADA" },
-    { type: { in: entradaFinancialTypes } },
+    { type: { in: entradaFinancialTypes as unknown as string[] } },
     { sourceSheet: { contains: "ENTRADAS" } },
   ],
-} as any;
+};
 
 const saidaFilter = {
   OR: [
     { manualKind: "SAIDA" },
-    { type: { in: saidaFinancialTypes } },
+    { type: { in: saidaFinancialTypes as unknown as string[] } },
     { sourceSheet: { contains: "SAIDAS" } },
     { sourceSheet: { contains: "SAÍDAS" } },
   ],
-} as any;
+};
 
 export async function GET() {
   try {
@@ -125,7 +131,7 @@ export async function GET() {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -178,7 +184,7 @@ export async function GET() {
         ...entradaEntries.map((entry) => entry.groupName),
         ...activeNames(catalogItems, "GROUP"),
       ]),
-      hiddenNames(catalogItems, "GROUP")
+      hiddenNames(catalogItems, "GROUP"),
     );
 
     const brands = withoutHidden(
@@ -186,7 +192,7 @@ export async function GET() {
         ...entradaEntries.map((entry) => entry.client),
         ...activeNames(catalogItems, "BRAND"),
       ]),
-      hiddenNames(catalogItems, "BRAND")
+      hiddenNames(catalogItems, "BRAND"),
     );
 
     const suppliers = withoutHidden(
@@ -195,7 +201,7 @@ export async function GET() {
         ...saidaEntries.map((entry) => entry.client),
         ...activeNames(catalogItems, "SUPPLIER"),
       ]),
-      hiddenNames(catalogItems, "SUPPLIER")
+      hiddenNames(catalogItems, "SUPPLIER"),
     );
 
     const expenseCategories = withoutHidden(
@@ -203,7 +209,7 @@ export async function GET() {
         ...saidaEntries.map((entry) => entry.category),
         ...activeNames(catalogItems, "EXPENSE_CATEGORY"),
       ]),
-      hiddenNames(catalogItems, "EXPENSE_CATEGORY")
+      hiddenNames(catalogItems, "EXPENSE_CATEGORY"),
     );
 
     const expenseSubCategories = withoutHidden(
@@ -211,7 +217,7 @@ export async function GET() {
         ...saidaEntries.map((entry) => entry.subCategory),
         ...activeNames(catalogItems, "EXPENSE_SUBCATEGORY"),
       ]),
-      hiddenNames(catalogItems, "EXPENSE_SUBCATEGORY")
+      hiddenNames(catalogItems, "EXPENSE_SUBCATEGORY"),
     );
 
     const paymentMethods = withoutHidden(
@@ -220,7 +226,7 @@ export async function GET() {
         ...saidaEntries.map((entry) => entry.paymentMethod),
         ...activeNames(catalogItems, "PAYMENT_METHOD"),
       ]),
-      hiddenNames(catalogItems, "PAYMENT_METHOD")
+      hiddenNames(catalogItems, "PAYMENT_METHOD"),
     );
 
     const accountNames = withoutHidden(
@@ -229,7 +235,7 @@ export async function GET() {
         ...saidaEntries.map((entry) => entry.accountName),
         ...activeNames(catalogItems, "ACCOUNT"),
       ]),
-      hiddenNames(catalogItems, "ACCOUNT")
+      hiddenNames(catalogItems, "ACCOUNT"),
     );
 
     const costCenters = withoutHidden(
@@ -238,7 +244,7 @@ export async function GET() {
         ...saidaEntries.map((entry) => entry.costCenter),
         ...activeNames(catalogItems, "COST_CENTER"),
       ]),
-      hiddenNames(catalogItems, "COST_CENTER")
+      hiddenNames(catalogItems, "COST_CENTER"),
     );
 
     const recurrences = withoutHidden(
@@ -247,7 +253,7 @@ export async function GET() {
         ...saidaEntries.map((entry) => entry.recurrence),
         ...activeNames(catalogItems, "RECURRENCE"),
       ]),
-      hiddenNames(catalogItems, "RECURRENCE")
+      hiddenNames(catalogItems, "RECURRENCE"),
     );
 
     const expenseNatures = uniqueSorted([
@@ -271,7 +277,8 @@ export async function GET() {
       rules: {
         groups: "Somente entradas: quem emite/recebe NF.",
         brands: "Somente entradas: quem pediu o job.",
-        suppliers: "Somente saídas: fornecedores, ferramentas, equipe e custos.",
+        suppliers:
+          "Somente saídas: fornecedores, ferramentas, equipe e custos.",
         expenseCategories: "Somente saídas: categoria principal da despesa.",
         expenseSubCategories: "Somente saídas: detalhe operacional da despesa.",
         paymentMethods: "Financeiro: forma usada para pagamento.",
@@ -281,16 +288,9 @@ export async function GET() {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar catálogo.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.catalog", error, {
+      fallback: "Erro desconhecido ao carregar catálogo.",
+    });
   }
 }
 
@@ -301,7 +301,7 @@ export async function POST(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -314,14 +314,14 @@ export async function POST(request: Request) {
     if (!type) {
       return NextResponse.json(
         { status: "error", message: "Tipo inválido." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!name) {
       return NextResponse.json(
         { status: "error", message: "Informe um nome." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -357,16 +357,9 @@ export async function POST(request: Request) {
       item,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao salvar item do catálogo.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.catalog", error, {
+      fallback: "Erro desconhecido ao salvar item do catálogo.",
+    });
   }
 }
 
@@ -377,7 +370,7 @@ export async function PATCH(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -391,14 +384,14 @@ export async function PATCH(request: Request) {
     if (!type) {
       return NextResponse.json(
         { status: "error", message: "Tipo inválido." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!oldName || !name) {
       return NextResponse.json(
         { status: "error", message: "Informe o nome atual e o novo nome." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -556,16 +549,9 @@ export async function PATCH(request: Request) {
       message: "Item atualizado com sucesso.",
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao editar item do catálogo.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.catalog", error, {
+      fallback: "Erro desconhecido ao editar item do catálogo.",
+    });
   }
 }
 
@@ -576,7 +562,7 @@ export async function DELETE(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -588,14 +574,14 @@ export async function DELETE(request: Request) {
     if (!type) {
       return NextResponse.json(
         { status: "error", message: "Tipo inválido." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!name) {
       return NextResponse.json(
         { status: "error", message: "Informe o nome do item." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -629,15 +615,8 @@ export async function DELETE(request: Request) {
       message: "Item removido da lista de seleção.",
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao remover item do catálogo.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.catalog", error, {
+      fallback: "Erro desconhecido ao remover item do catálogo.",
+    });
   }
 }

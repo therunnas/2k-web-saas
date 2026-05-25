@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -102,7 +103,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -141,20 +142,18 @@ export async function GET(request: Request) {
       const project = getProjectName(entry);
       const value = revenueAmount(entry);
 
-      const current =
-        groupsMap.get(name) ??
-        {
-          name,
-          brands: new Set<string>(),
-          projects: new Set<string>(),
-          entries: 0,
-          revenue: 0,
-          received: 0,
-          receivable: 0,
-          lastDate: null,
-          lastProject: null,
-          lastStatus: null,
-        };
+      const current = groupsMap.get(name) ?? {
+        name,
+        brands: new Set<string>(),
+        projects: new Set<string>(),
+        entries: 0,
+        revenue: 0,
+        received: 0,
+        receivable: 0,
+        lastDate: null,
+        lastProject: null,
+        lastStatus: null,
+      };
 
       current.entries += 1;
       current.revenue += value;
@@ -225,21 +224,24 @@ export async function GET(request: Request) {
       .sort((a, b) => b.revenue - a.revenue);
 
     const totalRevenue = roundMoney(
-      groups.reduce((sum, group) => sum + group.revenue, 0)
+      groups.reduce((sum, group) => sum + group.revenue, 0),
     );
 
     const receivedTotal = roundMoney(
-      groups.reduce((sum, group) => sum + group.received, 0)
+      groups.reduce((sum, group) => sum + group.received, 0),
     );
 
     const receivableTotal = roundMoney(
-      groups.reduce((sum, group) => sum + group.receivable, 0)
+      groups.reduce((sum, group) => sum + group.receivable, 0),
     );
 
-    const totalBrands = groups.reduce((sum, group) => sum + group.brandsCount, 0);
+    const totalBrands = groups.reduce(
+      (sum, group) => sum + group.brandsCount,
+      0,
+    );
     const totalProjects = groups.reduce(
       (sum, group) => sum + group.projectsCount,
-      0
+      0,
     );
 
     const topGroup = groups[0] ?? null;
@@ -262,15 +264,8 @@ export async function GET(request: Request) {
       groups,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar grupos.",
-      },
-      { status: 500 }
-    );
+    return apiError("grupos.overview", error, {
+      fallback: "Erro desconhecido ao carregar grupos.",
+    });
   }
 }

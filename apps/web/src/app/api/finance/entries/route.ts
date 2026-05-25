@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -172,7 +173,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -208,7 +209,8 @@ export async function GET(request: Request) {
       if (type === "saidas") return isExpense(entry);
       if (type === "recebido") return entry.type === "REVENUE";
       if (type === "a-receber") return entry.type === "RECEIVABLE";
-      if (type === "despesas") return entry.type === "EXPENSE" || entry.type === "PAYABLE";
+      if (type === "despesas")
+        return entry.type === "EXPENSE" || entry.type === "PAYABLE";
       return true;
     });
 
@@ -236,35 +238,35 @@ export async function GET(request: Request) {
     const expenseEntries = yearEntries.filter(isExpense);
 
     const totalRevenue = roundMoney(
-      revenueEntries.reduce((sum, entry) => sum + revenueAmount(entry), 0)
+      revenueEntries.reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const receivedTotal = roundMoney(
       revenueEntries
         .filter((entry) => entry.type === "REVENUE")
-        .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+        .reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const receivableTotal = roundMoney(
       revenueEntries
         .filter((entry) => entry.type === "RECEIVABLE")
-        .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+        .reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const totalExpenses = roundMoney(
-      expenseEntries.reduce((sum, entry) => sum + expenseAmount(entry), 0)
+      expenseEntries.reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const paidExpenses = roundMoney(
       expenseEntries
         .filter((entry) => entry.type === "EXPENSE")
-        .reduce((sum, entry) => sum + expenseAmount(entry), 0)
+        .reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const payableTotal = roundMoney(
       expenseEntries
         .filter((entry) => entry.type === "PAYABLE")
-        .reduce((sum, entry) => sum + expenseAmount(entry), 0)
+        .reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const totalProfit = roundMoney(totalRevenue - totalExpenses);
@@ -319,16 +321,9 @@ export async function GET(request: Request) {
       entries: tableEntries,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar lançamentos financeiros.",
-      },
-      { status: 500 }
-    );
+    return apiError("finance.entries", error, {
+      fallback: "Erro desconhecido ao carregar lançamentos financeiros.",
+    });
   }
 }
 
@@ -342,7 +337,7 @@ export async function PATCH(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -358,7 +353,7 @@ export async function PATCH(request: Request) {
           status: "error",
           message: "ID do lançamento não informado.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -368,7 +363,7 @@ export async function PATCH(request: Request) {
           status: "error",
           message: "Tipo de lançamento inválido.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -386,7 +381,7 @@ export async function PATCH(request: Request) {
           status: "error",
           message: "Lançamento não encontrado ou já excluído.",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -397,7 +392,7 @@ export async function PATCH(request: Request) {
     const costAmount = isSaida ? value : 0;
     const profitAmount = grossAmount - costAmount;
 
-    const data: any = {
+    const data: Parameters<typeof prisma.financialEntry.update>[0]["data"] = {
       type,
       date: parseDate(body.date),
       competence: toNullableText(body.competence),
@@ -430,16 +425,9 @@ export async function PATCH(request: Request) {
       entry: updated,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao editar lançamento.",
-      },
-      { status: 500 }
-    );
+    return apiError("finance.entries", error, {
+      fallback: "Erro desconhecido ao editar lançamento.",
+    });
   }
 }
 
@@ -453,7 +441,7 @@ export async function DELETE(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -466,7 +454,7 @@ export async function DELETE(request: Request) {
           status: "error",
           message: "ID do lançamento não informado.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -484,7 +472,7 @@ export async function DELETE(request: Request) {
           status: "error",
           message: "Lançamento não encontrado ou já excluído.",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -503,15 +491,8 @@ export async function DELETE(request: Request) {
       message: "Lançamento excluído com sucesso.",
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao excluir lançamento.",
-      },
-      { status: 500 }
-    );
+    return apiError("finance.entries", error, {
+      fallback: "Erro desconhecido ao excluir lançamento.",
+    });
   }
 }

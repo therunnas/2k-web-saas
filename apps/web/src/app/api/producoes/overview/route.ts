@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -130,7 +131,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -216,27 +217,27 @@ export async function GET(request: Request) {
       });
 
     const totalRevenue = roundMoney(
-      productionsBase.reduce((sum, entry) => sum + revenueAmount(entry), 0)
+      productionsBase.reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const receivedTotal = roundMoney(
       productionsBase
         .filter((entry) => entry.type === "REVENUE")
-        .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+        .reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const receivableTotal = roundMoney(
       productionsBase
         .filter((entry) => entry.type === "RECEIVABLE")
-        .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+        .reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const finishedCount = productionsBase.filter(
-      (entry) => entry.type === "REVENUE"
+      (entry) => entry.type === "REVENUE",
     ).length;
 
     const pendingCount = productionsBase.filter(
-      (entry) => entry.type === "RECEIVABLE"
+      (entry) => entry.type === "RECEIVABLE",
     ).length;
 
     const groupsMap = new Map<string, number>();
@@ -299,15 +300,8 @@ export async function GET(request: Request) {
       productions,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar produções.",
-      },
-      { status: 500 }
-    );
+    return apiError("producoes.overview", error, {
+      fallback: "Erro desconhecido ao carregar produções.",
+    });
   }
 }

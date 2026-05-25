@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Informe o grupo.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Informe o cliente/marca.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Informe o projeto.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Informe um valor maior que zero.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -155,15 +156,8 @@ export async function POST(request: Request) {
       entry,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao criar produção manual.",
-      },
-      { status: 500 }
-    );
+    return apiError("producoes.manual", error, {
+      fallback: "Erro desconhecido ao criar produção manual.",
+    });
   }
 }

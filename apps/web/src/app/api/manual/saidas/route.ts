@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -152,7 +153,7 @@ export async function GET() {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -163,10 +164,7 @@ export async function GET() {
         manualKind: "SAIDA",
         deletedAt: null,
       },
-      orderBy: [
-        { date: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       take: 200,
     });
 
@@ -175,16 +173,9 @@ export async function GET() {
       entries,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao listar saídas manuais.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.saidas", error, {
+      fallback: "Erro desconhecido ao listar saídas manuais.",
+    });
   }
 }
 
@@ -195,7 +186,7 @@ export async function POST(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -206,7 +197,7 @@ export async function POST(request: Request) {
     if (validationError) {
       return NextResponse.json(
         { status: "error", message: validationError },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -252,7 +243,7 @@ export async function POST(request: Request) {
         paidAmount: decimal(
           payload.financialStatus === "PAGO"
             ? payload.paidValue || payload.resolvedValue
-            : 0
+            : 0,
         ),
         sourceSheet: "SAAS_SAIDAS",
         sourceRow: null,
@@ -265,16 +256,9 @@ export async function POST(request: Request) {
       entry,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao criar saída manual.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.saidas", error, {
+      fallback: "Erro desconhecido ao criar saída manual.",
+    });
   }
 }
 
@@ -285,7 +269,7 @@ export async function PATCH(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -295,7 +279,7 @@ export async function PATCH(request: Request) {
     if (!id) {
       return NextResponse.json(
         { status: "error", message: "ID da saída não informado." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -316,7 +300,7 @@ export async function PATCH(request: Request) {
           status: "error",
           message: "Saída manual não encontrada ou não editável.",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -326,7 +310,7 @@ export async function PATCH(request: Request) {
     if (validationError) {
       return NextResponse.json(
         { status: "error", message: validationError },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -363,7 +347,7 @@ export async function PATCH(request: Request) {
         paidAmount: decimal(
           payload.financialStatus === "PAGO"
             ? payload.paidValue || payload.resolvedValue
-            : 0
+            : 0,
         ),
       },
     });
@@ -374,16 +358,9 @@ export async function PATCH(request: Request) {
       entry,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao editar saída manual.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.saidas", error, {
+      fallback: "Erro desconhecido ao editar saída manual.",
+    });
   }
 }
 
@@ -394,7 +371,7 @@ export async function DELETE(request: Request) {
     if (!session) {
       return NextResponse.json(
         { status: "unauthorized", message: "Sessão inválida." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -404,7 +381,7 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json(
         { status: "error", message: "ID da saída não informado." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -421,7 +398,7 @@ export async function DELETE(request: Request) {
     if (!existing) {
       return NextResponse.json(
         { status: "error", message: "Saída manual não encontrada." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -440,15 +417,8 @@ export async function DELETE(request: Request) {
       message: "Saída excluída com sucesso.",
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao excluir saída manual.",
-      },
-      { status: 500 }
-    );
+    return apiError("manual.saidas", error, {
+      fallback: "Erro desconhecido ao excluir saída manual.",
+    });
   }
 }

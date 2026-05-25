@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -126,7 +127,12 @@ function getProjectName(entry: FinanceEntry) {
 }
 
 function getSupplierName(entry: FinanceEntry) {
-  return entry.client || entry.project || entry.description || "Fornecedor não identificado";
+  return (
+    entry.client ||
+    entry.project ||
+    entry.description ||
+    "Fornecedor não identificado"
+  );
 }
 
 function getCategoryName(entry: FinanceEntry) {
@@ -134,13 +140,11 @@ function getCategoryName(entry: FinanceEntry) {
 }
 
 function upsertBucket(map: Map<string, Bucket>, name: string, value: number) {
-  const current =
-    map.get(name) ??
-    {
-      name,
-      total: 0,
-      count: 0,
-    };
+  const current = map.get(name) ?? {
+    name,
+    total: 0,
+    count: 0,
+  };
 
   current.total += value;
   current.count += 1;
@@ -170,7 +174,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -202,35 +206,35 @@ export async function GET(request: Request) {
     const expenseEntries = yearEntries.filter(isExpense);
 
     const totalRevenue = roundMoney(
-      revenueEntries.reduce((sum, entry) => sum + revenueAmount(entry), 0)
+      revenueEntries.reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const receivedTotal = roundMoney(
       revenueEntries
         .filter((entry) => entry.type === "REVENUE")
-        .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+        .reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const receivableTotal = roundMoney(
       revenueEntries
         .filter((entry) => entry.type === "RECEIVABLE")
-        .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+        .reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const totalExpenses = roundMoney(
-      expenseEntries.reduce((sum, entry) => sum + expenseAmount(entry), 0)
+      expenseEntries.reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const paidExpenses = roundMoney(
       expenseEntries
         .filter((entry) => entry.type === "EXPENSE")
-        .reduce((sum, entry) => sum + expenseAmount(entry), 0)
+        .reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const payableTotal = roundMoney(
       expenseEntries
         .filter((entry) => entry.type === "PAYABLE")
-        .reduce((sum, entry) => sum + expenseAmount(entry), 0)
+        .reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const totalProfit = roundMoney(totalRevenue - totalExpenses);
@@ -241,31 +245,37 @@ export async function GET(request: Request) {
 
     const monthly = MONTHS.map((month) => {
       const monthRevenueEntries = revenueEntries.filter(
-        (entry) => getMonth(entry) === month.index
+        (entry) => getMonth(entry) === month.index,
       );
 
       const monthExpenseEntries = expenseEntries.filter(
-        (entry) => getMonth(entry) === month.index
+        (entry) => getMonth(entry) === month.index,
       );
 
       const revenue = roundMoney(
-        monthRevenueEntries.reduce((sum, entry) => sum + revenueAmount(entry), 0)
+        monthRevenueEntries.reduce(
+          (sum, entry) => sum + revenueAmount(entry),
+          0,
+        ),
       );
 
       const received = roundMoney(
         monthRevenueEntries
           .filter((entry) => entry.type === "REVENUE")
-          .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+          .reduce((sum, entry) => sum + revenueAmount(entry), 0),
       );
 
       const receivable = roundMoney(
         monthRevenueEntries
           .filter((entry) => entry.type === "RECEIVABLE")
-          .reduce((sum, entry) => sum + revenueAmount(entry), 0)
+          .reduce((sum, entry) => sum + revenueAmount(entry), 0),
       );
 
       const expenses = roundMoney(
-        monthExpenseEntries.reduce((sum, entry) => sum + expenseAmount(entry), 0)
+        monthExpenseEntries.reduce(
+          (sum, entry) => sum + expenseAmount(entry),
+          0,
+        ),
       );
 
       const profit = roundMoney(revenue - expenses);
@@ -344,15 +354,8 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar relatórios.",
-      },
-      { status: 500 }
-    );
+    return apiError("relatorios.overview", error, {
+      fallback: "Erro desconhecido ao carregar relatórios.",
+    });
   }
 }

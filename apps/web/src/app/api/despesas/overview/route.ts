@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -95,7 +96,12 @@ function getMonth(entry: FinanceEntry) {
 }
 
 function getSupplier(entry: FinanceEntry) {
-  return entry.client || entry.project || entry.description || "Fornecedor não identificado";
+  return (
+    entry.client ||
+    entry.project ||
+    entry.description ||
+    "Fornecedor não identificado"
+  );
 }
 
 function getCategory(entry: FinanceEntry) {
@@ -103,7 +109,12 @@ function getCategory(entry: FinanceEntry) {
 }
 
 function getDescription(entry: FinanceEntry) {
-  return entry.description || entry.project || entry.category || "Despesa sem descrição";
+  return (
+    entry.description ||
+    entry.project ||
+    entry.category ||
+    "Despesa sem descrição"
+  );
 }
 
 function getExpenseKind(entry: FinanceEntry) {
@@ -115,19 +126,17 @@ function getExpenseKind(entry: FinanceEntry) {
 function upsertBucket(
   map: Map<string, ExpenseBucket>,
   name: string,
-  entry: FinanceEntry
+  entry: FinanceEntry,
 ) {
   const value = expenseAmount(entry);
 
-  const current =
-    map.get(name) ??
-    {
-      name,
-      total: 0,
-      paid: 0,
-      payable: 0,
-      count: 0,
-    };
+  const current = map.get(name) ?? {
+    name,
+    total: 0,
+    paid: 0,
+    payable: 0,
+    count: 0,
+  };
 
   current.total += value;
   current.count += 1;
@@ -164,7 +173,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -221,19 +230,19 @@ export async function GET(request: Request) {
       });
 
     const totalExpenses = roundMoney(
-      expenseEntries.reduce((sum, entry) => sum + expenseAmount(entry), 0)
+      expenseEntries.reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const paidTotal = roundMoney(
       expenseEntries
         .filter((entry) => entry.type === "EXPENSE")
-        .reduce((sum, entry) => sum + expenseAmount(entry), 0)
+        .reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const payableTotal = roundMoney(
       expenseEntries
         .filter((entry) => entry.type === "PAYABLE")
-        .reduce((sum, entry) => sum + expenseAmount(entry), 0)
+        .reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const categoriesMap = new Map<string, ExpenseBucket>();
@@ -247,7 +256,10 @@ export async function GET(request: Request) {
       const month = getMonth(entry);
 
       if (month !== null) {
-        monthlyMap.set(month, (monthlyMap.get(month) ?? 0) + expenseAmount(entry));
+        monthlyMap.set(
+          month,
+          (monthlyMap.get(month) ?? 0) + expenseAmount(entry),
+        );
       }
     }
 
@@ -290,8 +302,10 @@ export async function GET(request: Request) {
       summary: {
         totalEntries: expenseEntries.length,
         filteredEntries: expenses.length,
-        paidCount: expenseEntries.filter((entry) => entry.type === "EXPENSE").length,
-        payableCount: expenseEntries.filter((entry) => entry.type === "PAYABLE").length,
+        paidCount: expenseEntries.filter((entry) => entry.type === "EXPENSE")
+          .length,
+        payableCount: expenseEntries.filter((entry) => entry.type === "PAYABLE")
+          .length,
         totalExpenses,
         paidTotal,
         payableTotal,
@@ -306,16 +320,9 @@ export async function GET(request: Request) {
       expenses,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar despesas.",
-      },
-      { status: 500 }
-    );
+    return apiError("despesas.overview", error, {
+      fallback: "Erro desconhecido ao carregar despesas.",
+    });
   }
 }
 
@@ -329,7 +336,7 @@ export async function DELETE(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -342,7 +349,7 @@ export async function DELETE(request: Request) {
           status: "error",
           message: "ID da despesa não informado.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -361,7 +368,7 @@ export async function DELETE(request: Request) {
           status: "error",
           message: "Despesa não encontrada ou já excluída.",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -378,15 +385,8 @@ export async function DELETE(request: Request) {
       message: "Despesa excluída com sucesso.",
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao excluir despesa.",
-      },
-      { status: 500 }
-    );
+    return apiError("despesas.overview", error, {
+      fallback: "Erro desconhecido ao excluir despesa.",
+    });
   }
 }

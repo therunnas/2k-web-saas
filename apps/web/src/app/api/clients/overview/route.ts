@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -108,7 +109,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -143,20 +144,18 @@ export async function GET(request: Request) {
 
     for (const entry of revenueEntries) {
       const name = groupName(entry);
-      const current =
-        groups.get(name) ??
-        {
-          name,
-          brands: new Set<string>(),
-          projects: new Set<string>(),
-          revenue: 0,
-          received: 0,
-          receivable: 0,
-          entries: 0,
-          lastDate: null,
-          lastProject: null,
-          lastStatus: null,
-        };
+      const current = groups.get(name) ?? {
+        name,
+        brands: new Set<string>(),
+        projects: new Set<string>(),
+        revenue: 0,
+        received: 0,
+        receivable: 0,
+        entries: 0,
+        lastDate: null,
+        lastProject: null,
+        lastStatus: null,
+      };
 
       const value = revenueAmount(entry);
 
@@ -223,20 +222,20 @@ export async function GET(request: Request) {
       .sort((a, b) => b.revenue - a.revenue);
 
     const totalRevenue = roundMoney(
-      clients.reduce((sum, client) => sum + client.revenue, 0)
+      clients.reduce((sum, client) => sum + client.revenue, 0),
     );
 
     const receivedTotal = roundMoney(
-      clients.reduce((sum, client) => sum + client.received, 0)
+      clients.reduce((sum, client) => sum + client.received, 0),
     );
 
     const receivableTotal = roundMoney(
-      clients.reduce((sum, client) => sum + client.receivable, 0)
+      clients.reduce((sum, client) => sum + client.receivable, 0),
     );
 
     const totalProjects = clients.reduce(
       (sum, client) => sum + client.projectsCount,
-      0
+      0,
     );
 
     const topClient = clients[0] ?? null;
@@ -258,15 +257,8 @@ export async function GET(request: Request) {
       clients,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar clientes.",
-      },
-      { status: 500 }
-    );
+    return apiError("clients.overview", error, {
+      fallback: "Erro desconhecido ao carregar clientes.",
+    });
   }
 }
