@@ -25,7 +25,19 @@ type FinanceEntry = {
   createdAt: Date;
 };
 
+type EditableFinancialEntryType =
+  | "REVENUE"
+  | "RECEIVABLE"
+  | "EXPENSE"
+  | "PAYABLE";
+
 const validTypes = ["REVENUE", "RECEIVABLE", "EXPENSE", "PAYABLE"] as const;
+
+function isValidFinancialEntryType(
+  value: string,
+): value is EditableFinancialEntryType {
+  return (validTypes as readonly string[]).includes(value);
+}
 
 function cleanText(value: unknown) {
   if (value === null || value === undefined) return "";
@@ -303,7 +315,7 @@ export async function GET(request: Request) {
       status: "ok",
       year,
       filters: {
-        type,
+        type: type as Parameters<typeof prisma.financialEntry.update>[0]["data"]["type"],
         search,
       },
       summary: {
@@ -393,7 +405,7 @@ export async function PATCH(request: Request) {
     const profitAmount = grossAmount - costAmount;
 
     const data: Parameters<typeof prisma.financialEntry.update>[0]["data"] = {
-      type,
+      type: type as Parameters<typeof prisma.financialEntry.update>[0]["data"]["type"],
       date: parseDate(body.date),
       competence: toNullableText(body.competence),
       client: toNullableText(body.client),

@@ -14,9 +14,9 @@ type SheetMatrix = unknown[][];
 /**
  * Shape de uma linha financeira pronta para `prisma.financialEntry.createMany`.
  *
- * Não derivamos de `Prisma.FinancialEntryCreateManyInput` para evitar acoplar
- * este builder ao cliente gerado — assim o arquivo segue compilando mesmo se
- * `prisma generate` ainda não tiver rodado.
+ * NÃ£o derivamos de `Prisma.FinancialEntryCreateManyInput` para evitar acoplar
+ * este builder ao cliente gerado â€” assim o arquivo segue compilando mesmo se
+ * `prisma generate` ainda nÃ£o tiver rodado.
  */
 type FinancialEntryInput = {
   workspaceId: string;
@@ -163,7 +163,7 @@ function buildEntradaEntries(params: {
       const marca = text(row[2]);
       const projeto = text(row[3]);
       const valor = money(row[4]);
-      // row[5] = NF (não capturado — schema atual não persiste número da NF)
+      // row[5] = NF (nÃ£o capturado â€” schema atual nÃ£o persiste nÃºmero da NF)
       const status = text(row[6]);
       const dataEmissao = row[7];
       const prevRecebimento = row[8];
@@ -251,7 +251,7 @@ function buildSaidaEntries(params: {
         groupName: null,
         project: descricao || null,
         description: descricao || obs || null,
-        category: categoria || subcategoria || natureza || "Saída",
+        category: categoria || subcategoria || natureza || "SaÃ­da",
         status: status || recorrencia || null,
         grossAmount: decimal(0),
         costAmount: decimal(valor),
@@ -281,7 +281,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           status: "unauthorized",
-          message: "Sessão inválida.",
+          message: "SessÃ£o invÃ¡lida.",
         },
         { status: 401 },
       );
@@ -335,7 +335,7 @@ export async function POST(request: Request) {
         {
           status: "error",
           message:
-            "Não encontrei as abas obrigatórias 💰 ENTRADAS e 💸 SAÍDAS.",
+            "NÃ£o encontrei as abas obrigatÃ³rias ðŸ’° ENTRADAS e ðŸ’¸ SAÃDAS.",
         },
         { status: 400 },
       );
@@ -379,11 +379,9 @@ export async function POST(request: Request) {
     if (financialEntries.length > 0) {
       // Cast pontual e localizado: o cliente Prisma tipa Decimal como
       // `Decimal | DecimalJsLike | string | number`, e neste builder usamos
-      // strings (`decimal()` retorna `"0.00"`). O Prisma converte na inserção.
+      // strings (`decimal()` retorna `"0.00"`). O Prisma converte na inserÃ§Ã£o.
       await prisma.financialEntry.createMany({
-        data: financialEntries as unknown as Parameters<
-          typeof prisma.financialEntry.createMany
-        >[0]["data"],
+        data: financialEntries as unknown as NonNullable<Parameters<typeof prisma.financialEntry.createMany>[0]>["data"],
       });
     }
 

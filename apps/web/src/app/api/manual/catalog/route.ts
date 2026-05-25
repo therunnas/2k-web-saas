@@ -17,35 +17,33 @@ type CatalogType =
   | "RECURRENCE";
 
 /**
- * Tipos financeiros considerados "entradas" e "saídas" pela camada manual.
+ * Tipos financeiros (do enum `FinancialEntryType`) considerados "entradas"
+ * e "saídas" pela camada manual.
  *
- * Nota: `LEAD` é um status de domínio (não está no enum `FinancialEntryType`
- * do schema, que só tem REVENUE/RECEIVABLE/EXPENSE/PAYABLE). Mantido aqui
- * por compatibilidade com a UI de entradas manuais, que distingue "lead"
- * antes de virar receita confirmada. Como o `findMany.where.type.in` só
- * aceita valores do enum, o cast abaixo apenas suprime o aviso — o item
- * `LEAD` é ignorado silenciosamente pelo Prisma na query.
+ * Nota: `LEAD` não entra neste filtro operacional de entradas confirmadas
+ * ou a receber. O fluxo comercial pode continuar usando `commercialStatus`
+ * para leads sem misturar isso com a classificação financeira usada nas queries.
  */
-const entradaFinancialTypes = [
+const entradaFinancialTypes: ("REVENUE" | "RECEIVABLE")[] = [
   "REVENUE",
   "RECEIVABLE",
-  "LEAD",
-] as readonly string[];
-const saidaFinancialTypes = ["EXPENSE", "PAYABLE"] as readonly string[];
+];
+
+const saidaFinancialTypes: ("EXPENSE" | "PAYABLE")[] = ["EXPENSE", "PAYABLE"];
 
 const defaultPaymentMethods = [
   "Pix CNPJ",
-  "Transferência bancária",
-  "Boleto bancário",
-  "Débito em conta",
+  "TransferÃªncia bancÃ¡ria",
+  "Boleto bancÃ¡rio",
+  "DÃ©bito em conta",
   "Outro",
 ];
 
 const defaultAccountNames = ["Pix CNPJ", "Conta principal 2K", "Banco PJ"];
 
 const defaultCostCenters = [
-  "Administração",
-  "Produção",
+  "AdministraÃ§Ã£o",
+  "ProduÃ§Ã£o",
   "Tecnologia",
   "Financeiro",
   "Operacional",
@@ -110,7 +108,7 @@ function hiddenNames(
 const entradaFilter = {
   OR: [
     { manualKind: "ENTRADA" },
-    { type: { in: entradaFinancialTypes as unknown as string[] } },
+    { type: { in: entradaFinancialTypes } },
     { sourceSheet: { contains: "ENTRADAS" } },
   ],
 };
@@ -118,9 +116,9 @@ const entradaFilter = {
 const saidaFilter = {
   OR: [
     { manualKind: "SAIDA" },
-    { type: { in: saidaFinancialTypes as unknown as string[] } },
+    { type: { in: saidaFinancialTypes } },
     { sourceSheet: { contains: "SAIDAS" } },
-    { sourceSheet: { contains: "SAÍDAS" } },
+    { sourceSheet: { contains: "SAÃDAS" } },
   ],
 };
 
@@ -130,7 +128,7 @@ export async function GET() {
 
     if (!session) {
       return NextResponse.json(
-        { status: "unauthorized", message: "Sessão inválida." },
+        { status: "unauthorized", message: "SessÃ£o invÃ¡lida." },
         { status: 401 },
       );
     }
@@ -278,18 +276,18 @@ export async function GET() {
         groups: "Somente entradas: quem emite/recebe NF.",
         brands: "Somente entradas: quem pediu o job.",
         suppliers:
-          "Somente saídas: fornecedores, ferramentas, equipe e custos.",
-        expenseCategories: "Somente saídas: categoria principal da despesa.",
-        expenseSubCategories: "Somente saídas: detalhe operacional da despesa.",
+          "Somente saÃ­das: fornecedores, ferramentas, equipe e custos.",
+        expenseCategories: "Somente saÃ­das: categoria principal da despesa.",
+        expenseSubCategories: "Somente saÃ­das: detalhe operacional da despesa.",
         paymentMethods: "Financeiro: forma usada para pagamento.",
         accountNames: "Financeiro: conta, banco ou Pix CNPJ usado.",
-        costCenters: "Financeiro: centro de custo do lançamento.",
-        recurrences: "Financeiro: recorrência do lançamento.",
+        costCenters: "Financeiro: centro de custo do lanÃ§amento.",
+        recurrences: "Financeiro: recorrÃªncia do lanÃ§amento.",
       },
     });
   } catch (error) {
     return apiError("manual.catalog", error, {
-      fallback: "Erro desconhecido ao carregar catálogo.",
+      fallback: "Erro desconhecido ao carregar catÃ¡logo.",
     });
   }
 }
@@ -300,7 +298,7 @@ export async function POST(request: Request) {
 
     if (!session) {
       return NextResponse.json(
-        { status: "unauthorized", message: "Sessão inválida." },
+        { status: "unauthorized", message: "SessÃ£o invÃ¡lida." },
         { status: 401 },
       );
     }
@@ -313,7 +311,7 @@ export async function POST(request: Request) {
 
     if (!type) {
       return NextResponse.json(
-        { status: "error", message: "Tipo inválido." },
+        { status: "error", message: "Tipo invÃ¡lido." },
         { status: 400 },
       );
     }
@@ -358,7 +356,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return apiError("manual.catalog", error, {
-      fallback: "Erro desconhecido ao salvar item do catálogo.",
+      fallback: "Erro desconhecido ao salvar item do catÃ¡logo.",
     });
   }
 }
@@ -369,7 +367,7 @@ export async function PATCH(request: Request) {
 
     if (!session) {
       return NextResponse.json(
-        { status: "unauthorized", message: "Sessão inválida." },
+        { status: "unauthorized", message: "SessÃ£o invÃ¡lida." },
         { status: 401 },
       );
     }
@@ -383,7 +381,7 @@ export async function PATCH(request: Request) {
 
     if (!type) {
       return NextResponse.json(
-        { status: "error", message: "Tipo inválido." },
+        { status: "error", message: "Tipo invÃ¡lido." },
         { status: 400 },
       );
     }
@@ -550,7 +548,7 @@ export async function PATCH(request: Request) {
     });
   } catch (error) {
     return apiError("manual.catalog", error, {
-      fallback: "Erro desconhecido ao editar item do catálogo.",
+      fallback: "Erro desconhecido ao editar item do catÃ¡logo.",
     });
   }
 }
@@ -561,7 +559,7 @@ export async function DELETE(request: Request) {
 
     if (!session) {
       return NextResponse.json(
-        { status: "unauthorized", message: "Sessão inválida." },
+        { status: "unauthorized", message: "SessÃ£o invÃ¡lida." },
         { status: 401 },
       );
     }
@@ -573,7 +571,7 @@ export async function DELETE(request: Request) {
 
     if (!type) {
       return NextResponse.json(
-        { status: "error", message: "Tipo inválido." },
+        { status: "error", message: "Tipo invÃ¡lido." },
         { status: 400 },
       );
     }
@@ -612,11 +610,11 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({
       status: "ok",
-      message: "Item removido da lista de seleção.",
+      message: "Item removido da lista de seleÃ§Ã£o.",
     });
   } catch (error) {
     return apiError("manual.catalog", error, {
-      fallback: "Erro desconhecido ao remover item do catálogo.",
+      fallback: "Erro desconhecido ao remover item do catÃ¡logo.",
     });
   }
 }
