@@ -54,11 +54,11 @@ export function LoginScreen() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#06030b] px-6 py-10 text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.26),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.12),transparent_30%)]" />
-      <div className="absolute left-1/2 top-1/2 h-[520px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-700/20 blur-[120px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.24),transparent_36%),radial-gradient(circle_at_bottom_right,rgba(34,211,238,0.10),transparent_30%)]" />
+      <div className="absolute left-1/2 top-1/2 h-[520px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-700/20 blur-[120px]" />
 
-      <section className="relative z-10 grid w-full max-w-4xl overflow-hidden rounded-sm border border-violet-500/80 bg-[#07040d] shadow-[0_0_38px_rgba(124,58,237,0.72)] md:grid-cols-2">
-        <div className="relative z-20 flex min-h-[430px] flex-col justify-center px-10 py-12 sm:px-14">
+      <section className="relative z-10 w-full max-w-md overflow-hidden rounded-sm border border-violet-500/80 bg-[#07040d] shadow-[0_0_38px_rgba(124,58,237,0.72)]">
+        <div className="flex min-h-[520px] flex-col justify-center px-10 py-12 sm:px-14">
           <div className="mb-10 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black text-sm font-black text-white shadow-[0_0_24px_rgba(124,58,237,0.45)]">
               2K
@@ -122,27 +122,6 @@ export function LoginScreen() {
           <p className="mt-6 text-center text-xs text-white/55">
             Acesso restrito à administração da 2K Studios.
           </p>
-        </div>
-
-        <div className="relative hidden min-h-[430px] items-center justify-center overflow-hidden bg-gradient-to-br from-violet-950 via-violet-800 to-violet-700 px-10 py-12 md:flex">
-          <div className="absolute -left-28 top-0 h-[620px] w-[320px] -skew-x-[35deg] bg-[#07040d]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.20),transparent_22%),radial-gradient(circle_at_60%_70%,rgba(34,211,238,0.13),transparent_28%)]" />
-          <div className="absolute inset-0 border-l border-violet-300/60" />
-
-          <div className="relative z-10 ml-16 max-w-xs text-right">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-200">
-              2K Studios
-            </p>
-
-            <h2 className="mt-5 text-4xl font-black leading-none tracking-[-0.04em]">
-              Operação em um único painel.
-            </h2>
-
-            <p className="mt-5 text-sm leading-6 text-white/75">
-              Controle financeiro, produções, clientes, agenda, Discord e
-              automações internas em uma plataforma privada.
-            </p>
-          </div>
         </div>
       </section>
     </main>
