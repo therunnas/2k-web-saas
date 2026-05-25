@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
         status: "blocked",
         message: "Setup state route is disabled in production.",
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -74,15 +75,8 @@ export async function POST(request: Request) {
       settings,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao atualizar setup.",
-      },
-      { status: 500 }
-    );
+    return apiError("dev.setup-state", error, {
+      fallback: "Erro desconhecido ao atualizar setup.",
+    });
   }
 }

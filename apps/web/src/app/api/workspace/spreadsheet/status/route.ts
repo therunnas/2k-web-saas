@@ -1,6 +1,7 @@
 ﻿import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,7 @@ export async function GET() {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -153,15 +154,8 @@ export async function GET() {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao consultar status da planilha.",
-      },
-      { status: 500 }
-    );
+    return apiError("workspace.spreadsheet.status", error, {
+      fallback: "Erro desconhecido ao consultar status da planilha.",
+    });
   }
 }

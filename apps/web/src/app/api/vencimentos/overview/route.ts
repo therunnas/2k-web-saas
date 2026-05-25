@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -104,7 +105,12 @@ function getDisplayName(entry: FinanceEntry) {
 }
 
 function getDescription(entry: FinanceEntry) {
-  return entry.project || entry.description || entry.category || "Lançamento financeiro";
+  return (
+    entry.project ||
+    entry.description ||
+    entry.category ||
+    "Lançamento financeiro"
+  );
 }
 
 function getValue(entry: FinanceEntry) {
@@ -148,7 +154,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -176,25 +182,27 @@ export async function GET(request: Request) {
       return entryYear === null || entryYear === year;
     });
 
-    const receivables = yearEntries.filter((entry) => entry.type === "RECEIVABLE");
+    const receivables = yearEntries.filter(
+      (entry) => entry.type === "RECEIVABLE",
+    );
     const payables = yearEntries.filter((entry) => entry.type === "PAYABLE");
     const received = yearEntries.filter((entry) => entry.type === "REVENUE");
     const paid = yearEntries.filter((entry) => entry.type === "EXPENSE");
 
     const receivableTotal = roundMoney(
-      receivables.reduce((sum, entry) => sum + revenueAmount(entry), 0)
+      receivables.reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const payableTotal = roundMoney(
-      payables.reduce((sum, entry) => sum + expenseAmount(entry), 0)
+      payables.reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const receivedTotal = roundMoney(
-      received.reduce((sum, entry) => sum + revenueAmount(entry), 0)
+      received.reduce((sum, entry) => sum + revenueAmount(entry), 0),
     );
 
     const paidTotal = roundMoney(
-      paid.reduce((sum, entry) => sum + expenseAmount(entry), 0)
+      paid.reduce((sum, entry) => sum + expenseAmount(entry), 0),
     );
 
     const pendingItems = [...receivables, ...payables].sort(compareAgendaDates);
@@ -254,15 +262,8 @@ export async function GET(request: Request) {
       recentDoneItems,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar agenda financeira.",
-      },
-      { status: 500 }
-    );
+    return apiError("vencimentos.overview", error, {
+      fallback: "Erro desconhecido ao carregar agenda financeira.",
+    });
   }
 }

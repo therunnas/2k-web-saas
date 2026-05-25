@@ -3,38 +3,31 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+/**
+ * Health-check público mínimo para monitoramento externo.
+ *
+ * Não expõe contagens, versões ou nomes de provedores — apenas um booleano
+ * indicando se o banco está acessível pela aplicação.
+ */
 export async function GET() {
   try {
-    const [users, workspaces, imports] = await Promise.all([
-      prisma.user.count(),
-      prisma.workspace.count(),
-      prisma.import.count(),
-    ]);
+    // Query barata apenas para validar conectividade.
+    await prisma.$queryRaw`SELECT 1`;
 
     return NextResponse.json({
       status: "ok",
-      database: "postgresql",
-      provider: "neon",
       connected: true,
-      counts: {
-        users,
-        workspaces,
-        imports,
-      },
     });
   } catch (error) {
+    // Loga detalhes apenas no servidor.
+    console.error("[api] health.db:", error);
+
     return NextResponse.json(
       {
         status: "error",
-        database: "postgresql",
-        provider: "neon",
         connected: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao conectar ao banco.",
       },
-      { status: 500 }
+      { status: 503 },
     );
   }
 }

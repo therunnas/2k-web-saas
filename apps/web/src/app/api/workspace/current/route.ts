@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,7 @@ export async function GET() {
           authenticated: false,
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -48,7 +49,7 @@ export async function GET() {
           authenticated: true,
           message: "Workspace não encontrado.",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -98,16 +99,8 @@ export async function GET() {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        authenticated: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar workspace.",
-      },
-      { status: 500 }
-    );
+    return apiError("workspace.current", error, {
+      fallback: "Erro ao carregar workspace.",
+    });
   }
 }

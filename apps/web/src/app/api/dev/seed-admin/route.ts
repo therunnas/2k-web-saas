@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ export async function POST() {
         status: "blocked",
         message: "Seed admin is disabled in production.",
       },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -36,7 +37,7 @@ export async function POST() {
           status: "error",
           message: "ADMIN_EMAIL and ADMIN_PASSWORD must be configured in .env.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -46,7 +47,7 @@ export async function POST() {
           status: "error",
           message: "ADMIN_PASSWORD must have at least 8 characters.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -139,15 +140,8 @@ export async function POST() {
       settings,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Unknown error while creating admin seed.",
-      },
-      { status: 500 }
-    );
+    return apiError("dev.seed-admin", error, {
+      fallback: "Unknown error while creating admin seed.",
+    });
   }
 }

@@ -2,6 +2,7 @@ import { createSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const email = String(body.email ?? "").trim().toLowerCase();
+    const email = String(body.email ?? "")
+      .trim()
+      .toLowerCase();
     const password = String(body.password ?? "");
 
     if (!email || !password) {
@@ -18,7 +21,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "E-mail e senha são obrigatórios.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -45,7 +48,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Credenciais inválidas.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Usuário sem permissão administrativa.",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -67,7 +70,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Credenciais inválidas.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
           status: "error",
           message: "Nenhum workspace vinculado ao admin.",
         },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -114,15 +117,8 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao realizar login.",
-      },
-      { status: 500 }
-    );
+    return apiError("auth.login", error, {
+      fallback: "Erro desconhecido ao realizar login.",
+    });
   }
 }

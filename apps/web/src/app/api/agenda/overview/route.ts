@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { apiError } from "@/lib/api-errors";
 
 export const runtime = "nodejs";
 
@@ -126,12 +127,17 @@ function getProject(entry: FinanceEntry) {
 }
 
 function getDescription(entry: FinanceEntry) {
-  return entry.description || entry.project || entry.category || "Produção sem descrição";
+  return (
+    entry.description ||
+    entry.project ||
+    entry.category ||
+    "Produção sem descrição"
+  );
 }
 
 function inferEventType(entry: FinanceEntry) {
   const text = normalizeText(
-    `${entry.project ?? ""} ${entry.description ?? ""} ${entry.category ?? ""}`
+    `${entry.project ?? ""} ${entry.description ?? ""} ${entry.category ?? ""}`,
   );
 
   if (
@@ -192,13 +198,11 @@ function inferPriority(entry: FinanceEntry) {
 }
 
 function upsertBucket(map: Map<string, Bucket>, name: string, value: number) {
-  const current =
-    map.get(name) ??
-    {
-      name,
-      count: 0,
-      value: 0,
-    };
+  const current = map.get(name) ?? {
+    name,
+    count: 0,
+    value: 0,
+  };
 
   current.count += 1;
   current.value += value;
@@ -227,7 +231,7 @@ export async function GET(request: Request) {
           status: "unauthorized",
           message: "Sessão inválida.",
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -293,7 +297,9 @@ export async function GET(request: Request) {
       })
       .filter((event) => {
         if (statusFilter === "all") return true;
-        return normalizeText(event.operationalStatus) === normalizeText(statusFilter);
+        return (
+          normalizeText(event.operationalStatus) === normalizeText(statusFilter)
+        );
       })
       .filter((event) => {
         if (!search) return true;
@@ -332,19 +338,19 @@ export async function GET(request: Request) {
     }
 
     const totalValue = roundMoney(
-      eventsBase.reduce((sum, event) => sum + event.value, 0)
+      eventsBase.reduce((sum, event) => sum + event.value, 0),
     );
 
     const completedEvents = eventsBase.filter(
-      (event) => event.operationalStatus === "Concluído"
+      (event) => event.operationalStatus === "Concluído",
     );
 
     const activeEvents = eventsBase.filter(
-      (event) => event.operationalStatus !== "Concluído"
+      (event) => event.operationalStatus !== "Concluído",
     );
 
     const highPriorityEvents = eventsBase.filter(
-      (event) => event.priority === "Alta"
+      (event) => event.priority === "Alta",
     );
 
     const monthly = MONTHS.map((month) => {
@@ -382,10 +388,17 @@ export async function GET(request: Request) {
         completedCount: completedEvents.length,
         activeCount: activeEvents.length,
         highPriorityCount: highPriorityEvents.length,
-        productionCount: eventsBase.filter((event) => event.eventType === "Produção").length,
-        deliveryCount: eventsBase.filter((event) => event.eventType === "Entrega").length,
-        meetingCount: eventsBase.filter((event) => event.eventType === "Reunião").length,
-        jobCount: eventsBase.filter((event) => event.eventType === "Job").length,
+        productionCount: eventsBase.filter(
+          (event) => event.eventType === "Produção",
+        ).length,
+        deliveryCount: eventsBase.filter(
+          (event) => event.eventType === "Entrega",
+        ).length,
+        meetingCount: eventsBase.filter(
+          (event) => event.eventType === "Reunião",
+        ).length,
+        jobCount: eventsBase.filter((event) => event.eventType === "Job")
+          .length,
       },
       monthly,
       breakdown: {
@@ -398,15 +411,8 @@ export async function GET(request: Request) {
       recentEvents,
     });
   } catch (error) {
-    return NextResponse.json(
-      {
-        status: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Erro desconhecido ao carregar agenda operacional.",
-      },
-      { status: 500 }
-    );
+    return apiError("agenda.overview", error, {
+      fallback: "Erro desconhecido ao carregar agenda operacional.",
+    });
   }
 }
