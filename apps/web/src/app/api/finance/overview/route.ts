@@ -36,6 +36,103 @@ const MONTH_KEYS = [
   "Dez",
 ];
 
+
+function moneyToNumber(value: unknown): number {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+  if (typeof value === "string") {
+    const normalized = value.replace(/\./g, "").replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  if (value && typeof (value as { toNumber?: () => number }).toNumber === "function") {
+    return (value as { toNumber: () => number }).toNumber();
+  }
+  if (value && typeof (value as { toString?: () => string }).toString === "function") {
+    const parsed = Number((value as { toString: () => string }).toString());
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+}
+
+function getMonthlyEntryIndex(entry: any): number | null {
+  if (entry.date) {
+    const date = new Date(entry.date);
+    if (!Number.isNaN(date.getTime())) return date.getMonth();
+  }
+
+  const competence = String(entry.competence ?? "");
+  const match = competence.match(/(\d{1,2})\/(\d{4})/);
+  if (!match) return null;
+
+  const month = Number(match[1]) - 1;
+  return month >= 0 && month <= 11 ? month : null;
+}
+
+function getMonthlyClientName(entry: any): string {
+  return (
+    entry.groupName ||
+    entry.client ||
+    entry.brandName ||
+    entry.project ||
+    entry.description ||
+    "Sem cliente"
+  );
+}
+
+function isMonthlyRevenueEntry(entry: any): boolean {
+  const type = String(entry.type ?? "").toUpperCase();
+  const status = String(entry.status ?? entry.financialStatus ?? "").toUpperCase();
+
+  if (type === "EXPENSE" || type === "PAYABLE" || type === "CANCELED") return false;
+  if (status.includes("CANCEL")) return false;
+
+  return type === "REVENUE" || type === "RECEIVABLE";
+}
+
+function getMonthlyRevenueAmount(entry: any): number {
+  return moneyToNumber(entry.grossAmount ?? entry.expectedAmount ?? entry.paidAmount ?? 0);
+}
+
+function buildMonthlyTopClients(entries: any[], monthlyRaw: Array<{ index: number; revenue: number }>) {
+  const buckets = Array.from({ length: 12 }, () => new Map<string, { revenue: number; projects: Set<string> }>());
+
+  for (const entry of entries) {
+    if (!isMonthlyRevenueEntry(entry)) continue;
+
+    const month = getMonthlyEntryIndex(entry);
+    if (month === null) continue;
+
+    const revenue = getMonthlyRevenueAmount(entry);
+    if (revenue <= 0) continue;
+
+    const name = getMonthlyClientName(entry);
+    const projectKey = String(entry.project || entry.description || entry.sourceRow || name);
+
+    const current = buckets[month].get(name) ?? { revenue: 0, projects: new Set<string>() };
+    current.revenue += revenue;
+    current.projects.add(projectKey);
+    buckets[month].set(name, current);
+  }
+
+  return buckets.map((bucket, index) => {
+    const top = [...bucket.entries()].sort((a, b) => b[1].revenue - a[1].revenue)[0];
+    if (!top) return null;
+
+    const [name, data] = top;
+    const monthRevenue = monthlyRaw[index]?.revenue ?? 0;
+    const participationPercent = monthRevenue > 0 ? Number(((data.revenue / monthRevenue) * 100).toFixed(2)) : 0;
+
+    return {
+      name,
+      revenue: Number(data.revenue.toFixed(2)),
+      profit: 0,
+      margin: `${participationPercent.toFixed(2)}%`,
+      participationPercent,
+      projectsCount: data.projects.size,
+    };
+  });
+}
+
 export async function GET(request: Request) {
   try {
     const session = await getSession();
@@ -72,8 +169,10 @@ export async function GET(request: Request) {
 
     // Série mensal consolidada.
     const monthlyRaw = computeMonthly(yearEntries);
+    const monthlyTopClients = buildMonthlyTopClients(yearEntries, monthlyRaw);
     const monthly = monthlyRaw.map((point) => ({
       month: MONTH_KEYS[point.index],
+      topClient: monthlyTopClients[point.index] ?? null,
       label: `${String(point.index + 1).padStart(2, "0")}/${year}`,
       value: point.revenue > 0 ? point.revenue : null,
       revenue: point.revenue,

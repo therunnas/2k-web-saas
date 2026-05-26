@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -321,7 +320,9 @@ const width = 1120;
 
       <div
         className="relative overflow-visible rounded-[1.5rem] border border-white/[0.06] bg-[#080d17] p-3 sm:p-4 xl:p-5"
-        onMouseLeave={() => { if (!selectedPoint) setHoveredPoint(null); }}
+        onMouseLeave={() => {
+          if (!selectedPoint) setHoveredPoint(null);
+        }}
       >
         {hoveredPoint ? (
           <div
@@ -384,188 +385,10 @@ const width = 1120;
               </div>
             </div>
 
-            <button
-              type="button"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (hoveredPoint) setSelectedPoint(hoveredPoint);
-              }}
-              onPointerDown={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (hoveredPoint) setSelectedPoint(hoveredPoint);
-              }}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (hoveredPoint) setSelectedPoint(hoveredPoint);
-              }}
-              className="mt-4 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-left text-slate-300 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 hover:text-white"
-            >
+            <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-slate-300">
               <span>Ver detalhes do mês</span>
               <ArrowUpRight size={14} />
-            </button>
-
-            {selectedPoint && typeof document !== "undefined" ? createPortal(
-
-              <div className="fixed inset-0 z-[9999] flex justify-end bg-black/70 backdrop-blur-sm">
-                <button
-                  type="button"
-                  aria-label="Fechar detalhes do mês"
-                  className="absolute inset-0 cursor-default"
-                  onClick={() => setSelectedPoint(null)}
-                />
-
-                <aside className="relative h-screen w-full max-w-[640px] overflow-y-auto border-l border-white/10 bg-[#070b13] p-5 shadow-[0_0_80px_rgba(0,0,0,0.55)] sm:p-6">
-                  <div className="mb-6 flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                        Detalhamento mensal
-                      </p>
-                      <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
-                        Detalhes de {selectedPoint.month}/{selectedPoint.label}
-                      </h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-400">
-                        Resumo executivo do mês selecionado com faturamento, saídas, resultado e maior cliente por faturamento.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPoint(null)}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-xl text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <section className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Faturamento
-                      </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-white">
-                        {formatCurrency(selectedPoint.revenue)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Receita total do mês
-                      </span>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Saídas
-                      </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-rose-200">
-                        {formatCurrency(selectedPoint.expenses)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Custos e despesas do mês
-                      </span>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Lucro por competência
-                      </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-cyan-200">
-                        {formatCurrency(selectedPoint.profit)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Faturamento menos saídas
-                      </span>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Margem
-                      </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-violet-300">
-                        {formatPercent(selectedPoint.margin)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Lucro sobre faturamento
-                      </span>
-                    </div>
-                  </section>
-
-                  <section className="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
-                      Maior cliente por faturamento
-                    </p>
-
-                    <h4 className="mt-2 text-xl font-semibold text-white">
-                      {selectedPoint.topClient.name}
-                    </h4>
-
-                    <div className="mt-4 grid grid-cols-3 gap-3 border-t border-white/10 pt-4">
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                          Receita
-                        </p>
-                        <strong className="dashboard-number mt-1 block text-sm text-cyan-200">
-                          {formatCurrency(selectedPoint.topClient.revenue)}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                          Partic.
-                        </p>
-                        <strong className="dashboard-number mt-1 block text-sm text-violet-300">
-                          {formatPercent(selectedPoint.topClient.participationPercent ?? 0)}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                          Proj.
-                        </p>
-                        <strong className="dashboard-number mt-1 block text-sm text-white">
-                          {selectedPoint.topClient.projectsCount ?? 0} proj.
-                        </strong>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                      Leitura executiva
-                    </p>
-
-                    <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                      <li>
-                        Receita total do mês:{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatCurrency(selectedPoint.revenue)}
-                        </strong>
-                      </li>
-                      <li>
-                        Saídas lançadas:{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatCurrency(selectedPoint.expenses)}
-                        </strong>
-                      </li>
-                      <li>
-                        Resultado por competência:{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatCurrency(selectedPoint.profit)}
-                        </strong>
-                      </li>
-                      <li>
-                        O cliente/grupo principal concentrou{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatPercent(selectedPoint.topClient.participationPercent ?? 0)}
-                        </strong>{" "}
-                        do faturamento mensal.
-                      </li>
-                    </ul>
-                  </section>
-                </aside>
-              </div>
-            , document.body
-            ) : null}
+            </div>
           </div>
         ) : null}
 
