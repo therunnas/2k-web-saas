@@ -238,7 +238,8 @@ export async function GET(request: Request) {
     );
 
     const totalProfit = roundMoney(totalRevenue - totalExpenses);
-    const cashResult = roundMoney(receivedTotal - totalExpenses);
+    // Resultado de caixa = recebido - saídas pagas (não misturar com competência).
+    const cashResult = roundMoney(receivedTotal - paidExpenses);
 
     const margin =
       totalRevenue > 0 ? roundMoney((totalProfit / totalRevenue) * 100) : 0;
@@ -278,8 +279,15 @@ export async function GET(request: Request) {
         ),
       );
 
+      const paid = roundMoney(
+        monthExpenseEntries
+          .filter((entry) => entry.type === "EXPENSE")
+          .reduce((sum, entry) => sum + expenseAmount(entry), 0),
+      );
+
       const profit = roundMoney(revenue - expenses);
-      const cash = roundMoney(received - expenses);
+      // Caixa do mês = recebido - pago (não competência).
+      const cash = roundMoney(received - paid);
 
       return {
         month: month.key,

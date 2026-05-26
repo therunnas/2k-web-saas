@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Testes financeiros e scripts rodam no Node (não fazem parte do bundle).
+    "src/**/*.test.ts",
+    "scripts/**",
   ]),
 ]);
 

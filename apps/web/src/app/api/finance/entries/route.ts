@@ -282,7 +282,8 @@ export async function GET(request: Request) {
     );
 
     const totalProfit = roundMoney(totalRevenue - totalExpenses);
-    const cashResult = roundMoney(receivedTotal - totalExpenses);
+    // Resultado de caixa = recebido - saídas pagas (não misturar com competência).
+    const cashResult = roundMoney(receivedTotal - paidExpenses);
 
     const tableEntries = filtered.map((entry) => {
       const value = getEntryValue(entry);

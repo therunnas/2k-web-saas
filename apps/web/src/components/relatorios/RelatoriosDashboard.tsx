@@ -237,9 +237,9 @@ export function RelatoriosDashboard() {
         tone: "text-violet-300",
       },
       {
-        label: "Resultado de caixa",
+        label: "Resultado de caixa real",
         value: summary ? formatCompactCurrency(summary.cashResult) : "—",
-        helper: "Recebido - saídas",
+        helper: "Recebido - saídas pagas",
         icon: Wallet,
         tone: "text-cyan-300",
       },

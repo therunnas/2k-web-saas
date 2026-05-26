@@ -3,132 +3,26 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { apiError } from "@/lib/api-errors";
+import {
+  matchSheetName,
+  parseEntradas,
+  parseSaidas,
+  type ParsedFinancialRow,
+} from "@/lib/spreadsheet-import";
 
 export const runtime = "nodejs";
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-type SheetMatrix = unknown[][];
-
-/**
- * Shape de uma linha financeira pronta para `prisma.financialEntry.createMany`.
- *
- * Não derivamos de `Prisma.FinancialEntryCreateManyInput` para evitar acoplar
- * este builder ao cliente gerado — assim o arquivo segue compilando mesmo se
- * `prisma generate` ainda não tiver rodado.
- */
-type FinancialEntryInput = {
+type FinancialEntryInput = ParsedFinancialRow & {
   workspaceId: string;
   importId: string;
-  type: "REVENUE" | "RECEIVABLE" | "EXPENSE" | "PAYABLE";
-  date: Date | null;
-  competence: string | null;
-  client: string | null;
-  groupName: string | null;
-  project: string | null;
-  description: string | null;
-  category: string | null;
-  status: string | null;
-  grossAmount: string;
-  costAmount: string;
-  profitAmount: string;
-  marginPercent: string | null;
-  sourceType: string;
-  isManual: boolean;
-  editable: boolean;
   sourceSheet: string;
-  sourceRow: number;
 };
 
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "");
-}
-
-function text(value: unknown) {
-  if (value === null || value === undefined) return "";
-  return String(value).trim();
-}
-
-function money(value: unknown) {
-  if (value === null || value === undefined || value === "") return 0;
-
-  if (typeof value === "number") {
-    return Number.isFinite(value) ? value : 0;
-  }
-
-  let raw = String(value)
-    .replace(/\s/g, "")
-    .replace(/R\$/gi, "")
-    .replace(/[^\d,.-]/g, "");
-
-  const negative = raw.includes("-") || /^\(.*\)$/.test(raw);
-
-  if (raw.includes(",") && raw.includes(".")) {
-    raw = raw.replace(/\./g, "").replace(",", ".");
-  } else if (raw.includes(",")) {
-    raw = raw.replace(",", ".");
-  }
-
-  raw = raw.replace(/-/g, "");
-
-  const parsed = Number(raw);
-
-  if (!Number.isFinite(parsed)) return 0;
-
-  return negative ? parsed * -1 : parsed;
-}
-
-function decimal(value: number) {
-  if (!Number.isFinite(value)) return "0.00";
-  if (Math.abs(value) > 999999999.99) return "0.00";
-  return value.toFixed(2);
-}
-
-function excelDate(value: unknown) {
-  if (!value) return null;
-
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value;
-  }
-
-  if (typeof value === "number") {
-    const parsed = XLSX.SSF.parse_date_code(value);
-
-    if (!parsed) return null;
-
-    return new Date(parsed.y, parsed.m - 1, parsed.d);
-  }
-
-  const parsed = new Date(String(value));
-
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function competenceFromDate(date: Date | null) {
-  if (!date) return null;
-
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-
-  return `${month}/${year}`;
-}
-
 function getSheet(workbook: XLSX.WorkBook, expected: "entradas" | "saidas") {
-  const sheetName = workbook.SheetNames.find((name) => {
-    const normalized = normalizeText(name);
-
-    if (expected === "entradas") {
-      return normalized.includes("entradas");
-    }
-
-    return normalized.includes("saidas");
-  });
+  const sheetName = matchSheetName(workbook.SheetNames, expected);
 
   if (!sheetName) return null;
 
@@ -142,129 +36,14 @@ function getSheet(workbook: XLSX.WorkBook, expected: "entradas" | "saidas") {
     raw: true,
   });
 
-  return {
-    sheetName,
-    matrix,
-  };
+  return { sheetName, matrix };
 }
 
-function buildEntradaEntries(params: {
-  matrix: SheetMatrix;
-  sheetName: string;
-  workspaceId: string;
-  importId: string;
-}): FinancialEntryInput[] {
-  const rows = params.matrix.slice(4);
-
-  return rows
-    .map((row, index): FinancialEntryInput | null => {
-      const mesRef = row[0];
-      const grupo = text(row[1]);
-      const marca = text(row[2]);
-      const projeto = text(row[3]);
-      const valor = money(row[4]);
-      // row[5] = NF (não capturado — schema atual não persiste número da NF)
-      const status = text(row[6]);
-      const dataEmissao = row[7];
-      const prevRecebimento = row[8];
-      const recebido = text(row[10]);
-      const obs = text(row[11]);
-      const id = text(row[12]);
-
-      if (!id.startsWith("ENT-")) return null;
-      if (!valor || valor <= 0) return null;
-
-      const statusNormalized = normalizeText(`${status} ${recebido}`);
-
-      const isPaid =
-        statusNormalized.includes("pago") || statusNormalized.includes("sim");
-
-      const date =
-        excelDate(mesRef) ??
-        excelDate(dataEmissao) ??
-        excelDate(prevRecebimento);
-
-      return {
-        workspaceId: params.workspaceId,
-        importId: params.importId,
-        type: isPaid ? "REVENUE" : "RECEIVABLE",
-        date,
-        competence: competenceFromDate(date),
-        client: marca || grupo || null,
-        groupName: grupo || marca || null,
-        project: projeto || null,
-        description: projeto || obs || null,
-        category: "Entrada",
-        status: status || recebido || null,
-        grossAmount: decimal(valor),
-        costAmount: decimal(0),
-        profitAmount: decimal(0),
-        marginPercent: null,
-        sourceType: "SPREADSHEET",
-        isManual: false,
-        editable: false,
-        sourceSheet: params.sheetName,
-        sourceRow: index + 5,
-      };
-    })
-    .filter((entry): entry is FinancialEntryInput => entry !== null);
-}
-
-function buildSaidaEntries(params: {
-  matrix: SheetMatrix;
-  sheetName: string;
-  workspaceId: string;
-  importId: string;
-}): FinancialEntryInput[] {
-  const rows = params.matrix.slice(5);
-
-  return rows
-    .map((row, index): FinancialEntryInput | null => {
-      const mesRef = row[0];
-      const data = row[1];
-      const categoria = text(row[2]);
-      const fornecedor = text(row[3]);
-      const descricao = text(row[4]);
-      const valor = money(row[5]);
-      const status = text(row[6]);
-      const recorrencia = text(row[7]);
-      const obs = text(row[8]);
-      const id = text(row[9]);
-      const subcategoria = text(row[10]);
-      const natureza = text(row[11]);
-
-      if (!id.startsWith("SAI-")) return null;
-      if (!valor || valor <= 0) return null;
-
-      const statusNormalized = normalizeText(status);
-      const isPaid = statusNormalized.includes("pago");
-
-      const date = excelDate(mesRef) ?? excelDate(data);
-
-      return {
-        workspaceId: params.workspaceId,
-        importId: params.importId,
-        type: isPaid ? "EXPENSE" : "PAYABLE",
-        date,
-        competence: competenceFromDate(date),
-        client: fornecedor || null,
-        groupName: null,
-        project: descricao || null,
-        description: descricao || obs || null,
-        category: categoria || subcategoria || natureza || "Saída",
-        status: status || recorrencia || null,
-        grossAmount: decimal(0),
-        costAmount: decimal(valor),
-        profitAmount: decimal(0),
-        marginPercent: null,
-        sourceType: "SPREADSHEET",
-        isManual: false,
-        editable: false,
-        sourceSheet: params.sheetName,
-        sourceRow: index + 6,
-      };
-    })
-    .filter((entry): entry is FinancialEntryInput => entry !== null);
+function withMeta(
+  rows: ParsedFinancialRow[],
+  meta: { workspaceId: string; importId: string; sourceSheet: string },
+): FinancialEntryInput[] {
+  return rows.map((row) => ({ ...row, ...meta }));
 }
 
 function isAllowedSpreadsheet(fileName: string) {
@@ -353,22 +132,25 @@ export async function POST(request: Request) {
       },
     });
 
-    const entradaEntries = buildEntradaEntries({
-      matrix: entradasSheet.matrix,
-      sheetName: entradasSheet.sheetName,
+    const meta = {
       workspaceId: session.workspaceId,
       importId: importRecord.id,
+    };
+
+    const entradaEntries = withMeta(parseEntradas(entradasSheet.matrix), {
+      ...meta,
+      sourceSheet: entradasSheet.sheetName,
     });
 
-    const saidaEntries = buildSaidaEntries({
-      matrix: saidasSheet.matrix,
-      sheetName: saidasSheet.sheetName,
-      workspaceId: session.workspaceId,
-      importId: importRecord.id,
+    const saidaEntries = withMeta(parseSaidas(saidasSheet.matrix), {
+      ...meta,
+      sourceSheet: saidasSheet.sheetName,
     });
 
     const financialEntries = [...entradaEntries, ...saidaEntries];
 
+    // Idempotência: remove o lote anterior da planilha antes de regravar,
+    // evitando duplicidade ao reimportar o mesmo arquivo.
     await prisma.financialEntry.deleteMany({
       where: {
         workspaceId: session.workspaceId,
@@ -378,8 +160,8 @@ export async function POST(request: Request) {
 
     if (financialEntries.length > 0) {
       // Cast pontual e localizado: o cliente Prisma tipa Decimal como
-      // `Decimal | DecimalJsLike | string | number`, e neste builder usamos
-      // strings (`decimal()` retorna `"0.00"`). O Prisma converte na inserção.
+      // `Decimal | DecimalJsLike | string | number`, e aqui usamos strings
+      // (`decimal()` retorna `"0.00"`). O Prisma converte na inserção.
       await prisma.financialEntry.createMany({
         data: financialEntries as unknown as NonNullable<Parameters<typeof prisma.financialEntry.createMany>[0]>["data"],
       });

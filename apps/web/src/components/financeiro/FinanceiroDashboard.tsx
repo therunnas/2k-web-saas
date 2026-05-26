@@ -272,9 +272,9 @@ export function FinanceiroDashboard() {
         tone: "text-violet-300",
       },
       {
-        label: "Resultado de caixa",
+        label: "Resultado de caixa real",
         value: summary ? formatCompactCurrency(summary.cashResult) : "—",
-        helper: "Recebido - saídas",
+        helper: "Recebido - saídas pagas",
         icon: CircleDollarSign,
         tone: "text-emerald-300",
       },

@@ -180,11 +180,17 @@ export async function GET(request: Request) {
       groupsMap.set(name, current);
     }
 
+    const grandTotalRevenue = Array.from(groupsMap.values()).reduce(
+      (sum, group) => sum + group.revenue,
+      0,
+    );
+
     const groups = Array.from(groupsMap.values())
       .map((group) => {
         const revenue = roundMoney(group.revenue);
         const received = roundMoney(group.received);
         const receivable = roundMoney(group.receivable);
+        const projectsCount = group.projects.size;
 
         return {
           name: group.name,
@@ -193,7 +199,19 @@ export async function GET(request: Request) {
           receivable,
           entries: group.entries,
           brandsCount: group.brands.size,
-          projectsCount: group.projects.size,
+          projectsCount,
+          // Ticket médio = faturamento / nº de projetos (fallback: nº lançamentos).
+          ticketMedio:
+            projectsCount > 0
+              ? roundMoney(revenue / projectsCount)
+              : group.entries > 0
+                ? roundMoney(revenue / group.entries)
+                : 0,
+          // Participação no faturamento total — NÃO é margem.
+          participationPercent:
+            grandTotalRevenue > 0
+              ? roundMoney((group.revenue / grandTotalRevenue) * 100)
+              : 0,
           receivedPercent:
             revenue > 0 ? roundMoney((received / revenue) * 100) : 0,
           openPercent:

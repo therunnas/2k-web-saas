@@ -8,7 +8,6 @@ import {
   PieChart,
   SlidersHorizontal,
   TrendingUp,
-  User,
   Users,
 } from "lucide-react";
 
@@ -34,15 +33,18 @@ type TopGroup = {
   rank: number;
   name: string;
   revenue: number;
-  expenses: number;
-  profit: number;
-  margin: number;
+  received: number;
+  receivable: number;
+  projectsCount: number;
+  ticketMedio: number;
+  participationPercent: number;
 };
 
 type LatestEntry = {
   id: string;
   type: string;
   date: string | null;
+  dueAt: string | null;
   competence: string | null;
   client: string | null;
   groupName: string | null;
@@ -50,25 +52,42 @@ type LatestEntry = {
   description: string | null;
   category: string | null;
   status: string | null;
+  overdue: boolean;
   revenue: number;
-  expenses: number;
-  profit: number;
   sourceSheet: string | null;
   sourceRow: number | null;
+};
+
+type FinanceSummary = {
+  entries: number;
+  totalRevenue: number;
+  receivedTotal: number;
+  receivableTotal: number;
+  overdueTotal: number;
+  totalExpenses: number;
+  paidExpenses: number;
+  payableTotal: number;
+  totalProfit: number;
+  cashResult: number;
+  committedCash: number;
+  margin: number;
 };
 
 type FinanceOverview = {
   status: string;
   year: number;
-  summary: {
-    entries: number;
-    totalRevenue: number;
-    totalExpenses: number;
-    totalProfit: number;
+  summary: FinanceSummary;
+  currentMonth: {
+    month: string;
+    label: string;
+    revenue: number;
+    received: number;
+    receivable: number;
+    expenses: number;
+    profit: number;
+    cash: number;
     margin: number;
-    receivableTotal: number;
-    payableTotal: number;
-  };
+  } | null;
   monthly: MonthlyRevenueItem[];
   topGroups: TopGroup[];
   latestEntries: LatestEntry[];
@@ -95,7 +114,17 @@ type DashboardKpi = {
   trendDirection: KpiTrendDirection;
 };
 
-const kpiIcons = [DollarSign, TrendingUp, PieChart, User];
+const kpiIcons = [
+  DollarSign,
+  TrendingUp,
+  CalendarDays,
+  PieChart,
+  CalendarDays,
+  TrendingUp,
+  PieChart,
+  DollarSign,
+  PieChart,
+];
 
 const emptyMonths: MonthlyRevenueItem[] = [
   "Jan",
@@ -597,81 +626,93 @@ export function DashboardOverview() {
 
   const monthly = overview?.monthly?.length ? overview.monthly : emptyMonths;
 
-  const activeMonth = useMemo(() => {
-    const monthsWithRevenue = monthly.filter((month) => {
-      return typeof month.value === "number" && month.revenue > 0;
-    });
+  const summary = overview?.summary ?? null;
 
-    return monthsWithRevenue[monthsWithRevenue.length - 1] ?? null;
-  }, [monthly]);
-
-  const annualTopGroup = useMemo(() => {
-    if (!overview?.topGroups?.length) {
-      return null;
+  const kpis: DashboardKpi[] = useMemo(() => {
+    if (!summary) {
+      return [];
     }
 
-    return [...overview.topGroups].sort((a, b) => b.profit - a.profit)[0];
-  }, [overview]);
+    const fmt = (value: number) => formatCurrency(value);
 
-  const activeTopClientName =
-    activeMonth?.topClient?.name ?? annualTopGroup?.name ?? "—";
+    return [
+      {
+        label: "Faturamento",
+        value: fmt(summary.totalRevenue),
+        helper: "Total faturado no ano (competência)",
+        trend: "Independe de ter sido recebido",
+        trendDirection: "up",
+      },
+      {
+        label: "Recebido em caixa",
+        value: fmt(summary.receivedTotal),
+        helper: "Entradas efetivamente recebidas",
+        trend: `${formatPercent(
+          summary.totalRevenue > 0
+            ? (summary.receivedTotal / summary.totalRevenue) * 100
+            : 0,
+        )} do faturamento`,
+        trendDirection: "up",
+      },
+      {
+        label: "A receber",
+        value: fmt(summary.receivableTotal),
+        helper: "Faturado ainda não recebido",
+        trend:
+          summary.overdueTotal > 0
+            ? `${fmt(summary.overdueTotal)} em atraso`
+            : "Sem atrasos",
+        trendDirection: summary.overdueTotal > 0 ? "down" : "neutral",
+      },
+      {
+        label: "Saídas pagas",
+        value: fmt(summary.paidExpenses),
+        helper: "Despesas já pagas",
+        trend: "Saídas com status pago",
+        trendDirection: "down",
+      },
+      {
+        label: "A pagar",
+        value: fmt(summary.payableTotal),
+        helper: "Saídas pendentes (contas a pagar)",
+        trend: "Compromissos futuros",
+        trendDirection: summary.payableTotal > 0 ? "down" : "neutral",
+      },
+      {
+        label: "Resultado de caixa real",
+        value: fmt(summary.cashResult),
+        helper: "Recebido menos saídas já pagas",
+        trend: "Caixa realizado",
+        trendDirection: summary.cashResult < 0 ? "down" : "up",
+      },
+      {
+        label: "Caixa comprometido",
+        value: fmt(summary.committedCash),
+        helper: "Recebido menos todas as saídas lançadas",
+        trend: "Inclui contas a pagar",
+        trendDirection: summary.committedCash < 0 ? "down" : "neutral",
+      },
+      {
+        label: "Lucro por competência",
+        value: fmt(summary.totalProfit),
+        helper: "Faturamento menos todas as saídas lançadas",
+        trend: "Resultado do período",
+        trendDirection: summary.totalProfit < 0 ? "down" : "up",
+      },
+      {
+        label: "Margem por competência",
+        value: formatPercent(summary.margin),
+        helper: "Lucro por competência sobre faturamento",
+        trend: "Lucro / faturamento",
+        trendDirection: summary.margin < 0 ? "down" : "neutral",
+      },
+    ];
+  }, [summary]);
 
-  const activeTopClientProfit =
-    activeMonth?.topClient?.profit ?? annualTopGroup?.profit ?? 0;
-
-  const activePeriodLabel = activeMonth
-    ? `${activeMonth.month} / ${activeMonth.label}`
-    : "Aguardando dados do mês";
-
-  const kpis: DashboardKpi[] = [
-    {
-      label: "Faturamento total",
-      value: activeMonth ? formatCurrency(activeMonth.revenue) : "—",
-      helper: activePeriodLabel,
-      trend: "Mês ativo da planilha",
-      trendDirection: "up",
-    },
-    {
-      label: "Lucro líquido",
-      value: activeMonth ? formatCurrency(activeMonth.profit) : "—",
-      helper: "Receita - despesas do mês",
-      trend: "Cálculo mensal",
-      trendDirection: activeMonth && activeMonth.profit < 0 ? "down" : "up",
-    },
-    {
-      label: "Margem estimada",
-      value: activeMonth ? formatPercent(activeMonth.margin) : "—",
-      helper: "Lucro sobre faturamento mensal",
-      trend: "Margem do mês ativo",
-      trendDirection: activeMonth && activeMonth.margin < 0 ? "down" : "neutral",
-    },
-    {
-      label: "Cliente mais lucrativo",
-      value: activeTopClientName,
-      helper:
-        activeTopClientProfit > 0
-          ? `${formatCurrency(activeTopClientProfit)} de lucro`
-          : "Sem cliente identificado",
-      trend: "Ranking por lucro do mês",
-      trendDirection: "neutral",
-    },
-  ];
-
-  const receivableRows = useMemo(() => {
-    const rows =
-      overview?.latestEntries
-        ?.filter((entry) => {
-          const status = `${entry.type} ${entry.status ?? ""}`.toLowerCase();
-          return status.includes("receivable") || status.includes("receber");
-        })
-        .slice(0, 5) ?? [];
-
-    if (rows.length > 0) {
-      return rows;
-    }
-
-    return overview?.latestEntries?.slice(0, 5) ?? [];
-  }, [overview]);
+  const receivableRows = useMemo(
+    () => overview?.latestEntries?.slice(0, 5) ?? [],
+    [overview],
+  );
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -717,7 +758,7 @@ export function DashboardOverview() {
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {kpis.map((item, index) => {
           const Icon = kpiIcons[index] ?? DollarSign;
 
@@ -780,19 +821,19 @@ export function DashboardOverview() {
           </div>
 
           <div className="overflow-x-auto rounded-2xl border border-white/10">
-            <div className="min-w-[720px]">
-              <div className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.2fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+            <div className="min-w-[760px]">
+              <div className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
                 <span>#</span>
                 <span>Grupo</span>
                 <span>Faturamento</span>
-                <span>Lucro</span>
-                <span>Margem</span>
+                <span>Recebido</span>
+                <span>Participação</span>
               </div>
 
               {(overview?.topGroups ?? []).slice(0, 5).map((group) => (
                 <div
                   key={group.name}
-                  className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.2fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                  className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
                 >
                   <span className="text-slate-500">{group.rank}</span>
 
@@ -800,26 +841,34 @@ export function DashboardOverview() {
                     <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/25 text-xs font-semibold text-violet-200">
                       {getInitials(group.name)}
                     </span>
-                    <strong className="font-semibold">{group.name}</strong>
+                    <div className="min-w-0">
+                      <strong className="block truncate font-semibold">
+                        {group.name}
+                      </strong>
+                      <span className="text-[11px] font-medium text-slate-500">
+                        {group.projectsCount} proj. · ticket{" "}
+                        {formatCompactCurrency(group.ticketMedio)}
+                      </span>
+                    </div>
                   </div>
 
                   <span className="dashboard-number text-slate-300">
                     {formatCompactCurrency(group.revenue)}
                   </span>
 
-                  <span className="dashboard-number font-semibold text-violet-300">
-                    {formatCompactCurrency(group.profit)}
+                  <span className="dashboard-number font-semibold text-emerald-300">
+                    {formatCompactCurrency(group.received)}
                   </span>
 
                   <div className="flex items-center gap-3">
                     <span className="dashboard-number w-12 text-slate-300">
-                      {formatPercent(group.margin)}
+                      {formatPercent(group.participationPercent)}
                     </span>
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
                       <div
                         className="h-full rounded-full bg-cyan-300"
                         style={{
-                          width: `${clamp(group.margin, 0, 100)}%`,
+                          width: `${clamp(group.participationPercent, 0, 100)}%`,
                         }}
                       />
                     </div>
@@ -854,7 +903,7 @@ export function DashboardOverview() {
             <div className="min-w-[680px]">
               <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
                 <span>Cliente</span>
-                <span>Competência</span>
+                <span>Previsão</span>
                 <span>Valor</span>
                 <span>Status</span>
               </div>
@@ -867,12 +916,9 @@ export function DashboardOverview() {
                   item.category ||
                   "Sem cliente";
 
-                const value =
-                  item.revenue > 0
-                    ? item.revenue
-                    : item.profit > 0
-                      ? item.profit
-                      : item.expenses;
+                const dueLabel = item.dueAt
+                  ? new Date(item.dueAt).toLocaleDateString("pt-BR")
+                  : (item.competence ?? "—");
 
                 return (
                   <div
@@ -883,19 +929,27 @@ export function DashboardOverview() {
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/25 text-xs font-semibold text-violet-200">
                         {getInitials(clientName)}
                       </span>
-                      <strong className="font-semibold">{clientName}</strong>
+                      <strong className="truncate font-semibold">
+                        {clientName}
+                      </strong>
                     </div>
 
                     <span className="dashboard-number text-slate-300">
-                      {item.competence ?? "—"}
+                      {dueLabel}
                     </span>
 
                     <span className="dashboard-number font-semibold text-slate-200">
-                      {formatCompactCurrency(value)}
+                      {formatCompactCurrency(item.revenue)}
                     </span>
 
-                    <span className="w-fit rounded-lg bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200">
-                      {item.status || item.type}
+                    <span
+                      className={`w-fit rounded-lg px-3 py-1 text-xs font-semibold ${
+                        item.overdue
+                          ? "bg-rose-400/10 text-rose-200"
+                          : "bg-cyan-400/10 text-cyan-200"
+                      }`}
+                    >
+                      {item.overdue ? "Atrasado" : item.status || "A receber"}
                     </span>
                   </div>
                 );
