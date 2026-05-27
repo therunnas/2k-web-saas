@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -9,6 +10,7 @@ import {
   CircleDollarSign,
   Download,
   Pencil,
+  Plus,
   RefreshCw,
   Save,
   Search,
@@ -77,6 +79,17 @@ type EditForm = {
   value: string;
 };
 
+type SummaryTone = "cyan" | "emerald" | "amber" | "rose" | "violet";
+
+type SummaryCard = {
+  label: string;
+  value: string;
+  helper: string;
+  delta: string;
+  tone: SummaryTone;
+  icon: typeof TrendingUp;
+};
+
 const filterOptions = [
   { label: "Todos", value: "all" },
   { label: "Entradas", value: "entradas" },
@@ -108,7 +121,16 @@ function formatCompactCurrency(value: number) {
     currency: "BRL",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value || 0);
+  })
+    .format(value || 0)
+    .replace(",00", "");
+}
+
+function formatPercent(value: number) {
+  return `${new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(Number.isFinite(value) ? value : 0)}%`;
 }
 
 function formatDate(value: string | null) {
@@ -145,36 +167,147 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-function getStatusClass(entry: FinanceEntry) {
+function getStatusInfo(entry: FinanceEntry) {
   if (entry.type === "REVENUE") {
-    return "bg-emerald-400/10 text-emerald-200";
+    return {
+      label: "Recebido",
+      className: "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+    };
   }
 
   if (entry.type === "RECEIVABLE") {
-    return "bg-cyan-400/10 text-cyan-200";
+    return {
+      label: "A receber",
+      className: "border-cyan-300/20 bg-cyan-300/10 text-cyan-200",
+    };
   }
 
   if (entry.type === "EXPENSE") {
-    return "bg-rose-400/10 text-rose-200";
+    return {
+      label: "Pago",
+      className: "border-rose-300/20 bg-rose-300/10 text-rose-200",
+    };
   }
 
   if (entry.type === "PAYABLE") {
-    return "bg-violet-400/10 text-violet-200";
+    return {
+      label: "A pagar",
+      className: "border-amber-300/20 bg-amber-300/10 text-amber-200",
+    };
   }
 
-  return "bg-white/10 text-slate-300";
+  return {
+    label: entry.status || entry.kind || "Sem status",
+    className: "border-white/10 bg-white/[0.04] text-slate-300",
+  };
 }
 
 function getDirectionIcon(entry: FinanceEntry) {
   if (entry.direction === "entrada") {
-    return <ArrowUpRight size={16} className="text-emerald-300" />;
+    return <ArrowUpRight size={14} className="text-emerald-300" />;
   }
 
   if (entry.direction === "saida") {
-    return <ArrowDownLeft size={16} className="text-rose-300" />;
+    return <ArrowDownLeft size={14} className="text-rose-300" />;
   }
 
-  return <CircleDollarSign size={16} className="text-slate-400" />;
+  return <CircleDollarSign size={14} className="text-slate-500" />;
+}
+
+function getEntryKindLabel(entry: FinanceEntry) {
+  if (entry.direction === "entrada") return "Entrada";
+  if (entry.direction === "saida") return "Saída";
+  return "Outro";
+}
+
+function getEntryName(entry: FinanceEntry) {
+  return entry.client || entry.groupName || entry.name || "Sem nome";
+}
+
+function getEntryDescription(entry: FinanceEntry) {
+  return entry.project || entry.description || "Sem descrição";
+}
+
+function toneClasses(tone: SummaryTone) {
+  const map: Record<
+    SummaryTone,
+    {
+      text: string;
+      bg: string;
+      badge: string;
+      line: string;
+    }
+  > = {
+    cyan: {
+      text: "text-cyan-200",
+      bg: "bg-cyan-300/10",
+      badge: "border-cyan-300/20 bg-cyan-300/10 text-cyan-200",
+      line: "from-cyan-300/75 via-emerald-300/50 to-transparent",
+    },
+    emerald: {
+      text: "text-emerald-200",
+      bg: "bg-emerald-300/10",
+      badge: "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+      line: "from-emerald-300/75 via-cyan-300/45 to-transparent",
+    },
+    amber: {
+      text: "text-amber-200",
+      bg: "bg-amber-300/10",
+      badge: "border-amber-300/20 bg-amber-300/10 text-amber-200",
+      line: "from-amber-300/75 via-orange-300/45 to-transparent",
+    },
+    rose: {
+      text: "text-rose-200",
+      bg: "bg-rose-300/10",
+      badge: "border-rose-300/20 bg-rose-300/10 text-rose-200",
+      line: "from-rose-300/70 via-violet-300/40 to-transparent",
+    },
+    violet: {
+      text: "text-violet-200",
+      bg: "bg-violet-300/10",
+      badge: "border-violet-300/20 bg-violet-300/10 text-violet-200",
+      line: "from-violet-300/75 via-cyan-300/40 to-transparent",
+    },
+  };
+
+  return map[tone];
+}
+
+function SummaryMiniCard({ card }: { card: SummaryCard }) {
+  const Icon = card.icon;
+  const tone = toneClasses(card.tone);
+
+  return (
+    <article className="group relative min-h-[104px] overflow-hidden rounded-[14px] border border-white/[0.075] bg-[linear-gradient(180deg,rgba(15,18,27,0.96),rgba(8,11,17,0.99))] p-4 shadow-[0_16px_48px_rgba(0,0,0,0.16)]">
+      <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${tone.line}`} />
+
+      <div
+        className={`absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-[10px] border border-current/20 ${tone.bg} ${tone.text}`}
+      >
+        <Icon size={15} />
+      </div>
+
+      <p className="dashboard-label pr-12 text-[9px] text-slate-500">
+        {card.label}
+      </p>
+
+      <strong className="dashboard-number mt-3 block truncate text-[23px] leading-none text-white">
+        {card.value}
+      </strong>
+
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <p className="truncate text-[11px] font-medium text-slate-500">
+          {card.helper}
+        </p>
+
+        <span
+          className={`inline-flex h-6 shrink-0 items-center rounded-full border px-2.5 text-[10px] font-bold ${tone.badge}`}
+        >
+          {card.delta}
+        </span>
+      </div>
+    </article>
+  );
 }
 
 export function FinanceiroDashboard() {
@@ -207,9 +340,12 @@ export function FinanceiroDashboard() {
         searchParams.set("search", query.trim());
       }
 
-      const response = await fetch(`/api/finance/entries?${searchParams.toString()}`, {
-        cache: "no-store",
-      });
+      const response = await fetch(
+        `/api/finance/entries?${searchParams.toString()}`,
+        {
+          cache: "no-store",
+        },
+      );
 
       const json = (await response.json()) as FinanceEntriesResponse;
 
@@ -236,56 +372,74 @@ export function FinanceiroDashboard() {
 
   const summaryCards = useMemo(() => {
     const summary = data?.summary;
+    const receivedPercent =
+      summary && summary.totalRevenue > 0
+        ? (summary.receivedTotal / summary.totalRevenue) * 100
+        : 0;
+    const receivablePercent =
+      summary && summary.totalRevenue > 0
+        ? (summary.receivableTotal / summary.totalRevenue) * 100
+        : 0;
+    const margin =
+      summary && summary.totalRevenue > 0
+        ? (summary.totalProfit / summary.totalRevenue) * 100
+        : 0;
 
     return [
       {
-        label: "Faturado no ano",
+        label: "Faturado",
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
-        helper: "Entradas + valores a receber",
+        helper: "Receitas do ano",
+        delta: summary ? `${summary.entries} itens` : "—",
         icon: TrendingUp,
-        tone: "text-cyan-300",
+        tone: "cyan",
       },
       {
-        label: "Recebido no caixa",
+        label: "Recebido em caixa",
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
-        helper: "Entradas marcadas como pagas",
+        helper: "Entradas pagas",
+        delta: formatPercent(receivedPercent),
         icon: Banknote,
-        tone: "text-emerald-300",
+        tone: "emerald",
       },
       {
         label: "A receber",
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
-        helper: "Entradas pendentes",
+        helper: "Pendências abertas",
+        delta: formatPercent(receivablePercent),
         icon: CalendarDays,
-        tone: "text-cyan-300",
+        tone: receivablePercent > 20 ? "amber" : "cyan",
       },
       {
-        label: "Saídas no ano",
-        value: summary ? formatCompactCurrency(summary.totalExpenses) : "—",
-        helper: "Despesas e contas a pagar",
+        label: "Saídas pagas",
+        value: summary ? formatCompactCurrency(summary.paidExpenses) : "—",
+        helper: "Despesas quitadas",
+        delta: summary ? `${formatCompactCurrency(summary.totalExpenses)}` : "—",
         icon: Wallet,
-        tone: "text-rose-300",
+        tone: "rose",
       },
       {
         label: "Lucro por competência",
         value: summary ? formatCompactCurrency(summary.totalProfit) : "—",
-        helper: "Faturado - saídas",
+        helper: "Faturado menos saídas",
+        delta: formatPercent(margin),
         icon: CircleDollarSign,
-        tone: "text-violet-300",
+        tone: margin < 0 ? "rose" : "violet",
       },
       {
-        label: "Resultado de caixa real",
+        label: "Caixa real",
         value: summary ? formatCompactCurrency(summary.cashResult) : "—",
-        helper: "Recebido - saídas pagas",
+        helper: "Recebido menos saídas pagas",
+        delta: summary && summary.cashResult < 0 ? "Atenção" : "Em ritmo",
         icon: CircleDollarSign,
-        tone: "text-emerald-300",
+        tone: summary && summary.cashResult < 0 ? "rose" : "emerald",
       },
-    ];
+    ] satisfies SummaryCard[];
   }, [data]);
 
   const entries = data?.entries ?? [];
 
-  function handleSearchSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAppliedSearch(search);
   }
@@ -326,7 +480,7 @@ export function FinanceiroDashboard() {
     });
   }
 
-  async function handleSaveEdit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSaveEdit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!editForm) return;
@@ -367,7 +521,7 @@ export function FinanceiroDashboard() {
 
   async function handleDeleteFinanceEntry(id: string) {
     const confirmed = window.confirm(
-      "Tem certeza que deseja excluir este lançamento? Ele sairá de todos os dashboards e cálculos."
+      "Tem certeza que deseja excluir este lançamento? Ele sairá de todos os dashboards e cálculos.",
     );
 
     if (!confirmed) return;
@@ -406,20 +560,20 @@ export function FinanceiroDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="financeiro-v2 flex flex-col gap-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="dashboard-label text-[11px] text-cyan-300">
+          <p className="dashboard-label text-[10px] text-cyan-300">
             Financeiro
           </p>
 
-          <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
-            Financeiro real da operação.
+          <h1 className="mt-3 text-[38px] font-semibold leading-none tracking-[-0.07em] text-white sm:text-[44px]">
+            Financeiro.
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
-            Entradas, saídas, valores recebidos, valores a receber e resultado
-            calculados diretamente dos lançamentos ativos.
+            Lançamentos, recebimentos, despesas e resultado consolidados dos
+            dados ativos da operação.
           </p>
         </div>
 
@@ -427,85 +581,66 @@ export function FinanceiroDashboard() {
           <button
             type="button"
             onClick={() => loadEntries()}
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={15} />
             {loading ? "Atualizando..." : "Atualizar"}
           </button>
 
           <button
             type="button"
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
           >
-            <Download size={16} />
+            <Download size={15} />
             Exportar
           </button>
+
+          <Link
+            href="/entradas"
+            className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-cyan-300/25 bg-cyan-300/10 px-4 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/15"
+          >
+            <Plus size={15} />
+            Nova entrada
+          </Link>
         </div>
       </header>
 
       {errorMessage ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="rounded-[14px] border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
           {errorMessage}
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-medium text-emerald-100">
+        <div className="rounded-[14px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-medium text-emerald-100">
           {successMessage}
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {summaryCards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <article
-              key={card.label}
-              className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="dashboard-label text-[11px] text-slate-500">
-                    {card.label}
-                  </p>
-
-                  <strong className="dashboard-number mt-3 block text-[25px] font-semibold text-white">
-                    {card.value}
-                  </strong>
-
-                  <p className="mt-2 text-xs font-medium text-slate-500">
-                    {card.helper}
-                  </p>
-                </div>
-
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/[0.04]">
-                  <Icon size={22} className={card.tone} />
-                </div>
-              </div>
-            </article>
-          );
-        })}
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        {summaryCards.map((card) => (
+          <SummaryMiniCard key={card.label} card={card} />
+        ))}
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+      <section className="overflow-hidden rounded-[18px] border border-white/[0.085] bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(9,12,19,0.985))] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.22)] sm:p-5 xl:p-6">
         <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
+            <h2 className="text-[19px] font-semibold tracking-[-0.04em] text-white">
               Lançamentos financeiros
             </h2>
 
             <p className="mt-2 text-sm font-medium text-slate-500">
               {data
-                ? `${data.summary.filteredEntries} lançamentos encontrados de ${data.summary.entries} no ano.`
+                ? `${data.summary.filteredEntries} de ${data.summary.entries} lançamentos no ano.`
                 : "Carregando lançamentos financeiros."}
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
             <form onSubmit={handleSearchSubmit} className="relative">
               <Search
-                size={16}
+                size={15}
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
               />
 
@@ -513,7 +648,7 @@ export function FinanceiroDashboard() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar cliente, grupo, projeto..."
-                className="h-11 w-full rounded-2xl border border-white/10 bg-white/[0.035] pl-10 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40 lg:w-80"
+                className="h-10 w-full rounded-[10px] border border-white/10 bg-white/[0.035] pl-9 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40 xl:w-80"
               />
             </form>
 
@@ -523,7 +658,7 @@ export function FinanceiroDashboard() {
                   key={option.value}
                   type="button"
                   onClick={() => setActiveFilter(option.value)}
-                  className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                  className={`h-9 rounded-[9px] border px-3 text-xs font-semibold transition ${
                     activeFilter === option.value
                       ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100"
                       : "border-white/10 bg-white/[0.025] text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
@@ -536,111 +671,121 @@ export function FinanceiroDashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-white/10">
-          <div className="min-w-[1200px]">
-            <div className="grid grid-cols-[1.15fr_1.15fr_0.85fr_0.9fr_0.8fr_0.8fr_0.7fr_0.9fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        <div className="overflow-x-auto rounded-[14px] border border-white/[0.075] bg-[#080c14]/55">
+          <div className="min-w-[1180px]">
+            <div className="grid grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] border-b border-white/[0.075] bg-white/[0.025] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               <span>Nome</span>
               <span>Projeto / descrição</span>
               <span>Competência</span>
               <span>Categoria</span>
-              <span>Valor</span>
+              <span className="text-right">Valor</span>
               <span>Status</span>
               <span>Linha</span>
-              <span>Ações</span>
+              <span className="text-right">Ações</span>
             </div>
 
-            {entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="grid grid-cols-[1.15fr_1.15fr_0.85fr_0.9fr_0.8fr_0.8fr_0.7fr_0.9fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                      entry.direction === "entrada"
-                        ? "bg-emerald-400/10 text-emerald-200"
-                        : "bg-rose-400/10 text-rose-200"
-                    }`}
-                  >
-                    {getInitials(entry.name)}
+            {entries.map((entry) => {
+              const status = getStatusInfo(entry);
+              const name = getEntryName(entry);
+              const description = getEntryDescription(entry);
+
+              return (
+                <div
+                  key={entry.id}
+                  className="grid min-h-[62px] grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] items-center border-b border-white/[0.045] px-5 py-3 text-sm last:border-b-0 hover:bg-white/[0.018]"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                        entry.direction === "entrada"
+                          ? "bg-emerald-400/10 text-emerald-200"
+                          : "bg-rose-400/10 text-rose-200"
+                      }`}
+                    >
+                      {getInitials(name)}
+                    </span>
+
+                    <div className="min-w-0">
+                      <strong className="block truncate font-semibold text-white">
+                        {name}
+                      </strong>
+
+                      <span className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                        {getDirectionIcon(entry)}
+                        {getEntryKindLabel(entry)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <span className="line-clamp-2 pr-4 text-[13px] font-medium leading-5 text-slate-400">
+                    {description}
                   </span>
 
-                  <div className="min-w-0">
-                    <strong className="block truncate font-semibold text-white">
-                      {entry.name}
-                    </strong>
-                    <span className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                      {getDirectionIcon(entry)}
-                      {entry.kind}
+                  <div>
+                    <span className="dashboard-number block text-xs text-slate-300">
+                      {entry.competence ?? "—"}
+                    </span>
+                    <span className="mt-1 block text-[11px] text-slate-600">
+                      {formatDate(entry.date)}
                     </span>
                   </div>
-                </div>
 
-                <span className="line-clamp-2 pr-4 text-sm font-medium text-slate-400">
-                  {entry.project || entry.description || "—"}
-                </span>
-
-                <div>
-                  <span className="dashboard-number block text-slate-300">
-                    {entry.competence ?? "—"}
+                  <span className="truncate pr-3 text-[13px] font-medium text-slate-400">
+                    {entry.category ?? "—"}
                   </span>
-                  <span className="mt-1 block text-xs text-slate-600">
-                    {formatDate(entry.date)}
+
+                  <span
+                    className={`dashboard-number text-right text-sm font-semibold ${
+                      entry.direction === "entrada"
+                        ? "text-emerald-200"
+                        : "text-rose-200"
+                    }`}
+                  >
+                    {formatCurrency(entry.value)}
                   </span>
-                </div>
 
-                <span className="text-sm font-medium text-slate-400">
-                  {entry.category ?? "—"}
-                </span>
-
-                <span
-                  className={`dashboard-number font-semibold ${
-                    entry.direction === "entrada"
-                      ? "text-emerald-200"
-                      : "text-rose-200"
-                  }`}
-                >
-                  {formatCurrency(entry.value)}
-                </span>
-
-                <span
-                  className={`w-fit rounded-lg px-3 py-1 text-xs font-semibold ${getStatusClass(
-                    entry
-                  )}`}
-                >
-                  {entry.status || entry.kind}
-                </span>
-
-                <span className="dashboard-number text-xs text-slate-500">
-                  {entry.sourceSheet ?? "—"} #{entry.sourceRow ?? "—"}
-                </span>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => startEdit(entry)}
-                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:bg-white/[0.06]"
+                  <span
+                    className={`w-fit rounded-full border px-2.5 py-1 text-[11px] font-semibold ${status.className}`}
                   >
-                    <Pencil size={13} />
-                    Editar
-                  </button>
+                    {status.label}
+                  </span>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteFinanceEntry(entry.id)}
-                    disabled={deletingId === entry.id}
-                    className="inline-flex w-fit items-center gap-2 rounded-xl border border-rose-400/20 bg-rose-400/10 px-3 py-1.5 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <Trash2 size={13} />
-                    {deletingId === entry.id ? "Excluindo..." : "Excluir"}
-                  </button>
+                  <span className="dashboard-number text-xs text-slate-500">
+                    {entry.sourceSheet ?? "—"} #{entry.sourceRow ?? "—"}
+                  </span>
+
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(entry)}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] border border-white/10 bg-white/[0.035] text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                      aria-label="Editar lançamento"
+                    >
+                      <Pencil size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFinanceEntry(entry.id)}
+                      disabled={deletingId === entry.id}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] border border-rose-400/20 bg-rose-400/10 text-rose-100 transition hover:bg-rose-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      aria-label="Excluir lançamento"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {!entries.length ? (
-              <div className="px-5 py-8 text-sm font-medium text-slate-500">
-                Nenhum lançamento encontrado para o filtro atual.
+              <div className="px-5 py-10 text-center">
+                <p className="text-sm font-semibold text-white">
+                  Nenhum lançamento encontrado
+                </p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Ajuste os filtros ou o termo de busca.
+                </p>
               </div>
             ) : null}
           </div>
@@ -649,10 +794,10 @@ export function FinanceiroDashboard() {
 
       {editingEntry && editForm ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <section className="w-full max-w-4xl rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-5 shadow-2xl">
+          <section className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[18px] border border-white/10 bg-[#0b101b] p-5 shadow-2xl">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="dashboard-label text-[11px] text-cyan-300">
+                <p className="dashboard-label text-[10px] text-cyan-300">
                   Editar lançamento
                 </p>
 
@@ -661,14 +806,15 @@ export function FinanceiroDashboard() {
                 </h2>
 
                 <p className="mt-2 text-sm font-medium text-slate-500">
-                  Alterações feitas aqui recalculam financeiro, dashboard, relatórios, metas e demais módulos.
+                  Alterações feitas aqui recalculam financeiro, dashboard,
+                  relatórios, metas e demais módulos.
                 </p>
               </div>
 
               <button
                 type="button"
                 onClick={closeEdit}
-                className="rounded-2xl border border-white/10 bg-white/[0.035] p-2 text-slate-300 transition hover:bg-white/[0.06]"
+                className="rounded-[10px] border border-white/10 bg-white/[0.035] p-2 text-slate-300 transition hover:bg-white/[0.06]"
               >
                 <X size={18} />
               </button>
@@ -676,13 +822,13 @@ export function FinanceiroDashboard() {
 
             <form onSubmit={handleSaveEdit} className="grid gap-4 xl:grid-cols-2">
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Tipo
                 </span>
                 <select
                   value={editForm.type}
                   onChange={(event) => updateEditField("type", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
                 >
                   {typeOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -693,105 +839,107 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Valor
                 </span>
                 <input
                   value={editForm.value}
                   onChange={(event) => updateEditField("value", event.target.value)}
-                  placeholder="Ex: 5000 ou 5.000,00"
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  placeholder="Ex.: 5000 ou 5.000,00"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Cliente / fornecedor
                 </span>
                 <input
                   value={editForm.client}
                   onChange={(event) => updateEditField("client", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Grupo
                 </span>
                 <input
                   value={editForm.groupName}
                   onChange={(event) => updateEditField("groupName", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Projeto
                 </span>
                 <input
                   value={editForm.project}
                   onChange={(event) => updateEditField("project", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Categoria
                 </span>
                 <input
                   value={editForm.category}
                   onChange={(event) => updateEditField("category", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Competência
                 </span>
                 <input
                   value={editForm.competence}
                   onChange={(event) => updateEditField("competence", event.target.value)}
-                  placeholder="Ex: 05/2026"
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  placeholder="Ex.: 05/2026"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Data
                 </span>
                 <input
                   type="date"
                   value={editForm.date}
                   onChange={(event) => updateEditField("date", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block xl:col-span-2">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Status
                 </span>
                 <input
                   value={editForm.status}
                   onChange={(event) => updateEditField("status", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
               <label className="block xl:col-span-2">
-                <span className="dashboard-label text-[11px] text-slate-500">
+                <span className="dashboard-label text-[10px] text-slate-500">
                   Descrição
                 </span>
                 <textarea
                   value={editForm.description}
-                  onChange={(event) => updateEditField("description", event.target.value)}
+                  onChange={(event) =>
+                    updateEditField("description", event.target.value)
+                  }
                   rows={3}
-                  className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="mt-2 w-full resize-none rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
                 />
               </label>
 
@@ -799,18 +947,18 @@ export function FinanceiroDashboard() {
                 <button
                   type="button"
                   onClick={closeEdit}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06]"
+                  className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06]"
                 >
-                  <X size={16} />
+                  <X size={15} />
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-cyan-300/20 bg-cyan-300/15 px-5 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-cyan-300/20 bg-cyan-300/15 px-5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <Save size={16} />
+                  <Save size={15} />
                   {savingEdit ? "Salvando..." : "Salvar edição"}
                 </button>
               </div>
