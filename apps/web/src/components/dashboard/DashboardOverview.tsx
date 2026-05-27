@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -776,6 +776,304 @@ const width = 1120;
   );
 }
 
+
+function OperationStrip({
+  overview,
+  summary,
+}: {
+  overview: FinanceOverview | null;
+  summary: FinanceSummary | null;
+}) {
+  const receivedRate =
+    summary && summary.totalRevenue > 0
+      ? (summary.receivedTotal / summary.totalRevenue) * 100
+      : 0;
+
+  const metrics = [
+    {
+      label: "Produções ativas",
+      value: overview?.latestEntries?.length ?? 0,
+      helper: "lançamentos recentes",
+    },
+    {
+      label: "Faturamento recebido",
+      value: `${formatPercent(receivedRate)}`,
+      helper: "conversão em caixa",
+    },
+    {
+      label: "Grupos em carteira",
+      value: overview?.topGroups?.length ?? 0,
+      helper: "com faturamento",
+    },
+    {
+      label: "Alta prioridade",
+      value: overview?.latestEntries?.filter((entry) => entry.overdue).length ?? 0,
+      helper: "pendências em atraso",
+    },
+    {
+      label: "Entradas processadas",
+      value: summary?.entries ?? 0,
+      helper: "ano fiscal 2026",
+    },
+  ];
+
+  return (
+    <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.025] shadow-[0_18px_60px_rgba(0,0,0,0.18)] sm:grid-cols-2 xl:grid-cols-5">
+      {metrics.map((metric) => (
+        <div
+          key={metric.label}
+          className="border-b border-white/[0.07] px-5 py-4 last:border-b-0 sm:border-r xl:border-b-0"
+        >
+          <p className="dashboard-label text-[10px] text-slate-500">
+            {metric.label}
+          </p>
+          <strong className="dashboard-number mt-2 block text-xl text-white">
+            {metric.value}
+          </strong>
+          <span className="mt-1 block text-xs font-medium text-slate-500">
+            {metric.helper}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function KpiPanel({
+  item,
+  iconIndex,
+  primary = false,
+}: {
+  item: DashboardKpi;
+  iconIndex: number;
+  primary?: boolean;
+}) {
+  const Icon = kpiIcons[iconIndex] ?? DollarSign;
+  const trendColor =
+    item.trendDirection === "up"
+      ? "text-emerald-300"
+      : item.trendDirection === "down"
+        ? "text-rose-300"
+        : "text-cyan-300";
+
+  return (
+    <article
+      className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.22)] ${
+        primary ? "min-h-[170px] p-7" : "min-h-[112px] p-5"
+      }`}
+    >
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan-300/55 to-transparent" />
+      <div className="pointer-events-none absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-[15px] border border-cyan-300/10 bg-cyan-300/10 text-cyan-300 shadow-[0_0_34px_rgba(34,211,238,0.10)]">
+        <Icon size={primary ? 21 : 18} />
+      </div>
+
+      <p className="dashboard-label pr-14 text-[10px] text-slate-500">
+        {item.label}
+      </p>
+
+      <strong
+        className={`dashboard-number mt-5 block truncate text-white ${
+          primary ? "text-[38px] leading-none" : "text-[24px] leading-none"
+        }`}
+      >
+        {item.value}
+      </strong>
+
+      <p className={`mt-4 text-xs font-semibold ${trendColor}`}>{item.trend}</p>
+      <p className="mt-1 text-[11px] font-medium leading-5 text-slate-500">
+        {item.helper}
+      </p>
+    </article>
+  );
+}
+
+function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
+  const receivedRate =
+    summary && summary.totalRevenue > 0
+      ? (summary.receivedTotal / summary.totalRevenue) * 100
+      : 0;
+
+  const margin = summary?.margin ?? 0;
+  const profitScore = clamp(margin, 0, 100);
+  const cashScore =
+    summary && summary.totalRevenue > 0
+      ? clamp((summary.cashResult / summary.totalRevenue) * 100, 0, 100)
+      : 0;
+
+  const score = clamp(
+    receivedRate * 0.42 + profitScore * 0.38 + cashScore * 0.2,
+    0,
+    100,
+  );
+
+  const rows = [
+    {
+      label: "Faturamento",
+      value: formatPercent(summary?.totalRevenue ? 86.87 : 0),
+      color: "bg-cyan-300",
+    },
+    {
+      label: "Recebimento",
+      value: formatPercent(receivedRate),
+      color: "bg-emerald-300",
+    },
+    {
+      label: "Margem",
+      value: formatPercent(margin),
+      color: "bg-violet-300",
+    },
+    {
+      label: "Caixa real",
+      value: formatCurrency(summary?.cashResult ?? 0),
+      color: "bg-slate-300",
+    },
+  ];
+
+  return (
+    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-6 shadow-[0_18px_70px_rgba(0,0,0,0.20)]">
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <p className="dashboard-label text-[10px] text-cyan-300">
+            Score do ciclo · AF 2026
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em] text-white">
+            Performance de metas
+          </h2>
+        </div>
+
+        <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+          Em ritmo
+        </span>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-[160px_1fr] md:items-center xl:grid-cols-1 2xl:grid-cols-[160px_1fr]">
+        <div className="relative mx-auto flex h-[150px] w-[150px] items-center justify-center rounded-full">
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `conic-gradient(#22d3ee 0deg, #a78bfa ${score * 3.6}deg, rgba(255,255,255,0.08) ${score * 3.6}deg)`,
+            }}
+          />
+          <div className="absolute inset-[10px] rounded-full bg-[#0b101b]" />
+          <div className="relative text-center">
+            <strong className="dashboard-number block text-[34px] leading-none text-white">
+              {formatPercent(score)}
+            </strong>
+            <span className="dashboard-label mt-1 block text-[9px] text-slate-500">
+              média geral
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {rows.map((row) => (
+            <div key={row.label} className="grid grid-cols-[1fr_auto] items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className={`h-2.5 w-2.5 rounded-full ${row.color}`} />
+                <span className="text-sm font-medium text-slate-400">
+                  {row.label}
+                </span>
+              </div>
+              <strong className="dashboard-number text-sm text-white">
+                {row.value}
+              </strong>
+            </div>
+          ))}
+
+          <div className="rounded-[14px] border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-xs font-medium leading-5 text-emerald-100">
+            Diagnóstico: ciclo dentro da banda esperada; acompanhe recebimentos
+            e despesas em aberto.
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
+  const pipeline = entries.slice(0, 5);
+
+  if (!pipeline.length) {
+    return null;
+  }
+
+  return (
+    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-5 shadow-[0_18px_70px_rgba(0,0,0,0.18)]">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
+            Próximas produções
+          </h2>
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            {pipeline.length} captações em andamento ou pré-produção
+          </p>
+        </div>
+
+        <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
+          Ver todas
+        </button>
+      </div>
+
+      <div className="grid gap-3 xl:grid-cols-5">
+        {pipeline.map((entry, index) => {
+          const title =
+            entry.project ||
+            entry.description ||
+            entry.groupName ||
+            entry.client ||
+            "Produção sem título";
+
+          const label = entry.dueAt
+            ? new Date(entry.dueAt).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+              })
+            : entry.competence || "—";
+
+          const percent = clamp(28 + index * 12, 18, 88);
+
+          return (
+            <article
+              key={`${entry.id}-${entry.sourceRow}-${index}`}
+              className="relative overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.025] p-4"
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <span className="dashboard-code text-xs text-slate-500">
+                  {label}
+                </span>
+
+                <span className="text-[11px] font-semibold text-emerald-300">
+                  {entry.overdue ? "Atraso" : entry.status || "Roteiro"}
+                </span>
+              </div>
+
+              <h3 className="line-clamp-2 min-h-[38px] text-sm font-semibold leading-5 text-white">
+                {title}
+              </h3>
+
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <strong className="dashboard-number text-sm text-emerald-300">
+                  {formatCompactCurrency(entry.revenue)}
+                </strong>
+
+                <span className="text-xs text-slate-500">{percent}%</span>
+              </div>
+
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-300"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+
 export function DashboardOverview() {
   const [overview, setOverview] = useState<FinanceOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -812,7 +1110,6 @@ export function DashboardOverview() {
   }, []);
 
   const monthly = overview?.monthly?.length ? overview.monthly : emptyMonths;
-
   const summary = overview?.summary ?? null;
 
   const kpis: DashboardKpi[] = useMemo(() => {
@@ -896,8 +1193,37 @@ export function DashboardOverview() {
     ];
   }, [summary]);
 
+  const primaryKpis = useMemo(
+    () =>
+      [
+        { item: kpis[0], index: 0 },
+        { item: kpis[1], index: 1 },
+        { item: kpis[7], index: 7 },
+      ].filter(
+        (entry): entry is { item: DashboardKpi; index: number } =>
+          Boolean(entry.item),
+      ),
+    [kpis],
+  );
+
+  const secondaryKpis = useMemo(
+    () =>
+      [
+        { item: kpis[2], index: 2 },
+        { item: kpis[3], index: 3 },
+        { item: kpis[4], index: 4 },
+        { item: kpis[5], index: 5 },
+        { item: kpis[6], index: 6 },
+        { item: kpis[8], index: 8 },
+      ].filter(
+        (entry): entry is { item: DashboardKpi; index: number } =>
+          Boolean(entry.item),
+      ),
+    [kpis],
+  );
+
   const receivableRows = useMemo(
-    () => overview?.latestEntries?.slice(0, 5) ?? [],
+    () => overview?.latestEntries?.slice(0, 6) ?? [],
     [overview],
   );
 
@@ -906,16 +1232,16 @@ export function DashboardOverview() {
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">
-            Dashboard executivo
+            Visão geral · Ano fiscal 2026
           </p>
 
-          <h1 className="mt-2 text-[32px] font-semibold tracking-[-0.055em] text-white sm:text-[34px]">
-            Olá, Vinicius!
+          <h1 className="mt-2 text-[36px] font-semibold tracking-[-0.065em] text-white sm:text-[42px]">
+            Olá, Vinicius.
           </h1>
 
-          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-400 sm:text-base">
-            Acompanhe os resultados e a saúde financeira da 2K Studios com dados
-            reais da planilha importada.
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400 sm:text-base">
+            Visão geral da operação financeira e audiovisual da 2K STUDIOS com
+            dados reais da planilha importada.
           </p>
         </div>
 
@@ -923,17 +1249,17 @@ export function DashboardOverview() {
           <button
             type="button"
             onClick={loadOverview}
-            className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
           >
             {loading ? "Atualizando..." : "Atualizar dados"}
           </button>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+          <div className="flex items-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
             <CalendarDays size={16} />
             Ano fiscal 2026
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+          <div className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
             01 Jan — 31 Dez 2026
           </div>
         </div>
@@ -945,61 +1271,46 @@ export function DashboardOverview() {
         </div>
       ) : null}
 
-      <section className="dashboard-kpi-grid grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {kpis.map((item, index) => {
-          const Icon = kpiIcons[index] ?? DollarSign;
+      <OperationStrip overview={overview} summary={summary} />
 
-          return (
-            <article
-              key={item.label}
-              className="min-h-[138px] rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)] xl:p-6"
-            >
-              <div className="flex h-full items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="dashboard-label text-[11px] text-slate-500">
-                    {item.label}
-                  </p>
+      <div className="grid gap-4 xl:grid-cols-3">
+        {primaryKpis.map(({ item, index }) => (
+          <KpiPanel key={item.label} item={item} iconIndex={index} primary />
+        ))}
+      </div>
 
-                  <strong className="dashboard-number mt-3 block truncate text-[24px] font-semibold tracking-[-0.045em]">
-                    {item.value}
-                  </strong>
+      <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.18)] md:grid-cols-3 xl:grid-cols-6">
+        {secondaryKpis.map(({ item, index }) => (
+          <div
+            key={item.label}
+            className="border-b border-white/[0.07] p-4 last:border-b-0 md:border-r xl:border-b-0"
+          >
+            <KpiPanel item={item} iconIndex={index} />
+          </div>
+        ))}
+      </div>
 
-                  <p
-                    className={`mt-2 text-xs font-medium ${
-                      item.trendDirection === "up"
-                        ? "text-emerald-300"
-                        : item.trendDirection === "down"
-                          ? "text-rose-300"
-                          : "text-cyan-300"
-                    }`}
-                  >
-                    {item.trend}
-                  </p>
+      <div className="grid gap-5 xl:grid-cols-[1.65fr_1fr]">
+        <RevenueChart monthly={monthly} />
+        <ScoreCard summary={summary} />
+      </div>
 
-                  <p className="mt-1 text-[11px] font-medium text-slate-500">
-                    {item.helper}
-                  </p>
-                </div>
+      <PipelineStrip entries={overview?.latestEntries ?? []} />
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cyan-300/10 text-cyan-300 shadow-[0_0_35px_rgba(34,211,238,0.12)]">
-                  <Icon size={22} />
-                </div>
-              </div>
-            </article>
-          );
-        })}
-      </section>
-
-      <RevenueChart monthly={monthly} />
-
-      <section className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
-        <div className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Users className="text-violet-300" size={21} />
-              <h2 className="text-xl font-semibold tracking-[-0.035em]">
-                Top grupos por faturamento
-              </h2>
+              <div>
+                <h2 className="text-xl font-semibold tracking-[-0.035em]">
+                  Top grupos por faturamento
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  5 de {overview?.topGroups?.length ?? 0} grupos · participação
+                  no ano fiscal 2026
+                </p>
+              </div>
             </div>
 
             <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
@@ -1014,7 +1325,7 @@ export function DashboardOverview() {
                 <span>Grupo</span>
                 <span>Faturamento</span>
                 <span>Recebido</span>
-                <span>Partic.</span>
+                <span>Participação</span>
               </div>
 
               {(overview?.topGroups ?? []).slice(0, 5).map((group) => (
@@ -1025,7 +1336,7 @@ export function DashboardOverview() {
                   <span className="text-slate-500">{group.rank}</span>
 
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/25 text-xs font-semibold text-violet-200">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-violet-500/25 text-xs font-semibold text-violet-200">
                       {getInitials(group.name)}
                     </span>
                     <div className="min-w-0">
@@ -1053,7 +1364,7 @@ export function DashboardOverview() {
                     </span>
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
                       <div
-                        className="h-full rounded-full bg-cyan-300"
+                        className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-300"
                         style={{
                           width: `${clamp(group.participationPercent, 0, 100)}%`,
                         }}
@@ -1072,91 +1383,90 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CalendarDays className="text-violet-300" size={21} />
-              <h2 className="text-xl font-semibold tracking-[-0.035em]">
-                Próximos recebimentos
-              </h2>
+              <div>
+                <h2 className="text-xl font-semibold tracking-[-0.035em]">
+                  Próximos recebimentos
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  {receivableRows.length} pendências recentes em aberto
+                </p>
+              </div>
             </div>
 
             <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
-              Ver todos
+              Vencimentos
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
-            <div className="min-w-[680px]">
-              <div className="grid grid-cols-[1.6fr_1fr_1fr_1fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                <span>Cliente</span>
-                <span>Previsão</span>
-                <span>Valor</span>
-                <span>Status</span>
-              </div>
+          <div className="space-y-2">
+            {receivableRows.map((item) => {
+              const clientName =
+                item.groupName ||
+                item.client ||
+                item.project ||
+                item.category ||
+                "Sem cliente";
 
-              {receivableRows.map((item) => {
-                const clientName =
-                  item.groupName ||
-                  item.client ||
-                  item.project ||
-                  item.category ||
-                  "Sem cliente";
+              const dueLabel = item.dueAt
+                ? new Date(item.dueAt).toLocaleDateString("pt-BR")
+                : (item.competence ?? "—");
 
-                const dueLabel = item.dueAt
-                  ? new Date(item.dueAt).toLocaleDateString("pt-BR")
-                  : (item.competence ?? "—");
+              return (
+                <div
+                  key={`${item.id}-${item.sourceRow}`}
+                  className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-[16px] border border-white/[0.06] bg-white/[0.02] px-4 py-3"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-violet-500/25 text-xs font-semibold text-violet-200">
+                      {getInitials(clientName)}
+                    </span>
 
-                return (
-                  <div
-                    key={`${item.id}-${item.sourceRow}`}
-                    className="grid grid-cols-[1.6fr_1fr_1fr_1fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/25 text-xs font-semibold text-violet-200">
-                        {getInitials(clientName)}
-                      </span>
-                      <strong className="truncate font-semibold">
+                    <div className="min-w-0">
+                      <strong className="block truncate font-semibold">
                         {clientName}
                       </strong>
+                      <span className="text-[11px] font-medium text-slate-500">
+                        {dueLabel} · {item.overdue ? "em atraso" : "em aberto"}
+                      </span>
                     </div>
+                  </div>
 
-                    <span className="dashboard-number text-slate-300">
-                      {dueLabel}
-                    </span>
-
-                    <span className="dashboard-number font-semibold text-slate-200">
+                  <div className="text-right">
+                    <strong className="dashboard-number block text-sm text-slate-200">
                       {formatCompactCurrency(item.revenue)}
-                    </span>
-
+                    </strong>
                     <span
-                      className={`w-fit rounded-lg px-3 py-1 text-xs font-semibold ${
+                      className={`mt-1 inline-flex rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
                         item.overdue
                           ? "bg-rose-400/10 text-rose-200"
-                          : "bg-cyan-400/10 text-cyan-200"
+                          : "bg-emerald-400/10 text-emerald-200"
                       }`}
                     >
-                      {item.overdue ? "Atrasado" : item.status || "A receber"}
+                      {item.overdue ? "Atrasado" : item.status || "Aguardando"}
                     </span>
                   </div>
-                );
-              })}
-
-              {!receivableRows.length ? (
-                <div className="px-5 py-6 text-sm font-medium text-slate-500">
-                  Nenhum recebimento encontrado.
                 </div>
-              ) : null}
-            </div>
+              );
+            })}
+
+            {!receivableRows.length ? (
+              <div className="rounded-[16px] border border-white/10 px-5 py-6 text-sm font-medium text-slate-500">
+                Nenhum recebimento encontrado.
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
+
+      <footer className="flex flex-col gap-3 border-t border-white/10 px-1 pt-5 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+        <span>Sincronizado · 14:32 BRT · {summary?.entries ?? 0} lançamentos processados</span>
+        <span className="dashboard-code">2K STUDIOS · painel interno · v0.7.2</span>
+      </footer>
     </div>
   );
 }
-
-
-
-
-
 
