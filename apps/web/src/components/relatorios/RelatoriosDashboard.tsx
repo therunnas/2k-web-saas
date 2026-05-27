@@ -253,7 +253,7 @@ export function RelatoriosDashboard() {
   const rankings = data?.rankings;
 
   return (
-    <div className="space-y-6">
+    <div className="ops-page-v2 final-page-v2 final-page-reports space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">
@@ -286,7 +286,7 @@ export function RelatoriosDashboard() {
             className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
           >
             <Download size={16} />
-            Exportar futuro
+            Exportar
           </button>
         </div>
       </header>
@@ -452,3 +452,5 @@ export function RelatoriosDashboard() {
     </div>
   );
 }
+
+

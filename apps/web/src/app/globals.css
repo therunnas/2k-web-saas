@@ -1492,8 +1492,8 @@ body,
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2K STUDIOS â€” Lote 6: Clientes, ProduÃ§Ãµes e Grupos                           */
-/* PadronizaÃ§Ã£o visual sem alterar API, Prisma, banco ou regras de negÃ³cio.    */
+/* 2K STUDIOS — Lote 6: Clientes, Produções e Grupos                           */
+/* Padronização visual sem alterar API, Prisma, banco ou regras de negócio.    */
 /* -------------------------------------------------------------------------- */
 
 .ops-page-v2 {
@@ -2001,5 +2001,1002 @@ body,
 
   .ops-page-v2 > section:first-of-type > article:last-child {
     border-bottom: 0 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Lote 8: Relatórios, Metas e Configurações                      */
+/* Padroniza containers finais sem alterar API, banco ou regras de negócio     */
+/* -------------------------------------------------------------------------- */
+
+.final-page-v2 {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+  padding-bottom: 28px;
+}
+
+/* Header final */
+.final-page-v2 > header {
+  padding: 20px 0 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.final-page-v2 > header h1 {
+  max-width: 820px;
+  font-size: clamp(34px, 3vw, 46px) !important;
+  line-height: 1;
+  font-weight: 660 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.final-page-v2 > header p:not(.dashboard-label) {
+  max-width: 760px;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: var(--fg-2) !important;
+}
+
+.final-page-v2 > header .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+}
+
+/* Botões do header */
+.final-page-v2 > header button,
+.final-page-v2 > header div[class*="rounded-2xl"] {
+  min-height: 38px;
+  border-radius: 11px !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+  font-weight: 620 !important;
+}
+
+.final-page-v2 > header button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* KPIs finais */
+.final-page-v2 > section:first-of-type {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.final-page-v2 > section:first-of-type > article {
+  min-height: 104px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 18px !important;
+}
+
+.final-page-v2 > section:first-of-type > article:last-child {
+  border-right: 0 !important;
+}
+
+.final-page-v2 > section:first-of-type .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.final-page-v2 > section:first-of-type .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(20px, 1.45vw, 25px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.final-page-v2 > section:first-of-type article p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: rgba(148, 163, 184, 0.68) !important;
+  font-weight: 600 !important;
+}
+
+.final-page-v2 > section:first-of-type article div[class*="rounded-full"] {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+/* Containers principais */
+.final-page-v2 > section:not(:first-of-type),
+.final-page-v2 aside,
+.final-page-v2 aside > section,
+.final-page-v2 .rounded-\[1\.75rem\] {
+  border-radius: 20px !important;
+  border-color: rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(34, 211, 238, 0.035), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Metas com acento violeta/ciano */
+.final-page-goals > section:not(:first-of-type),
+.final-page-goals aside {
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(124, 58, 237, 0.04), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Configurações com acento ciano */
+.final-page-config > section,
+.final-page-config .rounded-\[1\.75rem\] {
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(34, 211, 238, 0.04), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Títulos */
+.final-page-v2 h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.final-page-v2 h3 {
+  font-size: 17px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.035em !important;
+}
+
+/* Tabelas/listas */
+.final-page-v2 [class*="overflow-x-auto"] {
+  border-radius: 15px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(7, 10, 16, 0.42) !important;
+}
+
+.final-page-v2 [class*="grid-cols"] {
+  border-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+.final-page-v2 [class*="uppercase"] {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.58) !important;
+  letter-spacing: 0.16em !important;
+}
+
+.final-page-v2 [class*="items-center"] {
+  min-height: 58px;
+}
+
+/* Inputs */
+.final-page-v2 input,
+.final-page-v2 select,
+.final-page-v2 textarea {
+  border-radius: 12px !important;
+  border-color: rgba(255, 255, 255, 0.085) !important;
+  background: rgba(7, 10, 16, 0.72) !important;
+  color: var(--fg-0) !important;
+}
+
+.final-page-v2 input:focus,
+.final-page-v2 select:focus,
+.final-page-v2 textarea:focus {
+  border-color: rgba(34, 211, 238, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+/* Botões internos */
+.final-page-v2 button {
+  border-radius: 11px !important;
+  font-weight: 620 !important;
+}
+
+.final-page-v2 section button {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+}
+
+.final-page-v2 section button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* Status / badges */
+.final-page-v2 span[class*="bg-cyan"],
+.final-page-v2 span[class*="bg-emerald"],
+.final-page-v2 span[class*="bg-rose"],
+.final-page-v2 span[class*="bg-violet"] {
+  border-radius: 999px !important;
+  border: 1px solid currentColor !important;
+  background: color-mix(in oklab, currentColor 12%, transparent) !important;
+  font-weight: 650 !important;
+}
+
+/* Barras de progresso */
+.final-page-v2 [class*="rounded-full"] > div[class*="h-full"] {
+  box-shadow: 0 0 18px currentColor;
+}
+
+/* Configurações: listas de catálogo */
+.final-page-config [class*="space-y-2"] > div {
+  min-height: 52px;
+  border-radius: 14px !important;
+  border-color: rgba(255, 255, 255, 0.075) !important;
+  background: rgba(255, 255, 255, 0.024) !important;
+}
+
+/* Responsivo */
+@media (max-width: 1320px) {
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article:nth-child(3n) {
+    border-right: 0 !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article:nth-child(-n + 3) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .final-page-v2 > header h1 {
+    font-size: 32px !important;
+  }
+
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Todas as páginas internas usam escala mais controlada */
+.dashboard-overview-v2,
+.manual-page-v2,
+.ops-page-v2,
+.final-page-v2 {
+  width: 100%;
+  max-width: 1720px;
+  margin-inline: auto;
+}
+
+/* Evita títulos gigantes quando o navegador entra em zoom maior */
+.dashboard-overview-v2 > header h1,
+.manual-page-v2 > header h1,
+.ops-page-v2 > header h1,
+.final-page-v2 > header h1 {
+  font-size: clamp(30px, 2.35vw, 44px) !important;
+  line-height: 0.98 !important;
+}
+
+/* Textos de apoio não devem crescer demais */
+.dashboard-overview-v2 > header p,
+.manual-page-v2 > header p,
+.ops-page-v2 > header p,
+.final-page-v2 > header p {
+  font-size: clamp(13px, 0.82vw, 15px) !important;
+  line-height: 1.65 !important;
+}
+
+/* Cards principais com altura mais previsível */
+.dashboard-kpi-grid > article,
+.manual-page-v2 > section:first-of-type > article,
+.ops-page-v2 > section:first-of-type > article,
+.final-page-v2 > section:first-of-type > article {
+  min-width: 0 !important;
+}
+
+/* Corrige exagero de fonte dos números em zoom */
+.dashboard-number {
+  font-size-adjust: none;
+  max-width: 100%;
+}
+
+/* Ajuste para telas que “viram menores” quando o browser está com zoom */
+@media (max-width: 1500px) {
+  .dashboard-overview-v2,
+  .manual-page-v2,
+  .ops-page-v2,
+  .final-page-v2 {
+    gap: 18px !important;
+  }
+
+  .dashboard-overview-v2 > header,
+  .manual-page-v2 > header,
+  .ops-page-v2 > header,
+  .final-page-v2 > header {
+    padding-top: 12px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: clamp(28px, 2.15vw, 38px) !important;
+  }
+
+  .dashboard-kpi-grid {
+    gap: 12px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 132px !important;
+    padding: 20px !important;
+  }
+
+  .dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+    min-height: 76px !important;
+    padding: 13px 16px !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article,
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    min-height: 88px !important;
+    padding: 15px 16px !important;
+  }
+}
+
+/* Em zoom alto, mantém o conteúdo legível sem explodir o grid */
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: 30px !important;
+    letter-spacing: -0.055em !important;
+  }
+
+  .ops-page-v2 > section:first-of-type,
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article:nth-last-child(-n + 3),
+  .final-page-v2 > section:first-of-type > article:nth-last-child(-n + 3) {
+    border-bottom: 0 !important;
+  }
+}
+
+/* Configurações: mantém os cards grandes estáveis em zoom */
+.final-page-config > section:first-of-type,
+.final-page-config .settings-grid,
+.final-page-config [class*="grid"] {
+  min-width: 0;
+}
+
+.final-page-config h1 {
+  max-width: 780px;
+}
+
+.final-page-config h2,
+.final-page-config h3 {
+  line-height: 1.1 !important;
+}
+
+/* Evita que botões e inputs estourem quando o zoom sobe */
+button,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+input,
+select,
+textarea {
+  font-size: 14px !important;
+}
+
+/* Sidebar não deve dominar a tela em zoom alto */
+@media (max-width: 1280px) {
+  aside,
+  nav {
+    font-size: 13px;
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Final zoom and typography normalization                        */
+/* Estabiliza desktop entre 90%, 100% e 110% sem bloquear zoom do navegador    */
+/* -------------------------------------------------------------------------- */
+
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Base de páginas internas */
+.dashboard-overview-v2,
+.manual-page-v2,
+.ops-page-v2,
+.final-page-v2 {
+  width: 100%;
+  max-width: 1740px !important;
+  margin-inline: auto !important;
+}
+
+/* Títulos: reduz estouro em zoom alto */
+.dashboard-overview-v2 > header h1,
+.manual-page-v2 > header h1,
+.ops-page-v2 > header h1,
+.final-page-v2 > header h1 {
+  font-size: clamp(30px, 2.25vw, 42px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.06em !important;
+}
+
+/* Textos auxiliares */
+.dashboard-overview-v2 > header p,
+.manual-page-v2 > header p,
+.ops-page-v2 > header p,
+.final-page-v2 > header p {
+  font-size: clamp(13px, 0.82vw, 15px) !important;
+  line-height: 1.65 !important;
+}
+
+/* Números não devem explodir com zoom */
+.dashboard-number {
+  max-width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cards e grids mais estáveis */
+.dashboard-kpi-grid > article,
+.manual-page-v2 > section:first-of-type > article,
+.ops-page-v2 > section:first-of-type > article,
+.final-page-v2 > section:first-of-type > article {
+  min-width: 0 !important;
+}
+
+/* Dashboard: cards principais */
+@media (max-width: 1500px) {
+  .dashboard-overview-v2,
+  .manual-page-v2,
+  .ops-page-v2,
+  .final-page-v2 {
+    gap: 18px !important;
+  }
+
+  .dashboard-overview-v2 > header,
+  .manual-page-v2 > header,
+  .ops-page-v2 > header,
+  .final-page-v2 > header {
+    padding-top: 12px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: clamp(28px, 2.05vw, 38px) !important;
+  }
+
+  .dashboard-kpi-grid {
+    gap: 12px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 128px !important;
+    padding: 20px !important;
+  }
+
+  .dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+    min-height: 76px !important;
+    padding: 13px 16px !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article,
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    min-height: 86px !important;
+    padding: 15px 16px !important;
+  }
+}
+
+/* Zoom alto / telas menores */
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: 30px !important;
+    letter-spacing: -0.052em !important;
+  }
+
+  .ops-page-v2 > section:first-of-type,
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article:nth-last-child(-n + 3),
+  .final-page-v2 > section:first-of-type > article:nth-last-child(-n + 3) {
+    border-bottom: 0 !important;
+  }
+}
+
+/* Configurações */
+.final-page-config h1,
+.final-page-config h2,
+.final-page-config h3 {
+  line-height: 1.08 !important;
+}
+
+.final-page-config > section,
+.final-page-config [class*="grid"] {
+  min-width: 0;
+}
+
+/* Inputs e botões não estouram com zoom */
+button,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+input,
+select,
+textarea {
+  font-size: 14px !important;
+}
+
+/* Sidebar menos dominante em zoom alto */
+@media (max-width: 1280px) {
+  aside,
+  nav {
+    font-size: 13px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard compact density pass                                 */
+/* Aproxima o dashboard do layout de referência em 100% de zoom                */
+/* -------------------------------------------------------------------------- */
+
+/* Dashboard deve usar a largura disponível, sem parecer limitado */
+.dashboard-overview-v2 {
+  max-width: none !important;
+  width: 100% !important;
+  gap: 18px !important;
+  padding-top: 0 !important;
+}
+
+/* Header mais baixo e mais próximo da referência */
+.dashboard-overview-v2 > header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 20px !important;
+  padding-top: 18px !important;
+  padding-bottom: 12px !important;
+}
+
+.dashboard-overview-v2 > header h1 {
+  font-size: clamp(30px, 2.05vw, 40px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.06em !important;
+}
+
+.dashboard-overview-v2 > header p {
+  max-width: 720px !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+/* Ações do topo sempre na mesma linha quando houver espaço */
+.dashboard-overview-v2 > header > div:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+.dashboard-overview-v2 > header button,
+.dashboard-overview-v2 > header > div:last-child > div,
+.dashboard-overview-v2 > header > div:last-child > span {
+  height: 38px !important;
+  min-height: 38px !important;
+  white-space: nowrap !important;
+  border-radius: 11px !important;
+  padding-inline: 14px !important;
+}
+
+/* Faixa operacional mais compacta */
+.dashboard-overview-v2 > section:first-of-type,
+.dashboard-overview-v2 .operation-strip {
+  min-height: 72px !important;
+}
+
+.dashboard-overview-v2 > section:first-of-type > article,
+.dashboard-overview-v2 .operation-strip > article {
+  min-height: 72px !important;
+  padding: 14px 18px !important;
+}
+
+/* Grid dos KPIs com menos altura */
+.dashboard-kpi-grid {
+  gap: 12px !important;
+}
+
+/* Cards principais mais baixos, como na referência */
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  min-height: 132px !important;
+  padding: 20px 22px !important;
+  border-radius: 16px !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(2) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(8) .dashboard-number {
+  font-size: clamp(30px, 2.25vw, 38px) !important;
+  line-height: 0.95 !important;
+}
+
+/* Sparkline não pode ocupar espaço demais */
+.dashboard-kpi-grid > article:nth-child(1) svg,
+.dashboard-kpi-grid > article:nth-child(2) svg,
+.dashboard-kpi-grid > article:nth-child(8) svg {
+  height: 56px !important;
+  opacity: 0.9 !important;
+}
+
+/* Cards secundários mais baixos e limpos */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 74px !important;
+  padding: 13px 16px !important;
+  border-radius: 13px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  font-size: 20px !important;
+  line-height: 1 !important;
+  margin-top: 7px !important;
+}
+
+/* Área do gráfico mais compacta */
+.dashboard-overview-v2 section:has(svg) {
+  padding: 20px !important;
+}
+
+.dashboard-overview-v2 section:has(svg) > div:last-child {
+  min-height: 360px !important;
+}
+
+/* Score card ao lado do gráfico */
+.dashboard-overview-v2 section:has(svg) + section,
+.dashboard-overview-v2 section:has(.dashboard-score) {
+  min-height: 360px !important;
+}
+
+/* Containers inferiores sobem mais */
+.dashboard-overview-v2 section {
+  margin-top: 0 !important;
+}
+
+/* Em telas médias, evita quebrar ação do topo em duas linhas cedo demais */
+@media (max-width: 1320px) {
+  .dashboard-overview-v2 > header {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+
+  .dashboard-overview-v2 > header > div:last-child {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+}
+
+/* Em telas grandes, fica mais parecido com a referência */
+@media (min-width: 1500px) {
+  .dashboard-overview-v2 {
+    gap: 20px !important;
+  }
+
+  .dashboard-overview-v2 > header {
+    padding-top: 18px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 138px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS â€” Dashboard fidelity pass                                        */
+/* Aplicar por Ãºltimo no globals.css para sobrescrever ajustes antigos          */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-ui {
+  --shell-sidebar: 248px;
+}
+
+/* Usa a largura real da viewport interna, como no protÃ³tipo */
+.dashboard-overview-v2 {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  gap: 16px !important;
+}
+
+/* Hero mais baixo: remove a sensaÃ§Ã£o de pÃ¡gina "esticada" */
+.dashboard-overview-v2 > .dashboard-hero-final {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 18px !important;
+  padding: 0 0 8px !important;
+  margin: 0 !important;
+}
+
+.dashboard-overview-v2 > .dashboard-hero-final h1 {
+  font-size: clamp(32px, 2vw, 38px) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.064em !important;
+}
+
+.dashboard-overview-v2 > .dashboard-hero-final p {
+  max-width: 760px !important;
+  margin-top: 10px !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+.dashboard-main-actions {
+  margin-top: 2px !important;
+}
+
+.dashboard-main-actions > button {
+  height: 38px !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+}
+
+/* Faixa operacional compacta */
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\],
+.dashboard-overview-v2 > div.grid.overflow-hidden.rounded-\[22px\] {
+  border-radius: 18px !important;
+}
+
+.dashboard-overview-v2 > div.grid.overflow-hidden.rounded-\[22px\] > div {
+  min-height: 70px !important;
+  padding: 13px 18px !important;
+}
+
+/* KPIs principais: mais baixos e prÃ³ximos da referÃªncia */
+.dashboard-kpi-grid,
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 {
+  gap: 12px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article {
+  min-height: 126px !important;
+  padding: 18px 22px !important;
+  border-radius: 16px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article .dashboard-number {
+  margin-top: 22px !important;
+  font-size: clamp(30px, 2.05vw, 36px) !important;
+  line-height: 0.95 !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article svg {
+  height: 54px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article [class*="absolute right-4 top-4"] {
+  height: 36px !important;
+  width: 36px !important;
+}
+
+/* KPIs secundÃ¡rios em strip baixo */
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 {
+  border-radius: 17px !important;
+}
+
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 > div {
+  padding: 12px 15px !important;
+}
+
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 article {
+  min-height: 66px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 article .dashboard-number {
+  margin-top: 7px !important;
+  font-size: 19px !important;
+}
+
+/* GrÃ¡fico e score mais compactos */
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] {
+  gap: 14px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] > section {
+  border-radius: 18px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] > section:first-child {
+  padding: 18px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] > section:first-child > div:first-child {
+  margin-bottom: 12px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="GrÃ¡fico anual de faturamento"] {
+  height: 300px !important;
+}
+
+/* MantÃ©m aÃ§Ãµes do dashboard no topo direito sem quebrar cedo demais */
+@media (max-width: 1320px) {
+  .dashboard-overview-v2 > .dashboard-hero-final {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-main-actions {
+    justify-content: flex-start !important;
+  }
+}
+
+/* Em 100% com tela Full HD, a primeira dobra mostra mais conteÃºdo */
+@media (min-width: 1400px) {
+  .dashboard-overview-v2 {
+    gap: 14px !important;
+  }
+
+  .dashboard-overview-v2 > .dashboard-hero-final h1 {
+    font-size: 36px !important;
+  }
+
+  .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article {
+    min-height: 122px !important;
+  }
+
+  .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="GrÃ¡fico anual de faturamento"] {
+    height: 286px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS â€” Professional CRM compact system                                */
+/* Benchmark: enterprise CRM/data dashboards: tighter 8px rhythm, lower header */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --crm-sidebar: 240px;
+  --crm-topbar-h: 50px;
+  --crm-page-x: 24px;
+  --crm-page-y: 16px;
+  --crm-gap: 14px;
+  --crm-card: #0b101b;
+  --crm-border: rgba(255,255,255,.09);
+}
+
+.dashboard-ui { font-size: 14px; }
+.dashboard-ui header.sticky { min-height: var(--crm-topbar-h); }
+.dashboard-overview-v2.dashboard-pro-compact {
+  max-width: none !important;
+  width: 100% !important;
+  gap: var(--crm-gap) !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact > header {
+  padding: 6px 0 4px !important;
+  margin: 0 !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact > header h1 {
+  font-size: clamp(28px, 1.75vw, 34px) !important;
+  line-height: .98 !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact > header p:last-child {
+  max-width: 680px !important;
+  line-height: 1.45 !important;
+}
+
+.dashboard-overview-v2.dashboard-pro-compact .operation-strip > div {
+  min-height: 60px !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact .dashboard-kpi-grid,
+.dashboard-overview-v2.dashboard-pro-compact > .grid {
+  gap: var(--crm-gap) !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact article { min-width: 0; }
+.dashboard-overview-v2.dashboard-pro-compact .dashboard-number {
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-overview-v2.dashboard-pro-compact .dashboard-label {
+  letter-spacing: .16em !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact section,
+.dashboard-overview-v2.dashboard-pro-compact article {
+  border-color: var(--crm-border) !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact .rounded-\[18px\],
+.dashboard-overview-v2.dashboard-pro-compact .rounded-\[16px\] {
+  box-shadow: 0 12px 40px rgba(0,0,0,.14) !important;
+}
+
+@media (min-width: 1440px) {
+  :root { --crm-page-x: 26px; }
+}
+
+@media (max-width: 1366px) {
+  :root {
+    --crm-sidebar: 224px;
+    --crm-page-x: 18px;
+    --crm-gap: 12px;
+  }
+  .dashboard-overview-v2.dashboard-pro-compact > header h1 {
+    font-size: 28px !important;
   }
 }

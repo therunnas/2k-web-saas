@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -162,7 +162,7 @@ function SidebarContent({
 }) {
   return (
     <div className="flex h-full flex-col bg-[#07080d] text-white">
-      <div className="border-b border-white/10 px-5 py-6">
+      <div className="border-b border-white/10 px-4 py-4">
         <Link
           href="/dashboard"
           onClick={onNavigate}
@@ -174,11 +174,11 @@ function SidebarContent({
             width={168}
             height={48}
             priority
-            className="h-auto w-[128px] opacity-95"
+            className="h-auto w-[122px] opacity-95"
           />
         </Link>
 
-        <div className="mt-6 rounded-[16px] border border-white/10 bg-white/[0.035] p-3">
+        <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.035] p-3">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="dashboard-label text-[10px] text-slate-500">
               Workspace
@@ -206,8 +206,8 @@ function SidebarContent({
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-5">
-        <div className="space-y-5">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-4">
+        <div className="space-y-4">
           {navGroups.map((group) => (
             <section key={group.label}>
               <p className="dashboard-label mb-2 px-3 text-[10px] text-slate-600">
@@ -224,7 +224,7 @@ function SidebarContent({
                       key={item.href}
                       href={item.href}
                       onClick={onNavigate}
-                      className={`group flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-sm font-semibold transition ${
+                      className={`group flex items-center gap-3 rounded-[12px] px-3 py-2 text-[13px] font-semibold transition ${
                         active
                           ? "border border-cyan-300/20 bg-cyan-300/10 text-white shadow-[inset_3px_0_0_rgba(34,211,238,0.9)]"
                           : "border border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.035] hover:text-slate-100"
@@ -249,8 +249,8 @@ function SidebarContent({
         </div>
       </nav>
 
-      <div className="border-t border-white/10 p-4">
-        <div className="mb-3 rounded-[16px] border border-cyan-300/15 bg-cyan-300/[0.04] p-3">
+      <div className="border-t border-white/10 p-3">
+        <div className="mb-3 rounded-[14px] border border-cyan-300/15 bg-cyan-300/[0.04] p-3">
           <p className="text-xs font-semibold text-slate-300">Suporte</p>
           <p className="mt-1 text-xs text-slate-600">Atendimento rápido</p>
         </div>
@@ -344,7 +344,7 @@ export function AdminShell({ children }: AdminShellProps) {
     <main className="dashboard-ui min-h-screen bg-[#07080d] text-white">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(900px_600px_at_18%_-10%,rgba(124,58,237,0.10),transparent_62%),radial-gradient(1000px_700px_at_100%_110%,rgba(34,211,238,0.07),transparent_62%)]" />
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[272px] border-r border-white/10 bg-[#07080d]/95 backdrop-blur-xl xl:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] border-r border-white/10 bg-[#07080d]/95 backdrop-blur-xl xl:block">
         <SidebarContent
           pathname={pathname}
           user={sidebarUser}
@@ -383,8 +383,8 @@ export function AdminShell({ children }: AdminShellProps) {
         </div>
       ) : null}
 
-      <section className="relative min-h-screen xl:pl-[272px]">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07080d]/78 px-4 py-4 backdrop-blur-xl sm:px-6 xl:px-8">
+      <section className="relative min-h-screen xl:pl-[240px]">
+        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07080d]/82 px-4 py-2.5 backdrop-blur-xl sm:px-5 xl:px-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
               <button
@@ -407,24 +407,24 @@ export function AdminShell({ children }: AdminShellProps) {
               </div>
             </div>
 
-            <div className="hidden w-full max-w-[360px] items-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.035] px-3 py-2 text-slate-500 lg:flex">
+            <div className="hidden w-full max-w-[390px] items-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-slate-500 lg:flex">
               <Search size={15} />
               <span className="text-xs">Buscar lançamento, projeto...</span>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-medium text-slate-300 sm:flex">
+              <div className="hidden items-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 sm:flex">
                 <CalendarDays size={14} />
                 Ano fiscal 2026
               </div>
 
-              <div className="hidden rounded-[14px] border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-medium text-slate-300 sm:block">
+              <div className="hidden rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 sm:block">
                 01 Jan — 31 Dez 2026
               </div>
 
               <button
                 type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.035] text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-[11px] border border-white/10 bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
                 aria-label="Notificações"
               >
                 <Bell size={16} />
@@ -433,7 +433,7 @@ export function AdminShell({ children }: AdminShellProps) {
           </div>
         </header>
 
-        <div className="relative px-4 py-6 sm:px-6 xl:px-8">{children}</div>
+        <div className="relative px-4 py-4 sm:px-5 xl:px-6">{children}</div>
       </section>
     </main>
   );

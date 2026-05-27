@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -321,7 +321,7 @@ function MiniSparkline({
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      className="pointer-events-none absolute inset-x-0 bottom-0 h-[78px] w-full opacity-95"
+      className="pointer-events-none absolute inset-x-0 bottom-0 h-[52px] w-full opacity-90"
       preserveAspectRatio="none"
       aria-hidden="true"
     >
@@ -363,7 +363,7 @@ function TrendBadge({
 
   return (
     <span
-      className={`inline-flex h-6 items-center rounded-full border px-2.5 text-[11px] font-bold tracking-[-0.02em] ${className}`}
+      className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-bold tracking-[-0.02em] ${className}`}
     >
       {label}
     </span>
@@ -380,9 +380,9 @@ function RevenueChart({ monthly }: { monthly: MonthlyRevenueItem[] }) {
   );
 
 const width = 1120;
-  const height = 340;
+  const height = 300;
   const paddingX = 74;
-  const paddingY = 48;
+  const paddingY = 42;
 
   const values = monthly
     .map((item) => item.value)
@@ -463,8 +463,8 @@ const width = 1120;
   const tooltipBelow = hoveredPoint ? hoveredPoint.y < 150 : false;
 
   return (
-    <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.22)] sm:p-5 xl:p-6">
-      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.16)]">
+      <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold tracking-[-0.035em]">
@@ -495,7 +495,7 @@ const width = 1120;
       </div>
 
       <div
-        className="relative overflow-visible rounded-[1.5rem] border border-white/[0.06] bg-[#080d17] p-3 sm:p-4 xl:p-5"
+        className="relative overflow-visible rounded-[16px] border border-white/[0.06] bg-[#080d17] p-3"
         onMouseLeave={() => { if (!selectedPoint) setHoveredPoint(null); }}
       >
         {hoveredPoint ? (
@@ -578,7 +578,7 @@ const width = 1120;
               }}
               className="mt-4 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-left text-slate-300 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 hover:text-white"
             >
-              <span>Ver detalhes do mÃªs</span>
+              <span>Ver detalhes do mês</span>
               <ArrowUpRight size={14} />
             </button>
 
@@ -587,13 +587,13 @@ const width = 1120;
               <div className="fixed inset-0 z-[9999] flex justify-end bg-black/70 backdrop-blur-sm">
                 <button
                   type="button"
-                  aria-label="Fechar detalhes do mÃªs"
+                  aria-label="Fechar detalhes do mês"
                   className="absolute inset-0 cursor-default"
                   onClick={() => setSelectedPoint(null)}
                 />
 
                 <aside className="relative h-screen w-full max-w-[640px] overflow-y-auto border-l border-white/10 bg-[#070b13] p-5 shadow-[0_0_80px_rgba(0,0,0,0.55)] sm:p-6">
-                  <div className="mb-6 flex items-start justify-between gap-4">
+                  <div className="mb-4 flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
                         Detalhamento mensal
@@ -602,7 +602,7 @@ const width = 1120;
                         Detalhes de {selectedPoint.month}/{selectedPoint.label}
                       </h3>
                       <p className="mt-2 text-sm leading-6 text-slate-400">
-                        Resumo executivo do mÃªs selecionado com faturamento, saÃ­das, resultado e maior cliente por faturamento.
+                        Resumo executivo do mês selecionado com faturamento, saídas, resultado e maior cliente por faturamento.
                       </p>
                     </div>
 
@@ -620,35 +620,35 @@ const width = 1120;
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Faturamento
                       </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-white">
+                      <strong className="dashboard-number mt-1.5 block text-lg text-white">
                         {formatCurrency(selectedPoint.revenue)}
                       </strong>
                       <span className="mt-1 block text-xs text-slate-500">
-                        Receita total do mÃªs
+                        Receita total do mês
                       </span>
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        SaÃ­das
+                        Saídas
                       </p>
                       <strong className="dashboard-number mt-2 block text-xl text-rose-200">
                         {formatCurrency(selectedPoint.expenses)}
                       </strong>
                       <span className="mt-1 block text-xs text-slate-500">
-                        Custos e despesas do mÃªs
+                        Custos e despesas do mês
                       </span>
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Lucro por competÃªncia
+                        Lucro por competência
                       </p>
                       <strong className="dashboard-number mt-2 block text-xl text-cyan-200">
                         {formatCurrency(selectedPoint.profit)}
                       </strong>
                       <span className="mt-1 block text-xs text-slate-500">
-                        Faturamento menos saÃ­das
+                        Faturamento menos saídas
                       </span>
                     </div>
 
@@ -711,19 +711,19 @@ const width = 1120;
 
                     <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
                       <li>
-                        Receita total do mÃªs:{" "}
+                        Receita total do mês:{" "}
                         <strong className="dashboard-number text-white">
                           {formatCurrency(selectedPoint.revenue)}
                         </strong>
                       </li>
                       <li>
-                        SaÃ­das lanÃ§adas:{" "}
+                        Saídas lançadas:{" "}
                         <strong className="dashboard-number text-white">
                           {formatCurrency(selectedPoint.expenses)}
                         </strong>
                       </li>
                       <li>
-                        Resultado por competÃªncia:{" "}
+                        Resultado por competência:{" "}
                         <strong className="dashboard-number text-white">
                           {formatCurrency(selectedPoint.profit)}
                         </strong>
@@ -747,9 +747,9 @@ const width = 1120;
         <div className="overflow-x-auto overflow-y-visible">
           <svg
             viewBox={`0 0 ${width} ${height}`}
-            className="h-[300px] min-w-[860px] w-full overflow-visible sm:h-[320px] xl:h-[350px]"
+            className="h-[250px] min-w-[820px] w-full overflow-visible sm:h-[270px] xl:h-[292px]"
             role="img"
-            aria-label="GrÃ¡fico anual de faturamento"
+            aria-label="Gráfico anual de faturamento"
           >
             <defs>
               <linearGradient
@@ -966,14 +966,14 @@ function OperationStrip({
 
   const metrics = [
     {
-      label: "ProduÃ§Ãµes ativas",
+      label: "Produções ativas",
       value: overview?.latestEntries?.length ?? 0,
-      helper: "lanÃ§amentos recentes",
+      helper: "lançamentos recentes",
     },
     {
       label: "Faturamento recebido",
       value: `${formatPercent(receivedRate)}`,
-      helper: "conversÃ£o em caixa",
+      helper: "conversão em caixa",
     },
     {
       label: "Grupos em carteira",
@@ -983,7 +983,7 @@ function OperationStrip({
     {
       label: "Alta prioridade",
       value: overview?.latestEntries?.filter((entry) => entry.overdue).length ?? 0,
-      helper: "pendÃªncias em atraso",
+      helper: "pendências em atraso",
     },
     {
       label: "Entradas processadas",
@@ -993,16 +993,16 @@ function OperationStrip({
   ];
 
   return (
-    <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.025] shadow-[0_18px_60px_rgba(0,0,0,0.18)] sm:grid-cols-2 xl:grid-cols-5">
+    <div className="operation-strip grid overflow-hidden rounded-[16px] border border-white/10 bg-white/[0.025] shadow-[0_12px_38px_rgba(0,0,0,0.12)] sm:grid-cols-2 xl:grid-cols-5">
       {metrics.map((metric) => (
         <div
           key={metric.label}
-          className="border-b border-white/[0.07] px-5 py-4 last:border-b-0 sm:border-r xl:border-b-0"
+          className="border-b border-white/[0.07] px-4 py-3 last:border-b-0 sm:border-r xl:border-b-0"
         >
           <p className="dashboard-label text-[10px] text-slate-500">
             {metric.label}
           </p>
-          <strong className="dashboard-number mt-2 block text-xl text-white">
+          <strong className="dashboard-number mt-1.5 block text-lg text-white">
             {metric.value}
           </strong>
           <span className="mt-1 block text-xs font-medium text-slate-500">
@@ -1037,10 +1037,10 @@ function KpiPanel({
 
   return (
     <article
-      className={`group relative overflow-hidden border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.22)] ${
+      className={`group relative overflow-hidden border border-white/10 bg-[#0b101b] shadow-[0_14px_46px_rgba(0,0,0,0.16)] ${
         primary
-          ? "min-h-[152px] rounded-[16px] p-6"
-          : "min-h-[92px] rounded-[14px] p-4"
+          ? "min-h-[118px] rounded-[15px] p-4"
+          : "min-h-[62px] rounded-[12px] p-0"
       }`}
     >
       {primary ? (
@@ -1051,24 +1051,24 @@ function KpiPanel({
 
       <div
         className={`absolute right-4 top-4 flex items-center justify-center border border-current/20 bg-current/10 ${accentText} ${
-          primary ? "h-10 w-10 rounded-[13px]" : "h-8 w-8 rounded-[10px]"
+          primary ? "h-8 w-8 rounded-[10px]" : "hidden"
         }`}
       >
-        <Icon size={primary ? 18 : 15} />
+        <Icon size={primary ? 15 : 0} />
       </div>
 
       <div className="relative z-10 flex h-full flex-col">
         <p
           className={`dashboard-label pr-14 text-slate-500 ${
-            primary ? "text-[10px]" : "text-[9px]"
+            primary ? "text-[9px]" : "text-[9px]"
           }`}
         >
           {item.label}
         </p>
 
         <strong
-          className={`dashboard-number mt-4 block truncate text-white ${
-            primary ? "text-[36px] leading-none" : "text-[22px] leading-none"
+          className={`dashboard-number mt-3 block truncate text-white ${
+            primary ? "text-[29px] leading-none" : "text-[18px] leading-none"
           }`}
         >
           {item.value}
@@ -1076,7 +1076,7 @@ function KpiPanel({
 
         <div
           className={`mt-auto flex items-end justify-between gap-3 ${
-            primary ? "pt-4" : "pt-3"
+            primary ? "pt-3" : "pt-1"
           }`}
         >
           <div className="min-w-0">
@@ -1149,11 +1149,11 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
   ];
 
   return (
-    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-6 shadow-[0_18px_70px_rgba(0,0,0,0.20)]">
-      <div className="mb-6 flex items-start justify-between gap-4">
+    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.16)]">
+      <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <p className="dashboard-label text-[10px] text-cyan-300">
-            Score do ciclo Â· AF 2026
+            Score do ciclo · AF 2026
           </p>
           <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em] text-white">
             Performance de metas
@@ -1165,8 +1165,8 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
         </span>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[160px_1fr] md:items-center xl:grid-cols-1 2xl:grid-cols-[160px_1fr]">
-        <div className="relative mx-auto flex h-[150px] w-[150px] items-center justify-center rounded-full">
+      <div className="grid gap-4 md:grid-cols-[132px_1fr] md:items-center xl:grid-cols-1 2xl:grid-cols-[132px_1fr]">
+        <div className="relative mx-auto flex h-[122px] w-[122px] items-center justify-center rounded-full">
           <div
             className="absolute inset-0 rounded-full"
             style={{
@@ -1175,16 +1175,16 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
           />
           <div className="absolute inset-[10px] rounded-full bg-[#0b101b]" />
           <div className="relative text-center">
-            <strong className="dashboard-number block text-[34px] leading-none text-white">
+            <strong className="dashboard-number block text-[26px] leading-none text-white">
               {formatPercent(score)}
             </strong>
             <span className="dashboard-label mt-1 block text-[9px] text-slate-500">
-              mÃ©dia geral
+              média geral
             </span>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {rows.map((row) => (
             <div key={row.label} className="grid grid-cols-[1fr_auto] items-center gap-4">
               <div className="flex items-center gap-2">
@@ -1200,7 +1200,7 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
           ))}
 
           <div className="rounded-[14px] border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-xs font-medium leading-5 text-emerald-100">
-            DiagnÃ³stico: ciclo dentro da banda esperada; acompanhe recebimentos
+            Diagnóstico: ciclo dentro da banda esperada; acompanhe recebimentos
             e despesas em aberto.
           </div>
         </div>
@@ -1217,14 +1217,14 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
   }
 
   return (
-    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-5 shadow-[0_18px_70px_rgba(0,0,0,0.18)]">
+    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.14)]">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
-            PrÃ³ximas produÃ§Ãµes
+            Próximas produções
           </h2>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            {pipeline.length} captaÃ§Ãµes em andamento ou prÃ©-produÃ§Ã£o
+            {pipeline.length} captações em andamento ou pré-produção
           </p>
         </div>
 
@@ -1240,14 +1240,14 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
             entry.description ||
             entry.groupName ||
             entry.client ||
-            "ProduÃ§Ã£o sem tÃ­tulo";
+            "Produção sem título";
 
           const label = entry.dueAt
             ? new Date(entry.dueAt).toLocaleDateString("pt-BR", {
                 day: "2-digit",
                 month: "2-digit",
               })
-            : entry.competence || "â€”";
+            : entry.competence || "—";
 
           const percent = clamp(28 + index * 12, 18, 88);
 
@@ -1342,7 +1342,7 @@ export function DashboardOverview() {
       {
         label: "Faturamento",
         value: fmt(summary.totalRevenue),
-        helper: "Total faturado no ano (competÃªncia)",
+        helper: "Total faturado no ano (competência)",
         trend: "Independe de ter sido recebido",
         trendDirection: "up",
       },
@@ -1360,7 +1360,7 @@ export function DashboardOverview() {
       {
         label: "A receber",
         value: fmt(summary.receivableTotal),
-        helper: "Faturado ainda nÃ£o recebido",
+        helper: "Faturado ainda não recebido",
         trend:
           summary.overdueTotal > 0
             ? `${fmt(summary.overdueTotal)} em atraso`
@@ -1368,44 +1368,44 @@ export function DashboardOverview() {
         trendDirection: summary.overdueTotal > 0 ? "down" : "neutral",
       },
       {
-        label: "SaÃ­das pagas",
+        label: "Saídas pagas",
         value: fmt(summary.paidExpenses),
-        helper: "Despesas jÃ¡ pagas",
-        trend: "SaÃ­das com status pago",
+        helper: "Despesas já pagas",
+        trend: "Saídas com status pago",
         trendDirection: "down",
       },
       {
         label: "A pagar",
         value: fmt(summary.payableTotal),
-        helper: "SaÃ­das pendentes (contas a pagar)",
+        helper: "Saídas pendentes (contas a pagar)",
         trend: "Compromissos futuros",
         trendDirection: summary.payableTotal > 0 ? "down" : "neutral",
       },
       {
         label: "Resultado de caixa real",
         value: fmt(summary.cashResult),
-        helper: "Recebido menos saÃ­das jÃ¡ pagas",
+        helper: "Recebido menos saídas já pagas",
         trend: "Caixa realizado",
         trendDirection: summary.cashResult < 0 ? "down" : "up",
       },
       {
         label: "Caixa comprometido",
         value: fmt(summary.committedCash),
-        helper: "Recebido menos todas as saÃ­das lanÃ§adas",
+        helper: "Recebido menos todas as saídas lançadas",
         trend: "Inclui contas a pagar",
         trendDirection: summary.committedCash < 0 ? "down" : "neutral",
       },
       {
-        label: "Lucro por competÃªncia",
+        label: "Lucro por competência",
         value: fmt(summary.totalProfit),
-        helper: "Faturamento menos todas as saÃ­das lanÃ§adas",
-        trend: "Resultado do perÃ­odo",
+        helper: "Faturamento menos todas as saídas lançadas",
+        trend: "Resultado do período",
         trendDirection: summary.totalProfit < 0 ? "down" : "up",
       },
       {
-        label: "Margem por competÃªncia",
+        label: "Margem por competência",
         value: formatPercent(summary.margin),
-        helper: "Lucro por competÃªncia sobre faturamento",
+        helper: "Lucro por competência sobre faturamento",
         trend: "Lucro / faturamento",
         trendDirection: summary.margin < 0 ? "down" : "neutral",
       },
@@ -1447,40 +1447,39 @@ export function DashboardOverview() {
   );
 
   return (
-    <div className="dashboard-overview-v2 space-y-5 sm:space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="dashboard-overview-v2 dashboard-pro-compact space-y-4">
+      <header className="grid gap-3 xl:grid-cols-[1fr_auto] xl:items-end">
         <div>
-          <p className="text-sm font-medium text-slate-500">
-            VisÃ£o geral Â· Ano fiscal 2026
+          <p className="dashboard-label text-[10px] text-cyan-300">
+            Visão geral · Ano fiscal 2026
           </p>
 
-          <h1 className="mt-2 text-[36px] font-semibold tracking-[-0.065em] text-white sm:text-[42px]">
-            OlÃ¡, Vinicius.
+          <h1 className="mt-2 text-[30px] font-semibold leading-none tracking-[-0.055em] text-white sm:text-[34px]">
+            Olá, Vinicius.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400 sm:text-base">
-            VisÃ£o geral da operaÃ§Ã£o financeira e audiovisual da 2K STUDIOS com
+          <p className="mt-2 max-w-2xl text-[13px] font-medium leading-5 text-slate-400 sm:text-sm">
+            Visão geral da operação financeira e audiovisual da 2K STUDIOS com
             dados reais da planilha importada.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap justify-start gap-2 xl:justify-end">
+          <button
+            type="button"
+            className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.03] px-3.5 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+          >
+            <ArrowUpRight size={14} />
+            Exportar
+          </button>
+
           <button
             type="button"
             onClick={loadOverview}
-            className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-cyan-300/20 bg-cyan-300/10 px-3.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/15"
           >
-            {loading ? "Atualizando..." : "Atualizar dados"}
+            {loading ? "Atualizando..." : "+ Nova entrada"}
           </button>
-
-          <div className="flex items-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
-            <CalendarDays size={16} />
-            Ano fiscal 2026
-          </div>
-
-          <div className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
-            01 Jan â€” 31 Dez 2026
-          </div>
         </div>
       </header>
 
@@ -1492,32 +1491,32 @@ export function DashboardOverview() {
 
       <OperationStrip overview={overview} summary={summary} />
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-3 xl:grid-cols-3">
         {primaryKpis.map(({ item, index }) => (
           <KpiPanel key={item.label} item={item} iconIndex={index} primary />
         ))}
       </div>
 
-      <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.18)] md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid overflow-hidden rounded-[16px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.14)] md:grid-cols-3 xl:grid-cols-6">
         {secondaryKpis.map(({ item, index }) => (
           <div
             key={item.label}
-            className="border-b border-white/[0.07] p-4 last:border-b-0 md:border-r xl:border-b-0"
+            className="border-b border-white/[0.07] p-3 last:border-b-0 md:border-r xl:border-b-0"
           >
             <KpiPanel item={item} iconIndex={index} />
           </div>
         ))}
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[1.65fr_1fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.68fr_0.92fr]">
         <RevenueChart monthly={monthly} />
         <ScoreCard summary={summary} />
       </div>
 
       <PipelineStrip entries={overview?.latestEntries ?? []} />
 
-      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+      <section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
+        <div className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-5">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Users className="text-violet-300" size={21} />
@@ -1526,7 +1525,7 @@ export function DashboardOverview() {
                   Top grupos por faturamento
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  5 de {overview?.topGroups?.length ?? 0} grupos Â· participaÃ§Ã£o
+                  5 de {overview?.topGroups?.length ?? 0} grupos · participação
                   no ano fiscal 2026
                 </p>
               </div>
@@ -1544,7 +1543,7 @@ export function DashboardOverview() {
                 <span>Grupo</span>
                 <span>Faturamento</span>
                 <span>Recebido</span>
-                <span>ParticipaÃ§Ã£o</span>
+                <span>Participação</span>
               </div>
 
               {(overview?.topGroups ?? []).slice(0, 5).map((group) => (
@@ -1563,7 +1562,7 @@ export function DashboardOverview() {
                         {group.name}
                       </strong>
                       <span className="text-[11px] font-medium text-slate-500">
-                        {group.projectsCount} proj. Â· ticket{" "}
+                        {group.projectsCount} proj. · ticket{" "}
                         {formatCompactCurrency(group.ticketMedio)}
                       </span>
                     </div>
@@ -1602,16 +1601,16 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+        <div className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-5">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CalendarDays className="text-violet-300" size={21} />
               <div>
                 <h2 className="text-xl font-semibold tracking-[-0.035em]">
-                  PrÃ³ximos recebimentos
+                  Próximos recebimentos
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {receivableRows.length} pendÃªncias recentes em aberto
+                  {receivableRows.length} pendências recentes em aberto
                 </p>
               </div>
             </div>
@@ -1632,7 +1631,7 @@ export function DashboardOverview() {
 
               const dueLabel = item.dueAt
                 ? new Date(item.dueAt).toLocaleDateString("pt-BR")
-                : (item.competence ?? "â€”");
+                : (item.competence ?? "—");
 
               return (
                 <div
@@ -1649,7 +1648,7 @@ export function DashboardOverview() {
                         {clientName}
                       </strong>
                       <span className="text-[11px] font-medium text-slate-500">
-                        {dueLabel} Â· {item.overdue ? "em atraso" : "em aberto"}
+                        {dueLabel} · {item.overdue ? "em atraso" : "em aberto"}
                       </span>
                     </div>
                   </div>
@@ -1682,8 +1681,8 @@ export function DashboardOverview() {
       </section>
 
       <footer className="flex flex-col gap-3 border-t border-white/10 px-1 pt-5 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-        <span>Sincronizado Â· 14:32 BRT Â· {summary?.entries ?? 0} lanÃ§amentos processados</span>
-        <span className="dashboard-code">2K STUDIOS Â· painel interno Â· v0.7.2</span>
+        <span>Sincronizado · 14:32 BRT · {summary?.entries ?? 0} lançamentos processados</span>
+        <span className="dashboard-code">2K STUDIOS · painel interno · v0.7.2</span>
       </footer>
     </div>
   );
