@@ -1162,3 +1162,331 @@ body,
 .dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) svg {
   display: none !important;
 }
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Manual pages container fidelity                                */
+/* Entradas + Saídas no mesmo padrão visual do Dashboard/Financeiro            */
+/* -------------------------------------------------------------------------- */
+
+.manual-page-v2 {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+  padding-bottom: 28px;
+}
+
+.manual-page-v2 > header {
+  position: relative;
+  padding: 20px 0 10px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.manual-page-v2 > header h1 {
+  max-width: 760px;
+  font-size: clamp(34px, 3vw, 46px) !important;
+  line-height: 1;
+  font-weight: 660 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.manual-page-v2 > header p:not(.dashboard-label) {
+  max-width: 720px;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: var(--fg-2) !important;
+}
+
+.manual-page-v2 > header .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+}
+
+/* Primeira faixa de KPIs */
+.manual-page-v2 > section:first-of-type {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.manual-page-v2 > section:first-of-type > article {
+  min-height: 94px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 20px !important;
+}
+
+.manual-page-v2 > section:first-of-type > article:last-child {
+  border-right: 0 !important;
+}
+
+.manual-page-v2 > section:first-of-type .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.manual-page-v2 > section:first-of-type .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(22px, 1.8vw, 28px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.manual-page-v2 > section:first-of-type article p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: oklch(0.82 0.16 160) !important;
+  font-weight: 650 !important;
+}
+
+/* Container do formulário */
+.manual-page-v2 > section:nth-of-type(2) {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(760px 260px at 0% 0%, rgba(34, 211, 238, 0.045), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.20) !important;
+  padding: 22px !important;
+}
+
+.manual-page-exits > section:nth-of-type(2) {
+  background:
+    radial-gradient(760px 260px at 0% 0%, rgba(251, 113, 133, 0.045), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Cabeçalho do formulário */
+.manual-page-v2 > section:nth-of-type(2) > div:first-child {
+  padding-bottom: 18px;
+  margin-bottom: 18px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.manual-page-v2 > section:nth-of-type(2) h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.manual-page-v2 > section:nth-of-type(2) p {
+  color: var(--fg-2) !important;
+}
+
+/* Inputs */
+.manual-page-v2 input,
+.manual-page-v2 select,
+.manual-page-v2 textarea {
+  border-radius: 12px !important;
+  border-color: rgba(255, 255, 255, 0.085) !important;
+  background: rgba(7, 10, 16, 0.72) !important;
+  color: var(--fg-0) !important;
+}
+
+.manual-page-v2 input:focus,
+.manual-page-v2 select:focus,
+.manual-page-v2 textarea:focus {
+  border-color: rgba(34, 211, 238, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+.manual-page-exits input:focus,
+.manual-page-exits select:focus,
+.manual-page-exits textarea:focus {
+  border-color: rgba(251, 113, 133, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.08) !important;
+}
+
+/* Container da tabela/lista */
+.manual-page-v2 > section:nth-of-type(3) {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(620px 240px at 0% 0%, rgba(34, 211, 238, 0.03), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.18) !important;
+  padding: 22px !important;
+}
+
+.manual-page-exits > section:nth-of-type(3) {
+  background:
+    radial-gradient(620px 240px at 0% 0%, rgba(251, 113, 133, 0.03), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.04em !important;
+}
+
+/* Tabela */
+.manual-page-v2 > section:nth-of-type(3) [class*="overflow-x-auto"] {
+  border-radius: 15px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(7, 10, 16, 0.42) !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) [class*="grid-cols"] {
+  border-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) [class*="uppercase"] {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.58) !important;
+  letter-spacing: 0.16em !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) [class*="items-center"] {
+  min-height: 58px;
+}
+
+/* Botões */
+.manual-page-v2 button {
+  border-radius: 11px !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+  font-weight: 620 !important;
+}
+
+.manual-page-v2 button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* Botão principal de Entradas */
+.manual-page-entries button[type="submit"],
+.manual-page-entries > header button:last-child {
+  border-color: rgba(34, 211, 238, 0.26) !important;
+  background: rgba(34, 211, 238, 0.11) !important;
+  color: rgb(207, 250, 254) !important;
+}
+
+/* Botão principal de Saídas */
+.manual-page-exits button[type="submit"],
+.manual-page-exits > header button:last-child {
+  border-color: rgba(251, 113, 133, 0.25) !important;
+  background: rgba(251, 113, 133, 0.105) !important;
+  color: rgb(255, 228, 230) !important;
+}
+
+/* Correções de texto visual */
+.manual-page-v2 .dashboard-label {
+  text-transform: uppercase;
+}
+
+/* Responsivo */
+@media (max-width: 1280px) {
+  .manual-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .manual-page-v2 > section:first-of-type > article:nth-child(2n) {
+    border-right: 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .manual-page-v2 > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manual-page-v2 > section:first-of-type > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .manual-page-v2 > section:first-of-type > article:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .manual-page-v2 > header h1 {
+    font-size: 32px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Manual summary strip 3 columns                                 */
+/* Entradas/Saídas: padrão correto confirmado pelo layout                      */
+/* -------------------------------------------------------------------------- */
+
+.manual-page-v2 > .manual-summary-strip {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.manual-page-v2 > .manual-summary-strip > article {
+  min-height: 94px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 20px !important;
+}
+
+.manual-page-v2 > .manual-summary-strip > article:last-child {
+  border-right: 0 !important;
+}
+
+.manual-page-v2 > .manual-summary-strip .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.manual-page-v2 > .manual-summary-strip .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(22px, 1.8vw, 28px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.manual-page-v2 > .manual-summary-strip article p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: oklch(0.82 0.16 160) !important;
+  font-weight: 650 !important;
+}
+
+@media (max-width: 900px) {
+  .manual-page-v2 > .manual-summary-strip {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article:last-child {
+    border-bottom: 0 !important;
+  }
+}

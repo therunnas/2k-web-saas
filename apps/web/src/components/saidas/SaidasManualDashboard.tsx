@@ -1,13 +1,15 @@
 ﻿"use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  CalendarClock,
   CheckCircle2,
   Loader2,
   Minus,
   Pencil,
   RefreshCw,
+  Search,
   Trash2,
   WalletCards,
   X,
@@ -208,6 +210,84 @@ function recurrenceLabel(value: string | null) {
   return labels[value] ?? value;
 }
 
+function natureLabel(value: string | null) {
+  const labels: Record<string, string> = {
+    FIXO: "Fixo",
+    VARIAVEL: "Variável",
+  };
+
+  if (!value) return "—";
+
+  return labels[value] ?? value;
+}
+
+function statusTone(value: string | null) {
+  if (value === "PAGO") {
+    return "border-emerald-300/20 bg-emerald-300/10 text-emerald-200";
+  }
+
+  if (value === "A_PAGAR") {
+    return "border-amber-300/20 bg-amber-300/10 text-amber-200";
+  }
+
+  if (value === "CANCELADO") {
+    return "border-slate-300/15 bg-slate-300/10 text-slate-300";
+  }
+
+  return "border-rose-300/20 bg-rose-300/10 text-rose-200";
+}
+
+function getInitials(value: string | null) {
+  if (!value) return "2K";
+
+  const parts = value.trim().split(/\s+/).filter(Boolean).slice(0, 2);
+
+  if (!parts.length) return "2K";
+
+  return parts.map((part) => part[0]).join("").toUpperCase();
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="dashboard-label text-[10px] text-slate-500">
+      {children}
+    </span>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  helper,
+  tone = "rose",
+}: {
+  label: string;
+  value: string;
+  helper: string;
+  tone?: "rose" | "emerald" | "amber";
+}) {
+  const toneClass =
+    tone === "emerald"
+      ? "from-emerald-300/18 to-transparent text-emerald-200"
+      : tone === "amber"
+        ? "from-amber-300/18 to-transparent text-amber-200"
+        : "from-rose-300/18 to-transparent text-rose-200";
+
+  return (
+    <article className="relative min-h-[104px] overflow-hidden rounded-[16px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(10,13,20,0.98))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+      <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${toneClass}`} />
+
+      <p className="dashboard-label text-[10px] text-slate-500">{label}</p>
+
+      <strong className="dashboard-number mt-3 block text-[25px] font-semibold leading-none text-white">
+        {value}
+      </strong>
+
+      <p className="mt-2 text-xs font-medium text-slate-500">{helper}</p>
+    </article>
+  );
+}
+
 export function SaidasManualDashboard() {
   const [entries, setEntries] = useState<ManualExit[]>([]);
   const [suppliers, setSuppliers] = useState<string[]>([]);
@@ -220,6 +300,7 @@ export function SaidasManualDashboard() {
   const [recurrences, setRecurrences] = useState<string[]>([]);
   const [form, setForm] = useState<SaidaForm>(initialForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -416,8 +497,35 @@ export function SaidasManualDashboard() {
   const pagas = entries.filter((entry) => entry.financialStatus === "PAGO");
   const aPagar = entries.filter((entry) => entry.financialStatus !== "PAGO");
 
+  const filteredEntries = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+
+    if (!normalized) return entries;
+
+    return entries.filter((entry) =>
+      [
+        entry.category,
+        entry.subCategory,
+        entry.supplierName,
+        entry.client,
+        entry.description,
+        entry.project,
+        entry.linkedClient,
+        entry.paymentMethod,
+        entry.accountName,
+        entry.financialStatus,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalized))
+    );
+  }, [entries, query]);
+
+  const paidPercent = entries.length
+    ? Math.round((pagas.length / entries.length) * 100)
+    : 0;
+
   return (
-    <div className="space-y-6">
+    <div className="manual-page-v2 manual-page-exits space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-rose-300">
@@ -429,88 +537,80 @@ export function SaidasManualDashboard() {
           </h1>
 
           <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-400">
-            Cadastre despesas, custos, fornecedores, centro de custo, pagamento,
-            vencimento e comprovante direto no SaaS.
+            Cadastre despesas, custos, fornecedores, centro de custo, pagamento, vencimento e comprovante.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            loadCatalog();
-            loadEntries();
-          }}
-          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.07]"
-        >
-          <RefreshCw size={16} />
-          Atualizar
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              loadCatalog();
+              loadEntries();
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.06]"
+          >
+            <RefreshCw size={16} />
+            Atualizar
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              resetForm();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-[11px] border border-rose-300/25 bg-rose-300/12 px-4 py-2.5 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/18"
+          >
+            <Minus size={16} />
+            Nova saída
+          </button>
+        </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <article className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5">
-          <p className="dashboard-label text-[11px] text-slate-500">
-            Saídas manuais
-          </p>
-          <strong className="dashboard-number mt-3 block text-[26px] font-semibold text-white">
-            {entries.length}
-          </strong>
-          <p className="mt-2 text-xs font-medium text-slate-500">
-            registros criados no SaaS
-          </p>
-        </article>
+      <section className="manual-summary-strip grid gap-3 md:grid-cols-3">
+        <StatCard
+          label="Saídas manuais"
+          value={String(entries.length)}
+          helper="registros criados"
+        />
 
-        <article className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5">
-          <p className="dashboard-label text-[11px] text-slate-500">
-            Valor lançado
-          </p>
-          <strong className="dashboard-number mt-3 block text-[26px] font-semibold text-white">
-            {formatCurrency(total)}
-          </strong>
-          <p className="mt-2 text-xs font-medium text-slate-500">
-            soma das saídas manuais
-          </p>
-        </article>
+        <StatCard
+          label="Valor lançado"
+          value={formatCurrency(total)}
+          helper="soma das saídas manuais"
+        />
 
-        <article className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5">
-          <p className="dashboard-label text-[11px] text-slate-500">
-            Situação
-          </p>
-          <strong className="dashboard-number mt-3 block text-[26px] font-semibold text-white">
-            {pagas.length}/{aPagar.length}
-          </strong>
-          <p className="mt-2 text-xs font-medium text-slate-500">
-            pagas / a pagar
-          </p>
-        </article>
+        <StatCard
+          label="Situação"
+          value={`${pagas.length}/${aPagar.length}`}
+          helper="pagas · a pagar"
+          tone="rose"
+        />
       </section>
-
-      <section className="rounded-[1.75rem] border border-rose-300/15 bg-rose-300/[0.045] p-4 sm:p-5 xl:p-6">
+<section className="rounded-[18px] border border-rose-300/15 bg-[linear-gradient(180deg,rgba(45,22,30,0.56),rgba(10,13,20,0.96))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 xl:p-6">
         <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-300/10 text-rose-200">
+          <div className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-rose-300/20 bg-rose-300/10 text-rose-200">
             <WalletCards size={21} />
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
+            <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
               {isEditing ? "Editar saída" : "Nova saída"}
             </h2>
             <p className="mt-1 text-sm font-medium text-rose-100/65">
-              Estrutura profissional baseada em categoria, subcategoria, fornecedor,
-              pagamento, centro de custo e vencimento.
+              Estrutura baseada em categoria, subcategoria, fornecedor, pagamento, centro de custo e vencimento.
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="grid gap-4 xl:grid-cols-2">
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Categoria principal
-            </span>
+            <FieldLabel>Categoria principal</FieldLabel>
             <select
               value={form.category}
               onChange={(event) => updateField("category", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="">Selecione uma categoria</option>
               {uniqueOptions([...defaultCategories, ...expenseCategories]).map(
@@ -524,13 +624,11 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Subcategoria
-            </span>
+            <FieldLabel>Subcategoria</FieldLabel>
             <select
               value={form.subCategory}
               onChange={(event) => updateField("subCategory", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="">Selecione uma subcategoria</option>
               {uniqueOptions(expenseSubCategories).map((item) => (
@@ -545,13 +643,11 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Fornecedor / nome
-            </span>
+            <FieldLabel>Fornecedor / nome</FieldLabel>
             <select
               value={form.supplierName}
               onChange={(event) => updateField("supplierName", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="">Selecione um fornecedor</option>
               {uniqueOptions(suppliers).map((supplier) => (
@@ -566,13 +662,11 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Cliente vinculado
-            </span>
+            <FieldLabel>Cliente vinculado</FieldLabel>
             <select
               value={form.linkedClient}
               onChange={(event) => updateField("linkedClient", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="">Interno / não vinculado</option>
               {uniqueOptions(brands).map((brand) => (
@@ -584,37 +678,31 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block xl:col-span-2">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Descrição
-            </span>
+            <FieldLabel>Descrição</FieldLabel>
             <input
               value={form.description}
               onChange={(event) => updateField("description", event.target.value)}
-              placeholder="Ex: Assinatura mensal, freela de edição, aluguel de luz"
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
+              placeholder="Ex: assinatura mensal, freela de edição ou aluguel de luz"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
             />
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Projeto vinculado
-            </span>
+            <FieldLabel>Projeto vinculado</FieldLabel>
             <input
               value={form.project}
               onChange={(event) => updateField("project", event.target.value)}
               placeholder="Opcional"
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
             />
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Centro de custo
-            </span>
+            <FieldLabel>Centro de custo</FieldLabel>
             <select
               value={form.costCenter}
               onChange={(event) => updateField("costCenter", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="">Selecione</option>
               {uniqueOptions([...defaultCostCenters, ...costCenters]).map((item) => (
@@ -626,37 +714,31 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Valor previsto
-            </span>
+            <FieldLabel>Valor previsto</FieldLabel>
             <input
               value={form.expectedValue}
               onChange={(event) => updateField("expectedValue", event.target.value)}
               placeholder="Ex: 500 ou 1.500,00"
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
             />
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Valor pago
-            </span>
+            <FieldLabel>Valor pago</FieldLabel>
             <input
               value={form.paidValue}
               onChange={(event) => updateField("paidValue", event.target.value)}
               placeholder="Preencher quando pago"
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
             />
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Status financeiro
-            </span>
+            <FieldLabel>Status financeiro</FieldLabel>
             <select
               value={form.financialStatus}
               onChange={(event) => updateField("financialStatus", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="A_PAGAR">A pagar</option>
               <option value="PAGO">Pago</option>
@@ -665,13 +747,11 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Recorrência
-            </span>
+            <FieldLabel>Recorrência</FieldLabel>
             <select
               value={form.recurrence}
               onChange={(event) => updateField("recurrence", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               {uniqueOptions(["PONTUAL", "MENSAL", "ANUAL", "PARCELADO", ...recurrences]).map((item) => (
                 <option key={`recurrence-${item}`} value={item}>
@@ -682,13 +762,11 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Natureza
-            </span>
+            <FieldLabel>Natureza</FieldLabel>
             <select
               value={form.nature}
               onChange={(event) => updateField("nature", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="FIXO">Fixo</option>
               <option value="VARIAVEL">Variável</option>
@@ -696,13 +774,11 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Forma de pagamento
-            </span>
+            <FieldLabel>Forma de pagamento</FieldLabel>
             <select
               value={form.paymentMethod}
               onChange={(event) => updateField("paymentMethod", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="">Selecione</option>
               {uniqueOptions([...defaultPaymentMethods, ...paymentMethods]).map((item) => (
@@ -714,13 +790,11 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Conta / cartão
-            </span>
+            <FieldLabel>Conta / cartão</FieldLabel>
             <select
               value={form.accountName}
               onChange={(event) => updateField("accountName", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             >
               <option value="">Selecione</option>
               {uniqueOptions([form.accountName, ...accountNames]).map((item) => (
@@ -735,73 +809,65 @@ export function SaidasManualDashboard() {
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Vencimento
-            </span>
+            <FieldLabel>Vencimento</FieldLabel>
             <input
               type="date"
               value={form.dueAt}
               onChange={(event) => updateField("dueAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             />
           </label>
 
           <label className="block">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Data de pagamento
-            </span>
+            <FieldLabel>Data de pagamento</FieldLabel>
             <input
               type="date"
               value={form.paidAt}
               onChange={(event) => updateField("paidAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-rose-300/40"
             />
           </label>
 
           <label className="block xl:col-span-2">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Comprovante
-            </span>
+            <FieldLabel>Comprovante</FieldLabel>
             <input
               value={form.proofUrl}
               onChange={(event) => updateField("proofUrl", event.target.value)}
               placeholder="Link do comprovante, Drive ou observação de arquivo"
-              className="mt-2 h-11 w-full rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
+              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
             />
           </label>
 
           <label className="block xl:col-span-2">
-            <span className="dashboard-label text-[11px] text-slate-500">
-              Observação
-            </span>
+            <FieldLabel>Observação</FieldLabel>
             <textarea
               value={form.notes}
               onChange={(event) => updateField("notes", event.target.value)}
               rows={3}
               placeholder="Observações internas sobre pagamento, negociação, parcelamento ou vínculo com projeto."
-              className="mt-2 w-full resize-none rounded-2xl border border-white/10 bg-[#070b13]/75 px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
+              className="mt-2 w-full resize-none rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-rose-300/40"
             />
           </label>
 
           {errorMessage ? (
-            <div className="xl:col-span-2 rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-semibold text-rose-100">
+            <div className="rounded-[14px] border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-semibold text-rose-100 xl:col-span-2">
               {errorMessage}
             </div>
           ) : null}
 
           {successMessage ? (
-            <div className="xl:col-span-2 flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-100">
+            <div className="flex items-center gap-2 rounded-[14px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-100 xl:col-span-2">
               <CheckCircle2 size={17} />
               {successMessage}
             </div>
           ) : null}
 
-          <div className="xl:col-span-2 flex flex-wrap justify-end gap-3">
+          <div className="flex flex-wrap justify-end gap-3 xl:col-span-2">
             {isEditing ? (
               <button
                 type="button"
                 onClick={resetForm}
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06]"
+                className="inline-flex items-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.035] px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06]"
               >
                 <X size={16} />
                 Cancelar edição
@@ -811,7 +877,7 @@ export function SaidasManualDashboard() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-2xl border border-rose-300/20 bg-rose-300/15 px-5 py-2.5 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-[11px] border border-rose-300/20 bg-rose-300/15 px-5 py-2.5 text-sm font-semibold text-rose-100 transition hover:bg-rose-300/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Minus size={16} />}
               {isEditing ? "Salvar alteração" : "Salvar saída"}
@@ -820,14 +886,34 @@ export function SaidasManualDashboard() {
         </form>
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-        <h2 className="text-xl font-semibold tracking-[-0.035em]">
-          Saídas manuais recentes
-        </h2>
+      <section className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(10,13,20,0.98))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 xl:p-6">
+        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
+              Saídas manuais recentes
+            </h2>
+            <p className="mt-2 text-sm font-medium text-slate-500">
+              {filteredEntries.length} de {entries.length} saídas cadastradas.
+            </p>
+          </div>
 
-        <div className="mt-5 overflow-x-auto rounded-2xl border border-white/10">
+          <div className="relative w-full xl:w-[360px]">
+            <Search
+              size={16}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+            />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Buscar categoria, fornecedor ou descrição..."
+              className="h-10 w-full rounded-[12px] border border-white/10 bg-white/[0.035] pl-10 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-rose-300/40"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto rounded-[14px] border border-white/10">
           <div className="min-w-[1320px]">
-            <div className="grid grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+            <div className="grid grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               <span>Categoria</span>
               <span>Subcategoria</span>
               <span>Fornecedor</span>
@@ -842,11 +928,11 @@ export function SaidasManualDashboard() {
               <div className="px-5 py-6 text-sm font-medium text-slate-500">
                 Carregando saídas...
               </div>
-            ) : entries.length ? (
-              entries.map((entry) => (
+            ) : filteredEntries.length ? (
+              filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="grid grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                  className="grid min-h-[58px] grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] items-center border-b border-white/[0.055] px-5 py-3 text-sm last:border-b-0"
                 >
                   <span className="truncate font-semibold text-white">
                     {entry.category ?? "—"}
@@ -854,16 +940,25 @@ export function SaidasManualDashboard() {
                   <span className="truncate text-slate-300">
                     {entry.subCategory ?? "—"}
                   </span>
-                  <span className="truncate text-slate-300">
-                    {entry.supplierName ?? entry.client ?? "—"}
-                  </span>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-rose-300/20 bg-rose-300/10 text-xs font-semibold text-rose-200">
+                      {getInitials(entry.supplierName ?? entry.client)}
+                    </span>
+                    <span className="truncate text-slate-300">
+                      {entry.supplierName ?? entry.client ?? "—"}
+                    </span>
+                  </div>
                   <span className="truncate text-slate-300">
                     {entry.description ?? "—"}
                   </span>
                   <span className="dashboard-number font-semibold text-rose-200">
                     {formatCurrency(entry.costAmount)}
                   </span>
-                  <span className="w-fit rounded-lg bg-rose-300/10 px-3 py-1 text-xs font-semibold text-rose-100">
+                  <span
+                    className={`w-fit rounded-full border px-3 py-1 text-xs font-semibold ${statusTone(
+                      entry.financialStatus ?? entry.status
+                    )}`}
+                  >
                     {statusLabel(entry.financialStatus ?? entry.status)}
                   </span>
                   <span className="dashboard-number text-slate-400">
@@ -873,7 +968,7 @@ export function SaidasManualDashboard() {
                     <button
                       type="button"
                       onClick={() => startEdit(entry)}
-                      className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                      className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
                     >
                       <Pencil size={13} />
                       Editar
@@ -882,7 +977,7 @@ export function SaidasManualDashboard() {
                     <button
                       type="button"
                       onClick={() => handleDelete(entry.id)}
-                      className="inline-flex w-fit items-center gap-2 rounded-xl border border-rose-400/20 bg-rose-400/10 px-3 py-1.5 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15"
+                      className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-rose-400/20 bg-rose-400/10 px-3 py-1.5 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15"
                     >
                       <Trash2 size={13} />
                       Excluir
@@ -892,7 +987,7 @@ export function SaidasManualDashboard() {
               ))
             ) : (
               <div className="px-5 py-6 text-sm font-medium text-slate-500">
-                Nenhuma saída manual cadastrada ainda.
+                Nenhuma saída manual encontrada.
               </div>
             )}
           </div>
@@ -901,3 +996,5 @@ export function SaidasManualDashboard() {
     </div>
   );
 }
+
+
