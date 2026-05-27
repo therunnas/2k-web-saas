@@ -622,3 +622,465 @@ a {
     padding: 22px !important;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Fidelity polish from Claude Design                             */
+/* Mantém dados reais. Ajusta apenas acabamento visual.                        */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --ff-ui: "Geist", "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ff-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  --r-card: 14px;
+  --r-chip: 8px;
+  --r-pill: 999px;
+  --side-w: 248px;
+  --top-h: 56px;
+}
+
+body,
+.dashboard-ui {
+  font-family: var(--ff-ui);
+  font-feature-settings: "ss01", "cv11", "tnum";
+}
+
+.dashboard-number,
+.dashboard-code,
+.mono,
+[class*="dashboard-number"] {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+}
+
+.dashboard-overview-v2 {
+  --dash-card: oklch(0.155 0.014 270 / 0.92);
+  --dash-card-2: oklch(0.125 0.012 270 / 0.98);
+  --dash-line: oklch(0.27 0.018 270 / 0.72);
+  --dash-line-soft: oklch(0.22 0.015 270 / 0.72);
+  --dash-muted: oklch(0.55 0.015 270);
+  --dash-faint: oklch(0.42 0.015 270);
+}
+
+/* Deixa o dashboard com largura e densidade mais próximas do protótipo */
+.dashboard-overview-v2 {
+  max-width: none !important;
+  padding-bottom: 24px;
+}
+
+.dashboard-overview-v2 > header {
+  padding-top: 18px !important;
+  padding-bottom: 24px !important;
+}
+
+.dashboard-overview-v2 > header h1 {
+  font-size: clamp(38px, 3.35vw, 50px) !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.075em !important;
+}
+
+.dashboard-overview-v2 > header p {
+  letter-spacing: -0.012em;
+}
+
+/* Top summary strip */
+.dashboard-overview-v2 [class*="grid-cols"][class*="border-white"] {
+  border-color: var(--dash-line-soft);
+}
+
+/* KPIs principais mais parecidos com o Claude Design */
+.dashboard-kpi-grid > article {
+  border-color: var(--dash-line) !important;
+  background:
+    radial-gradient(320px 120px at 100% 0%, oklch(0.82 0.13 200 / 0.055), transparent 62%),
+    linear-gradient(180deg, var(--dash-card), var(--dash-card-2)) !important;
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.22) !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  border-top-color: oklch(0.82 0.13 200 / 0.34) !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1)::before,
+.dashboard-kpi-grid > article:nth-child(2)::before,
+.dashboard-kpi-grid > article:nth-child(8)::before {
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), transparent) !important;
+  opacity: 0.72;
+}
+
+.dashboard-kpi-grid > article .dashboard-label {
+  font-family: var(--ff-mono);
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.18em !important;
+  color: var(--dash-faint) !important;
+}
+
+.dashboard-kpi-grid > article .dashboard-number {
+  font-weight: 600 !important;
+}
+
+.dashboard-kpi-grid > article p:last-child {
+  color: var(--dash-faint) !important;
+}
+
+/* Faixa compacta de KPIs secundários */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 96px !important;
+  border-radius: 14px !important;
+  padding: 16px !important;
+}
+
+/* Cards gerais */
+.dashboard-overview-v2 section,
+.dashboard-overview-v2 .card,
+.dashboard-overview-v2 [class*="rounded-[1.75rem]"],
+.dashboard-overview-v2 [class*="rounded-[24px]"] {
+  border-color: var(--dash-line) !important;
+}
+
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid),
+.dashboard-overview-v2 .card {
+  background:
+    radial-gradient(600px 260px at 0% 0%, oklch(0.82 0.13 200 / 0.035), transparent 62%),
+    linear-gradient(180deg, oklch(0.15 0.014 270 / 0.96), oklch(0.105 0.012 270 / 0.985)) !important;
+}
+
+/* Botões do dashboard */
+.dashboard-overview-v2 button {
+  border-color: oklch(0.27 0.018 270 / 0.84) !important;
+  background: oklch(0.16 0.014 270 / 0.78) !important;
+  color: var(--fg-1) !important;
+  border-radius: 10px !important;
+  font-weight: 560 !important;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-overview-v2 button:hover {
+  background: oklch(0.19 0.016 270 / 0.86) !important;
+  color: var(--fg-0) !important;
+}
+
+/* Chart mais próximo do protótipo */
+.dashboard-overview-v2 svg text {
+  font-family: var(--ff-mono);
+}
+
+.dashboard-overview-v2 svg path[stroke],
+.dashboard-overview-v2 svg circle[stroke] {
+  filter: drop-shadow(0 0 7px oklch(0.82 0.13 200 / 0.16));
+}
+
+.dashboard-overview-v2 [class*="tooltip"],
+.dashboard-overview-v2 [class*="absolute"][class*="border-cyan"] {
+  border-color: var(--cyan-edge) !important;
+  background: oklch(0.105 0.012 270 / 0.96) !important;
+  box-shadow: 0 0 50px oklch(0.82 0.13 200 / 0.16) !important;
+}
+
+/* Tabelas: menos genéricas, mais próximas do protótipo */
+.dashboard-overview-v2 table,
+.dashboard-overview-v2 [class*="min-w-[760px]"],
+.dashboard-overview-v2 [class*="min-w-[680px]"] {
+  border-color: var(--dash-line-soft) !important;
+}
+
+.dashboard-overview-v2 th,
+.dashboard-overview-v2 [class*="uppercase"][class*="tracking"] {
+  font-family: var(--ff-mono);
+  color: var(--dash-faint) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.16em !important;
+}
+
+.dashboard-overview-v2 td,
+.dashboard-overview-v2 [class*="border-b"] {
+  border-color: oklch(0.27 0.018 270 / 0.38) !important;
+}
+
+/* Top grupos: deixa linhas mais refinadas */
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"] {
+  column-gap: 10px;
+}
+
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"] strong {
+  letter-spacing: -0.02em;
+}
+
+/* Próximos recebimentos: estilo pill mais parecido */
+.dashboard-overview-v2 [class*="Atrasado"],
+.dashboard-overview-v2 span[class*="rounded-lg"],
+.dashboard-overview-v2 span[class*="rounded-full"] {
+  font-family: var(--ff-ui);
+}
+
+/* Pipeline / produções */
+.dashboard-overview-v2 [class*="Próximas produções"] {
+  letter-spacing: -0.03em;
+}
+
+/* Reduz agressividade das cores em pequenos detalhes */
+.dashboard-overview-v2 .text-cyan-300,
+.dashboard-overview-v2 .text-emerald-300 {
+  color: oklch(0.82 0.16 165) !important;
+}
+
+.dashboard-overview-v2 .text-violet-300,
+.dashboard-overview-v2 .text-purple-300 {
+  color: oklch(0.72 0.18 295) !important;
+}
+
+/* Footer do dashboard */
+.dashboard-overview-v2 footer,
+.dashboard-overview-v2 [class*="Sincronizado"] {
+  color: var(--dash-faint) !important;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+}
+
+/* Responsivo seguro */
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 > header h1 {
+    font-size: 38px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-overview-v2 > header {
+    padding-top: 8px !important;
+  }
+
+  .dashboard-overview-v2 > header h1 {
+    font-size: 32px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Container fidelity pass                                        */
+/* Ajusta proporção, bordas, fundo e densidade dos containers do Dashboard     */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 {
+  --container-bg: #0d1018;
+  --container-bg-soft: #0a0d14;
+  --container-border: rgba(255, 255, 255, 0.105);
+  --container-border-soft: rgba(255, 255, 255, 0.065);
+  --container-radius: 18px;
+  --container-radius-sm: 14px;
+}
+
+/* Base geral dos containers */
+.dashboard-overview-v2 section,
+.dashboard-overview-v2 article,
+.dashboard-overview-v2 [class*="rounded-[1.75rem]"],
+.dashboard-overview-v2 [class*="rounded-[1.5rem]"],
+.dashboard-overview-v2 [class*="rounded-2xl"] {
+  border-color: var(--container-border-soft) !important;
+}
+
+/* Cards principais estilo Claude Design */
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid),
+.dashboard-overview-v2 .dashboard-card,
+.dashboard-overview-v2 [class*="bg-[#0b101b]"] {
+  background:
+    linear-gradient(180deg, rgba(17, 20, 30, 0.96), rgba(10, 13, 20, 0.98)) !important;
+  border: 1px solid var(--container-border) !important;
+  border-radius: var(--container-radius) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 18px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* KPIs principais com proporção mais parecida */
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  min-height: 150px !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  background:
+    radial-gradient(280px 110px at 100% 0%, rgba(34, 211, 238, 0.055), transparent 62%),
+    linear-gradient(180deg, rgba(17, 20, 30, 0.96), rgba(10, 13, 20, 0.99)) !important;
+}
+
+/* Linha inferior dos KPIs igual ao protótipo */
+.dashboard-kpi-grid > article:nth-child(1)::before,
+.dashboard-kpi-grid > article:nth-child(2)::before,
+.dashboard-kpi-grid > article:nth-child(8)::before {
+  bottom: 0 !important;
+  top: auto !important;
+  height: 2px !important;
+  background: linear-gradient(
+    90deg,
+    rgba(34, 211, 238, 0.75),
+    rgba(52, 211, 153, 0.68),
+    transparent
+  ) !important;
+}
+
+/* KPIs secundários em faixa mais baixa e reta */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 86px !important;
+  padding: 15px 18px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.94), rgba(9, 12, 19, 0.98)) !important;
+  box-shadow: none !important;
+}
+
+/* Remove excesso de brilho dos cards secundários */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  opacity: 0.35 !important;
+}
+
+/* Números dos KPIs mais próximos do design */
+.dashboard-kpi-grid > article:nth-child(1) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(2) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(8) .dashboard-number {
+  font-size: clamp(32px, 2.7vw, 42px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  font-size: clamp(19px, 1.35vw, 23px) !important;
+  font-weight: 600 !important;
+}
+
+/* Chart + score bento */
+.dashboard-overview-v2 > section:has(svg) {
+  border-radius: 18px !important;
+  padding: 22px !important;
+}
+
+.dashboard-overview-v2 > section:has(svg) > div:last-child {
+  border-radius: 16px !important;
+  background: #090d15 !important;
+  border-color: rgba(255, 255, 255, 0.055) !important;
+}
+
+/* Títulos dos containers */
+.dashboard-overview-v2 h2,
+.dashboard-overview-v2 h3 {
+  font-weight: 650 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.dashboard-overview-v2 h2 {
+  font-size: 18px !important;
+}
+
+.dashboard-overview-v2 h3 {
+  font-size: 17px !important;
+}
+
+/* Próximas produções: container mais horizontal e denso */
+.dashboard-overview-v2 section:has(h2):has(button) {
+  overflow: hidden;
+}
+
+.dashboard-overview-v2 section:has(h2) [class*="grid"] > div,
+.dashboard-overview-v2 section:has(h3) [class*="grid"] > div {
+  border-color: rgba(255, 255, 255, 0.065) !important;
+}
+
+/* Cards de pipeline */
+.dashboard-overview-v2 [class*="Próximas produções"] ~ div,
+.dashboard-overview-v2 section h2 + p + div {
+  gap: 12px !important;
+}
+
+/* Top grupos e próximos recebimentos */
+.dashboard-overview-v2 section:has(h2) {
+  border-radius: 18px !important;
+}
+
+.dashboard-overview-v2 section:has(h2) > div[class*="overflow-x-auto"],
+.dashboard-overview-v2 section:has(h2) > div[class*="rounded-2xl"] {
+  border-radius: 14px !important;
+  border-color: rgba(255, 255, 255, 0.075) !important;
+  background: rgba(7, 10, 16, 0.38) !important;
+}
+
+/* Linhas das tabelas/listas mais parecidas com Claude Design */
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"],
+.dashboard-overview-v2 [class*="grid-cols-[1.6fr_1fr_1fr_1fr]"] {
+  min-height: 54px;
+}
+
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"]:not(:first-child),
+.dashboard-overview-v2 [class*="grid-cols-[1.6fr_1fr_1fr_1fr]"]:not(:first-child) {
+  border-bottom-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+/* Próximos recebimentos mais parecido com cards internos do protótipo */
+.dashboard-overview-v2 [class*="grid-cols-[1.6fr_1fr_1fr_1fr]"] {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+/* Badges */
+.dashboard-overview-v2 span[class*="bg-cyan"],
+.dashboard-overview-v2 span[class*="bg-rose"],
+.dashboard-overview-v2 span[class*="bg-emerald"] {
+  border-radius: 999px !important;
+  border: 1px solid currentColor !important;
+  background: color-mix(in oklab, currentColor 12%, transparent) !important;
+  font-weight: 650 !important;
+}
+
+/* Botões dos containers */
+.dashboard-overview-v2 section button {
+  min-height: 36px;
+  border-radius: 11px !important;
+  padding-inline: 14px !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+}
+
+.dashboard-overview-v2 section button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+}
+
+/* Espaçamento entre blocos */
+.dashboard-overview-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+}
+
+.dashboard-overview-v2 .dashboard-kpi-grid {
+  margin-top: 0 !important;
+}
+
+/* Reduz peso visual da grid de fundo dentro do conteúdo */
+.dashboard-ui > .pointer-events-none {
+  opacity: 0.86;
+}
+
+/* Ajuste fino para telas grandes */
+@media (min-width: 1500px) {
+  .dashboard-overview-v2 {
+    gap: 24px !important;
+  }
+
+  .dashboard-kpi-grid {
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-overview-v2 {
+    gap: 16px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 132px !important;
+    padding: 20px !important;
+  }
+}
