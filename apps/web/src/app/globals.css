@@ -1084,3 +1084,81 @@ body,
     padding: 20px !important;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Secondary KPI cleanup                                          */
+/* Remove ruído visual dos KPIs secundários: sem sparkline, só delta/status    */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 78px !important;
+  padding: 14px 18px !important;
+  background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(8, 11, 17, 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::before {
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  opacity: 0.22 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  margin-top: 8px !important;
+  font-size: 21px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) p:last-child {
+  display: none !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) span[class*="rounded-full"] {
+  height: 22px !important;
+  padding-inline: 9px !important;
+  font-size: 10px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) svg {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Secondary KPI cleanup                                          */
+/* Remove ruído visual dos KPIs secundários: sem sparkline, só delta/status    */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 78px !important;
+  padding: 14px 18px !important;
+  background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(8, 11, 17, 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::before {
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  opacity: 0.22 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  margin-top: 8px !important;
+  font-size: 21px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) p:last-child {
+  display: none !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) span[class*="rounded-full"] {
+  height: 22px !important;
+  padding-inline: 9px !important;
+  font-size: 10px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) svg {
+  display: none !important;
+}
