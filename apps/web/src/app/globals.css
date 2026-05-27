@@ -204,3 +204,421 @@ a {
 .app-button-primary:hover {
   filter: brightness(1.08);
 }
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard visual refinement                                   */
+/* Escopo seguro: apenas DashboardOverview com .dashboard-overview-v2          */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 {
+  position: relative;
+  max-width: 1540px;
+  margin-inline: auto;
+}
+
+.dashboard-overview-v2 > header {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid oklch(0.27 0.018 270 / 0.78);
+  border-radius: 24px;
+  background:
+    radial-gradient(700px 220px at 0% 0%, oklch(0.82 0.13 200 / 0.08), transparent 60%),
+    radial-gradient(580px 240px at 100% 0%, oklch(0.72 0.18 295 / 0.08), transparent 58%),
+    linear-gradient(180deg, oklch(0.16 0.014 270 / 0.92), oklch(0.125 0.012 270 / 0.94));
+  padding: 22px;
+  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.22);
+}
+
+.dashboard-overview-v2 > header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(90deg, black, transparent 82%);
+  opacity: 0.65;
+}
+
+.dashboard-overview-v2 > header > * {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-overview-v2 > header p:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.dashboard-overview-v2 > header p:first-child::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 18px oklch(0.82 0.13 200 / 0.9);
+}
+
+.dashboard-overview-v2 > header h1 {
+  margin-top: 10px;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 0.95;
+  letter-spacing: -0.065em;
+}
+
+.dashboard-overview-v2 > header h1::after {
+  content: "operação no ritmo.";
+  display: inline;
+  margin-left: 10px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dashboard-overview-v2 > header p:not(:first-child) {
+  max-width: 720px;
+  color: var(--fg-2);
+}
+
+.dashboard-overview-v2 > header button,
+.dashboard-overview-v2 > header [class*="rounded-2xl"] {
+  border-color: oklch(0.27 0.018 270 / 0.86) !important;
+  background: oklch(0.16 0.014 270 / 0.74) !important;
+  color: var(--fg-1) !important;
+  border-radius: 14px !important;
+}
+
+.dashboard-kpi-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px !important;
+}
+
+.dashboard-kpi-grid > article {
+  position: relative;
+  overflow: hidden;
+  min-height: 136px !important;
+  border: 1px solid oklch(0.27 0.018 270 / 0.86) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(240px 120px at 100% 0%, oklch(0.82 0.13 200 / 0.065), transparent 64%),
+    linear-gradient(180deg, oklch(0.17 0.014 270 / 0.95), oklch(0.13 0.012 270 / 0.98)) !important;
+  padding: 20px !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+.dashboard-kpi-grid > article::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, oklch(0.82 0.13 200 / 0.45), transparent);
+  opacity: 0.8;
+}
+
+.dashboard-kpi-grid > article::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: oklch(0.82 0.13 200 / 0.07);
+  border: 1px solid oklch(0.82 0.13 200 / 0.10);
+  filter: blur(0);
+  opacity: 0.7;
+}
+
+.dashboard-kpi-grid > article .dashboard-label {
+  color: var(--fg-3) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.18em !important;
+}
+
+.dashboard-kpi-grid > article .dashboard-number {
+  margin-top: 14px !important;
+  font-size: clamp(22px, 2vw, 30px) !important;
+  line-height: 1 !important;
+  color: var(--fg-0) !important;
+}
+
+.dashboard-kpi-grid > article p {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-kpi-grid > article p:last-child {
+  color: var(--fg-3) !important;
+}
+
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid) {
+  border: 1px solid oklch(0.27 0.018 270 / 0.86);
+  border-radius: 22px;
+  background:
+    radial-gradient(700px 260px at 0% 0%, oklch(0.82 0.13 200 / 0.04), transparent 62%),
+    linear-gradient(180deg, oklch(0.155 0.014 270 / 0.92), oklch(0.115 0.012 270 / 0.96));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.20);
+}
+
+.dashboard-overview-v2 svg {
+  filter: drop-shadow(0 18px 38px rgba(34, 211, 238, 0.055));
+}
+
+.dashboard-overview-v2 table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.dashboard-overview-v2 th {
+  color: var(--fg-3) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+}
+
+.dashboard-overview-v2 td {
+  border-color: oklch(0.27 0.018 270 / 0.55) !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-overview-v2 > header {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-overview-v2 > header h1::after {
+    display: block;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard fidelity pass                                        */
+/* Aproxima o dashboard real do protótipo aprovado no Claude Design            */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+
+/* Header mais limpo, sem parecer card fechado */
+.dashboard-overview-v2 > header {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 8px 0 26px !important;
+  overflow: visible !important;
+}
+
+.dashboard-overview-v2 > header::before {
+  display: none !important;
+}
+
+.dashboard-overview-v2 > header p:first-child {
+  color: var(--cyan) !important;
+  font-size: 10px !important;
+  font-weight: 760 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+}
+
+.dashboard-overview-v2 > header h1 {
+  margin-top: 8px !important;
+  font-size: clamp(34px, 3.2vw, 48px) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.065em !important;
+}
+
+.dashboard-overview-v2 > header h1::after {
+  content: none !important;
+}
+
+.dashboard-overview-v2 > header h1 span,
+.dashboard-overview-v2 > header strong {
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dashboard-overview-v2 > header p:not(:first-child) {
+  max-width: 760px !important;
+  color: var(--fg-2) !important;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+}
+
+/* Grade dos KPIs no padrão do protótipo:
+   3 cards principais em cima + faixa compacta abaixo */
+.dashboard-kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+/* Ordem visual: Faturamento, Recebido, Lucro no topo */
+.dashboard-kpi-grid > article:nth-child(1) {
+  order: 1;
+  grid-column: span 2;
+}
+
+.dashboard-kpi-grid > article:nth-child(2) {
+  order: 2;
+  grid-column: span 2;
+}
+
+.dashboard-kpi-grid > article:nth-child(8) {
+  order: 3;
+  grid-column: span 2;
+}
+
+/* Secundários compactos */
+.dashboard-kpi-grid > article:nth-child(3) {
+  order: 4;
+}
+
+.dashboard-kpi-grid > article:nth-child(4) {
+  order: 5;
+}
+
+.dashboard-kpi-grid > article:nth-child(5) {
+  order: 6;
+}
+
+.dashboard-kpi-grid > article:nth-child(6) {
+  order: 7;
+}
+
+.dashboard-kpi-grid > article:nth-child(7) {
+  order: 8;
+}
+
+.dashboard-kpi-grid > article:nth-child(9) {
+  order: 9;
+}
+
+/* Cards principais */
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  min-height: 168px !important;
+  padding: 28px !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(320px 150px at 100% 0%, oklch(0.82 0.13 200 / 0.09), transparent 64%),
+    linear-gradient(180deg, oklch(0.17 0.014 270 / 0.96), oklch(0.12 0.012 270 / 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(2) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(8) .dashboard-number {
+  margin-top: 22px !important;
+  font-size: clamp(34px, 3.2vw, 46px) !important;
+  letter-spacing: -0.07em !important;
+}
+
+/* Cards secundários em faixa compacta */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  grid-column: span 1;
+  min-height: 104px !important;
+  padding: 17px !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(180deg, oklch(0.155 0.014 270 / 0.94), oklch(0.118 0.012 270 / 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  margin-top: 10px !important;
+  font-size: clamp(20px, 1.7vw, 25px) !important;
+  letter-spacing: -0.055em !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+}
+
+/* Reduz ruído visual dos microtextos */
+.dashboard-kpi-grid > article p:last-child {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  opacity: 0.72;
+}
+
+/* Seções abaixo mais próximas do protótipo */
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid) {
+  border-radius: 24px !important;
+  background:
+    radial-gradient(720px 280px at 0% 0%, oklch(0.82 0.13 200 / 0.04), transparent 64%),
+    linear-gradient(180deg, oklch(0.15 0.014 270 / 0.96), oklch(0.105 0.012 270 / 0.98)) !important;
+}
+
+/* Gráfico com mais presença */
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid) svg {
+  min-height: 280px;
+}
+
+/* Tabelas mais limpas */
+.dashboard-overview-v2 table {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.dashboard-overview-v2 tbody tr {
+  transition: background 0.18s ease;
+}
+
+.dashboard-overview-v2 tbody tr:hover {
+  background: oklch(0.82 0.13 200 / 0.035);
+}
+
+/* Responsivo */
+@media (max-width: 1320px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8),
+  .dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 140px !important;
+    padding: 22px !important;
+  }
+}

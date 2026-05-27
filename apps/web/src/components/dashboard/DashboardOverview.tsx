@@ -902,7 +902,7 @@ export function DashboardOverview() {
   );
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <div className="dashboard-overview-v2 space-y-5 sm:space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">
@@ -945,7 +945,7 @@ export function DashboardOverview() {
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="dashboard-kpi-grid grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {kpis.map((item, index) => {
           const Icon = kpiIcons[index] ?? DollarSign;
 
@@ -1154,6 +1154,7 @@ export function DashboardOverview() {
     </div>
   );
 }
+
 
 
 
