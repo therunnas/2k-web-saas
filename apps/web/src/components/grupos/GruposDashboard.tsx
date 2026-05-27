@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -200,7 +200,7 @@ export function GruposDashboard() {
   const maxRevenue = Math.max(...groups.map((group) => group.revenue), 1);
 
   return (
-    <div className="space-y-6">
+    <div className="ops-page-v2 ops-page-groups space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">
@@ -208,7 +208,7 @@ export function GruposDashboard() {
           </p>
 
           <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
-            Grupos e marcas reais.
+            Grupos e marcas.
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
@@ -240,14 +240,14 @@ export function GruposDashboard() {
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="ops-summary-strip grid gap-0 md:grid-cols-3 xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
 
           return (
             <article
               key={card.label}
-              className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]"
+              className="ops-summary-card relative overflow-hidden border border-white/10 bg-[#0b101b] p-5"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -264,7 +264,7 @@ export function GruposDashboard() {
                   </p>
                 </div>
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/[0.04]">
+                <div className="ops-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-white/[0.04]">
                   <Icon size={22} className={card.tone} />
                 </div>
               </div>
@@ -273,7 +273,7 @@ export function GruposDashboard() {
         })}
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+      <section className="ops-card rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
         <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <h2 className="text-xl font-semibold tracking-[-0.035em]">
@@ -302,7 +302,7 @@ export function GruposDashboard() {
           </form>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-white/10">
+        <div className="ops-table-wrap overflow-x-auto rounded-2xl border border-white/10">
           <div className="min-w-[1180px]">
             <div className="grid grid-cols-[0.4fr_1.8fr_1fr_1fr_1fr_1fr_1.4fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
               <span>#</span>
