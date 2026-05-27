@@ -290,7 +290,7 @@ export function DespesasDashboard() {
   const maxSupplierValue = Math.max(...suppliers.map((item) => item.total), 1);
 
   return (
-    <div className="space-y-6">
+    <div className="ops-page-v2 ops-page-despesas space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">
@@ -497,7 +497,7 @@ export function DespesasDashboard() {
           </div>
         </div>
 
-        <aside className="space-y-6">
+        <aside className="ops-page-v2 ops-page-despesas space-y-6">
           <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
             <div className="mb-5">
               <h2 className="text-xl font-semibold tracking-[-0.035em]">
@@ -584,3 +584,4 @@ export function DespesasDashboard() {
     </div>
   );
 }
+
