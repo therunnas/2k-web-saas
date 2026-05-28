@@ -263,6 +263,7 @@ export function ProducoesDashboard() {
 
   const productions = data?.productions ?? [];
   const pipeline = data?.pipeline ?? [];
+  const pipelineMaxCount = Math.max(...pipeline.map((stage) => stage.count), 1);
   const nextCapture = useMemo(() => {
     const pendingProductions = productions.filter((item) => {
       const status = `${item.status} ${item.pipelineStage}`.toLowerCase();
@@ -463,8 +464,9 @@ export function ProducoesDashboard() {
                 <div
                   key={stage.name}
                   className="k-pipeline-status-item"
+                  data-tone={getPipelineTone(stage.name)}
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="k-pipeline-status-header">
                     <span
                       className="k-pipeline-status-badge"
                       data-tone={getPipelineTone(stage.name)}
@@ -475,6 +477,15 @@ export function ProducoesDashboard() {
                     <strong className="k-pipeline-status-value">
                       {stage.count}
                     </strong>
+                  </div>
+
+                  <div className="k-pipeline-status-track">
+                    <div
+                      className="k-pipeline-status-bar"
+                      style={{
+                        width: `${Math.min(Math.max((stage.count / pipelineMaxCount) * 100, 6), 100)}%`,
+                      }}
+                    />
                   </div>
 
                   <p className="k-pipeline-status-helper">

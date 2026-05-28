@@ -1443,14 +1443,35 @@ a {
 .k-pipeline-status-list {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 12px;
 }
 
 .k-pipeline-status-item {
+  --pipeline-status-bar: linear-gradient(90deg, var(--cyan), var(--purple));
   border: 1px solid var(--line-soft);
   border-radius: 9px;
   background: oklch(0.165 0.012 270 / 0.82);
-  padding: 9px 10px;
+  padding: 10px;
+}
+
+.k-pipeline-status-item[data-tone="success"] {
+  --pipeline-status-bar: var(--pos);
+}
+
+.k-pipeline-status-item[data-tone="attention"] {
+  --pipeline-status-bar: var(--warn);
+}
+
+.k-pipeline-status-item[data-tone="danger"] {
+  --pipeline-status-bar: var(--crit);
+}
+
+.k-pipeline-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
 }
 
 .k-pipeline-status-badge {
@@ -1486,17 +1507,32 @@ a {
 .k-pipeline-status-value {
   color: var(--fg-0);
   font-family: var(--font-mono-dashboard);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+}
+
+.k-pipeline-status-track {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--bg-3);
+}
+
+.k-pipeline-status-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pipeline-status-bar);
 }
 
 .k-pipeline-status-helper {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   color: var(--fg-3);
+  font-family: var(--font-mono-dashboard);
   font-size: 10.5px;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
 }
 
 .k-status-pending {
