@@ -146,22 +146,22 @@ function statusLabel(value: string | null) {
 
 function statusTone(value: string | null) {
   if (value === "PAGO") {
-    return "border-emerald-300/20 bg-emerald-300/10 text-emerald-200";
+    return "success";
   }
 
   if (value === "ATRASADO") {
-    return "border-rose-300/20 bg-rose-300/10 text-rose-200";
+    return "danger";
   }
 
   if (value === "AGUARDANDO_PAGAMENTO" || value === "A_RECEBER") {
-    return "border-cyan-300/20 bg-cyan-300/10 text-cyan-200";
+    return "info";
   }
 
   if (value === "NF_A_ENVIAR" || value === "GERAR_NF" || value === "CONFIRMAR_INFO") {
-    return "border-amber-300/20 bg-amber-300/10 text-amber-200";
+    return "attention";
   }
 
-  return "border-white/10 bg-white/[0.035] text-slate-300";
+  return "neutral";
 }
 
 function getInitials(value: string | null) {
@@ -201,12 +201,12 @@ function StatCard({
         : "from-cyan-300/18 to-transparent text-cyan-200";
 
   return (
-    <article className="relative min-h-[104px] overflow-hidden rounded-[16px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(10,13,20,0.98))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+    <article className="k-kpi-card min-h-[104px] p-4">
       <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${toneClass}`} />
 
       <p className="dashboard-label text-[10px] text-slate-500">{label}</p>
 
-      <strong className="dashboard-number mt-3 block text-[25px] font-semibold leading-none text-white">
+      <strong className="k-number mt-3 block text-[25px] font-semibold leading-none text-white">
         {value}
       </strong>
 
@@ -423,13 +423,9 @@ export function EntradasManualDashboard() {
     );
   }, [entries, query]);
 
-  const completionPercent = entries.length
-    ? Math.round((recebidas.length / entries.length) * 100)
-    : 0;
-
   return (
-    <div className="manual-page-v2 manual-page-entries space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page manual-page-v2 manual-page-entries space-y-6">
+      <header className="k-page-header xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">
             Entradas
@@ -451,7 +447,7 @@ export function EntradasManualDashboard() {
               loadCatalog();
               loadEntries();
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.06]"
+            className="k-button-ghost"
           >
             <RefreshCw size={16} />
             Atualizar
@@ -463,7 +459,7 @@ export function EntradasManualDashboard() {
               resetForm();
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-[11px] border border-cyan-300/25 bg-cyan-300/12 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/18"
+            className="k-button-primary"
           >
             <Plus size={16} />
             Nova entrada
@@ -492,17 +488,17 @@ export function EntradasManualDashboard() {
           tone="emerald"
         />
       </section>
-<section className="rounded-[18px] border border-cyan-300/15 bg-[linear-gradient(180deg,rgba(20,35,42,0.62),rgba(10,13,20,0.96))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 xl:p-6">
+      <section className="k-card p-4 sm:p-5 xl:p-6">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-cyan-300/20 bg-cyan-300/10 text-cyan-200">
             <TrendingUp size={21} />
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
+            <h2 className="k-section-title">
               {isEditing ? "Editar entrada" : "Nova entrada"}
             </h2>
-            <p className="mt-1 text-sm font-medium text-cyan-100/65">
+            <p className="k-muted mt-1 text-sm">
               Equivalente à aba ENTRADAS da planilha.
             </p>
           </div>
@@ -514,7 +510,7 @@ export function EntradasManualDashboard() {
             <select
               value={form.groupName}
               onChange={(event) => updateField("groupName", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione um grupo</option>
               {groups.map((group) => (
@@ -523,7 +519,7 @@ export function EntradasManualDashboard() {
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-xs font-medium text-slate-600">
+            <p className="k-muted mt-2 text-xs">
               Para adicionar ou editar grupos, use Configurações.
             </p>
           </label>
@@ -533,7 +529,7 @@ export function EntradasManualDashboard() {
             <select
               value={form.client}
               onChange={(event) => updateField("client", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione uma marca</option>
               {brands.map((brand) => (
@@ -542,7 +538,7 @@ export function EntradasManualDashboard() {
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-xs font-medium text-slate-600">
+            <p className="k-muted mt-2 text-xs">
               Para adicionar ou editar marcas, use Configurações.
             </p>
           </label>
@@ -553,7 +549,7 @@ export function EntradasManualDashboard() {
               value={form.project}
               onChange={(event) => updateField("project", event.target.value)}
               placeholder="Ex: campanha de verão, reels, evento ou fotos em tempo real"
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
@@ -563,7 +559,7 @@ export function EntradasManualDashboard() {
               value={form.value}
               onChange={(event) => updateField("value", event.target.value)}
               placeholder="Ex: 5000 ou 5.000,00"
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
@@ -573,7 +569,7 @@ export function EntradasManualDashboard() {
               value={form.documentNumber}
               onChange={(event) => updateField("documentNumber", event.target.value)}
               placeholder="Ex: 123 ou vazio"
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
@@ -582,7 +578,7 @@ export function EntradasManualDashboard() {
             <select
               value={form.commercialStatus}
               onChange={(event) => updateField("commercialStatus", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="LEAD">Lead</option>
               <option value="NF_A_ENVIAR">NF a enviar</option>
@@ -600,7 +596,7 @@ export function EntradasManualDashboard() {
             <select
               value={form.financialStatus}
               onChange={(event) => updateField("financialStatus", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="A_RECEBER">A receber</option>
               <option value="PAGO">Pago / recebido</option>
@@ -614,7 +610,7 @@ export function EntradasManualDashboard() {
               type="date"
               value={form.issuedAt}
               onChange={(event) => updateField("issuedAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
@@ -624,7 +620,7 @@ export function EntradasManualDashboard() {
               type="date"
               value={form.dueAt}
               onChange={(event) => updateField("dueAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
@@ -634,7 +630,7 @@ export function EntradasManualDashboard() {
               type="date"
               value={form.paidAt}
               onChange={(event) => updateField("paidAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
@@ -645,18 +641,18 @@ export function EntradasManualDashboard() {
               onChange={(event) => updateField("description", event.target.value)}
               rows={3}
               placeholder="Observações do projeto, job, entrega ou negociação."
-              className="mt-2 w-full resize-none rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input mt-2 w-full resize-none px-4 py-3 text-sm font-medium"
             />
           </label>
 
           {errorMessage ? (
-            <div className="rounded-[14px] border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-semibold text-rose-100 xl:col-span-2">
+            <div className="k-card border-rose-400/20 bg-rose-400/10 p-4 text-sm font-semibold text-rose-100 xl:col-span-2">
               {errorMessage}
             </div>
           ) : null}
 
           {successMessage ? (
-            <div className="flex items-center gap-2 rounded-[14px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-100 xl:col-span-2">
+            <div className="k-card flex items-center gap-2 border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-100 xl:col-span-2">
               <CheckCircle2 size={17} />
               {successMessage}
             </div>
@@ -667,7 +663,7 @@ export function EntradasManualDashboard() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="inline-flex items-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.035] px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06]"
+                className="k-button-ghost px-5"
               >
                 <X size={16} />
                 Cancelar edição
@@ -677,7 +673,7 @@ export function EntradasManualDashboard() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-[11px] border border-cyan-300/20 bg-cyan-300/15 px-5 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+              className="k-button-primary px-5 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               {isEditing ? "Salvar alteração" : "Salvar entrada"}
@@ -686,13 +682,13 @@ export function EntradasManualDashboard() {
         </form>
       </section>
 
-      <section className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(10,13,20,0.98))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 xl:p-6">
+      <section className="k-card p-4 sm:p-5 xl:p-6">
         <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
+            <h2 className="k-section-title">
               Entradas manuais recentes
             </h2>
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="k-muted mt-2 text-sm">
               {filteredEntries.length} de {entries.length} entradas cadastradas.
             </p>
           </div>
@@ -706,12 +702,12 @@ export function EntradasManualDashboard() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar grupo, marca, projeto ou NF..."
-              className="h-10 w-full rounded-[12px] border border-white/10 bg-white/[0.035] pl-10 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input h-10 pl-10 pr-4 text-sm font-medium"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-[14px] border border-white/10">
+        <div className="k-table-card overflow-x-auto">
           <div className="min-w-[1160px]">
             <div className="grid grid-cols-[1.1fr_1.1fr_1.6fr_0.8fr_1fr_1fr_0.7fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               <span>Grupo</span>
@@ -735,7 +731,7 @@ export function EntradasManualDashboard() {
                   className="grid min-h-[58px] grid-cols-[1.1fr_1.1fr_1.6fr_0.8fr_1fr_1fr_0.7fr_0.8fr] items-center border-b border-white/[0.055] px-5 py-3 text-sm last:border-b-0"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-300/10 text-xs font-semibold text-cyan-200">
+                    <span className="k-avatar h-8 w-8 rounded-full text-xs">
                       {getInitials(entry.groupName)}
                     </span>
                     <span className="truncate font-semibold text-white">
@@ -749,17 +745,16 @@ export function EntradasManualDashboard() {
                   <span className="truncate text-slate-300">
                     {entry.project ?? "—"}
                   </span>
-                  <span className="dashboard-number font-semibold text-emerald-200">
+                  <span className="k-number font-semibold text-emerald-200">
                     {formatCurrency(entry.grossAmount)}
                   </span>
                   <span
-                    className={`w-fit rounded-full border px-3 py-1 text-xs font-semibold ${statusTone(
-                      entry.financialStatus ?? entry.status
-                    )}`}
+                    className="k-badge"
+                    data-tone={statusTone(entry.financialStatus ?? entry.status)}
                   >
                     {statusLabel(entry.financialStatus ?? entry.status)}
                   </span>
-                  <span className="dashboard-number text-slate-400">
+                  <span className="k-number text-slate-400">
                     {formatDate(entry.dueAt)}
                   </span>
                   <span className="text-slate-400">
@@ -769,7 +764,7 @@ export function EntradasManualDashboard() {
                     <button
                       type="button"
                       onClick={() => startEdit(entry)}
-                      className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                      className="k-button-ghost min-h-8 px-3 text-xs"
                     >
                       <Pencil size={13} />
                       Editar
@@ -778,7 +773,7 @@ export function EntradasManualDashboard() {
                     <button
                       type="button"
                       onClick={() => handleDelete(entry.id)}
-                      className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-rose-400/20 bg-rose-400/10 px-3 py-1.5 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15"
+                      className="inline-flex min-h-8 w-fit items-center gap-2 rounded-[10px] border border-rose-400/20 bg-rose-400/10 px-3 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15"
                     >
                       <Trash2 size={13} />
                       Excluir
