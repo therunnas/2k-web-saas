@@ -1043,6 +1043,22 @@ a {
   gap: 8px;
 }
 
+.k-page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.k-page-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .k-finance-kpi-strip {
   min-height: 104px;
   box-shadow: none;
@@ -1110,6 +1126,149 @@ a {
   color: var(--crit) !important;
 }
 
+.k-form-card {
+  padding: 20px;
+}
+
+.k-form-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.k-form-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.k-form-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: oklch(0.2 0.014 270 / 0.72);
+  color: var(--fg-2);
+}
+
+.k-form-tag {
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-pill);
+  background: var(--bg-1);
+  color: var(--fg-3);
+  padding: 0 9px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.k-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.k-form-field {
+  display: block;
+  min-width: 0;
+}
+
+.k-form-field[data-span="2"] {
+  grid-column: span 2;
+}
+
+.k-form-label {
+  display: inline-block;
+  color: var(--fg-3);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.k-form-hint {
+  display: block;
+  margin-top: 7px;
+  color: var(--fg-3);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.k-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.k-entry-table {
+  padding: 20px;
+}
+
+.k-entry-table .k-section-head {
+  margin-bottom: 16px;
+}
+
+.k-entry-table .k-table-card {
+  border-color: var(--line-soft);
+  background: transparent;
+}
+
+.k-entry-table .k-table [data-table-head] {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.k-entry-table .k-table-row {
+  min-height: 50px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 12.5px;
+}
+
+.k-entry-table .k-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 10.5px;
+}
+
+.k-entry-table .k-badge {
+  min-height: 20px;
+  padding-inline: 7px;
+  font-size: 9.5px;
+}
+
+.k-entry-table .k-button-ghost,
+.k-entry-table .k-button-danger {
+  min-height: 28px;
+  border-radius: 7px;
+  padding-inline: 9px;
+  font-size: 11px;
+}
+
+.k-entry-table .k-button-danger {
+  border-color: oklch(0.68 0.16 28 / 0.16);
+  background: transparent;
+  color: var(--fg-3);
+}
+
+.k-entry-table .k-button-danger:hover {
+  border-color: oklch(0.68 0.16 28 / 0.34);
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+
 @media (max-width: 1280px) {
   .k-kpi-primary-grid {
     grid-template-columns: 1fr;
@@ -1140,11 +1299,21 @@ a {
 @media (max-width: 900px) {
   .k-dashboard-hero,
   .k-finance-header,
+  .k-page-heading,
   .k-section-head,
+  .k-form-head,
   .k-chart-meta,
   .k-dashboard-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .k-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .k-form-field[data-span="2"] {
+    grid-column: auto;
   }
 
   .k-chart-legend {

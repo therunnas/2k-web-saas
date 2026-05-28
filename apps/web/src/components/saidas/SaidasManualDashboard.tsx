@@ -261,7 +261,7 @@ function getInitials(value: string | null) {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="dashboard-label text-[10px] text-slate-500">
+    <span className="k-form-label">
       {children}
     </span>
   );
@@ -528,7 +528,7 @@ export function SaidasManualDashboard() {
 
   return (
     <div className="k-page manual-page-v2 manual-page-exits space-y-6">
-      <header className="k-page-header xl:flex-row xl:items-end xl:justify-between">
+      <header className="k-page-header k-page-heading">
         <div>
           <p className="k-eyebrow">
             Saídas
@@ -543,7 +543,7 @@ export function SaidasManualDashboard() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-page-actions">
           <button
             type="button"
             onClick={() => {
@@ -590,24 +590,28 @@ export function SaidasManualDashboard() {
           tone="amber"
         />
       </section>
-      <section className="k-card p-4 sm:p-5 xl:p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-violet-300/20 bg-violet-300/10 text-violet-200">
-            <WalletCards size={21} />
+      <section className="k-card k-form-card">
+        <div className="k-form-head">
+          <div className="k-form-title-row">
+            <div className="k-form-icon">
+              <WalletCards size={17} />
+            </div>
+
+            <div>
+              <h2 className="k-section-title">
+                {isEditing ? "Editar saída" : "Nova saída"}
+              </h2>
+              <p className="k-muted mt-1 text-sm">
+                Estrutura baseada em categoria, subcategoria, fornecedor, pagamento, centro de custo e vencimento.
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h2 className="k-section-title">
-              {isEditing ? "Editar saída" : "Nova saída"}
-            </h2>
-            <p className="k-muted mt-1 text-sm">
-              Estrutura baseada em categoria, subcategoria, fornecedor, pagamento, centro de custo e vencimento.
-            </p>
-          </div>
+          <span className="k-form-tag">Postgres Neon</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 xl:grid-cols-2">
-          <label className="block">
+        <form onSubmit={handleSubmit} className="k-form-grid">
+          <label className="k-form-field">
             <FieldLabel>Categoria principal</FieldLabel>
             <select
               value={form.category}
@@ -625,7 +629,7 @@ export function SaidasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Subcategoria</FieldLabel>
             <select
               value={form.subCategory}
@@ -639,12 +643,12 @@ export function SaidasManualDashboard() {
                 </option>
               ))}
             </select>
-            <p className="k-muted mt-2 text-xs">
+            <span className="k-form-hint">
               Para adicionar subcategorias, use Configurações → Saídas.
-            </p>
+            </span>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Fornecedor / nome</FieldLabel>
             <select
               value={form.supplierName}
@@ -658,12 +662,12 @@ export function SaidasManualDashboard() {
                 </option>
               ))}
             </select>
-            <p className="k-muted mt-2 text-xs">
+            <span className="k-form-hint">
               Para adicionar fornecedores, use Configurações → Saídas.
-            </p>
+            </span>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Cliente vinculado</FieldLabel>
             <select
               value={form.linkedClient}
@@ -679,7 +683,7 @@ export function SaidasManualDashboard() {
             </select>
           </label>
 
-          <label className="block xl:col-span-2">
+          <label className="k-form-field" data-span="2">
             <FieldLabel>Descrição</FieldLabel>
             <input
               value={form.description}
@@ -689,7 +693,7 @@ export function SaidasManualDashboard() {
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Projeto vinculado</FieldLabel>
             <input
               value={form.project}
@@ -699,7 +703,7 @@ export function SaidasManualDashboard() {
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Centro de custo</FieldLabel>
             <select
               value={form.costCenter}
@@ -715,7 +719,7 @@ export function SaidasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Valor previsto</FieldLabel>
             <input
               value={form.expectedValue}
@@ -725,7 +729,7 @@ export function SaidasManualDashboard() {
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Valor pago</FieldLabel>
             <input
               value={form.paidValue}
@@ -735,7 +739,7 @@ export function SaidasManualDashboard() {
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Status financeiro</FieldLabel>
             <select
               value={form.financialStatus}
@@ -748,7 +752,7 @@ export function SaidasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Recorrência</FieldLabel>
             <select
               value={form.recurrence}
@@ -763,7 +767,7 @@ export function SaidasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Natureza</FieldLabel>
             <select
               value={form.nature}
@@ -775,7 +779,7 @@ export function SaidasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Forma de pagamento</FieldLabel>
             <select
               value={form.paymentMethod}
@@ -791,7 +795,7 @@ export function SaidasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Conta / cartão</FieldLabel>
             <select
               value={form.accountName}
@@ -805,12 +809,12 @@ export function SaidasManualDashboard() {
                 </option>
               ))}
             </select>
-            <p className="k-muted mt-2 text-xs">
+            <span className="k-form-hint">
               Para adicionar contas ou cartões, use Configurações → Financeiro.
-            </p>
+            </span>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Vencimento</FieldLabel>
             <input
               type="date"
@@ -820,7 +824,7 @@ export function SaidasManualDashboard() {
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Data de pagamento</FieldLabel>
             <input
               type="date"
@@ -830,7 +834,7 @@ export function SaidasManualDashboard() {
             />
           </label>
 
-          <label className="block xl:col-span-2">
+          <label className="k-form-field" data-span="2">
             <FieldLabel>Comprovante</FieldLabel>
             <input
               value={form.proofUrl}
@@ -840,7 +844,7 @@ export function SaidasManualDashboard() {
             />
           </label>
 
-          <label className="block xl:col-span-2">
+          <label className="k-form-field" data-span="2">
             <FieldLabel>Observação</FieldLabel>
             <textarea
               value={form.notes}
@@ -852,19 +856,19 @@ export function SaidasManualDashboard() {
           </label>
 
           {errorMessage ? (
-            <div className="k-toast xl:col-span-2" data-tone="danger">
+            <div className="k-toast k-form-field" data-span="2" data-tone="danger">
               {errorMessage}
             </div>
           ) : null}
 
           {successMessage ? (
-            <div className="k-toast xl:col-span-2" data-tone="success">
+            <div className="k-toast k-form-field" data-span="2" data-tone="success">
               <CheckCircle2 size={17} />
               {successMessage}
             </div>
           ) : null}
 
-          <div className="flex flex-wrap justify-end gap-3 xl:col-span-2">
+          <div className="k-action-row k-form-field" data-span="2">
             {isEditing ? (
               <button
                 type="button"
@@ -888,8 +892,8 @@ export function SaidasManualDashboard() {
         </form>
       </section>
 
-      <section className="k-card p-4 sm:p-5 xl:p-6">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="k-card k-entry-table">
+        <div className="k-section-head flex-col items-start xl:flex-row xl:items-center">
           <div>
             <h2 className="k-section-title">
               Saídas manuais recentes
@@ -908,7 +912,7 @@ export function SaidasManualDashboard() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar categoria, fornecedor ou descrição..."
-              className="k-input h-10 pl-10 pr-4 text-sm font-medium"
+              className="k-input h-9 pl-10 pr-4 text-sm font-medium"
             />
           </div>
         </div>
@@ -937,23 +941,23 @@ export function SaidasManualDashboard() {
               filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="k-table-row grid min-h-[58px] grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] items-center px-5 py-3 text-sm"
+                  className="k-table-row grid grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] items-center px-5"
                 >
-                  <span className="truncate font-semibold text-white">
+                  <span className="truncate font-semibold text-slate-100">
                     {entry.category ?? "—"}
                   </span>
-                  <span className="truncate text-slate-300">
+                  <span className="truncate text-[12.5px] text-slate-300">
                     {entry.subCategory ?? "—"}
                   </span>
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="k-avatar h-8 w-8 rounded-full text-xs">
+                    <span className="k-avatar">
                       {getInitials(entry.supplierName ?? entry.client)}
                     </span>
-                    <span className="truncate text-slate-300">
+                    <span className="truncate text-[12.5px] text-slate-300">
                       {entry.supplierName ?? entry.client ?? "—"}
                     </span>
                   </div>
-                  <span className="truncate text-slate-300">
+                  <span className="truncate text-[12.5px] text-slate-300">
                     {entry.description ?? "—"}
                   </span>
                   <span className="k-number font-semibold text-slate-200">
@@ -968,7 +972,7 @@ export function SaidasManualDashboard() {
                   <span className="k-number text-slate-400">
                     {formatDate(entry.dueAt)}
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="k-action-row justify-start">
                     <button
                       type="button"
                       onClick={() => startEdit(entry)}
