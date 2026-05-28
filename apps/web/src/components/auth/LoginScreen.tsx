@@ -80,7 +80,7 @@ export function LoginScreen() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <label className="block">
-              <span className="dashboard-label mb-2 block text-[10.5px] text-[var(--fg-3)]">
+              <span className="k-form-label mb-2">
                 E-mail
               </span>
 
@@ -95,7 +95,7 @@ export function LoginScreen() {
             </label>
 
             <label className="block">
-              <span className="dashboard-label mb-2 block text-[10.5px] text-[var(--fg-3)]">
+              <span className="k-form-label mb-2">
                 Senha
               </span>
 

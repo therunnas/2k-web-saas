@@ -739,7 +739,7 @@ export function FinanceiroDashboard() {
           <section className="k-modal max-h-[92vh] w-full max-w-4xl overflow-y-auto p-5">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="dashboard-label text-[10px] text-cyan-300">
+                <p className="k-form-label text-cyan-300">
                   Editar lançamento
                 </p>
 
@@ -764,7 +764,7 @@ export function FinanceiroDashboard() {
 
             <form onSubmit={handleSaveEdit} className="grid gap-4 xl:grid-cols-2">
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Tipo
                 </span>
                 <select
@@ -781,7 +781,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Valor
                 </span>
                 <input
@@ -793,7 +793,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Cliente / fornecedor
                 </span>
                 <input
@@ -804,7 +804,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Grupo
                 </span>
                 <input
@@ -815,7 +815,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Projeto
                 </span>
                 <input
@@ -826,7 +826,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Categoria
                 </span>
                 <input
@@ -837,7 +837,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Competência
                 </span>
                 <input
@@ -849,7 +849,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Data
                 </span>
                 <input
@@ -861,7 +861,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block xl:col-span-2">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Status
                 </span>
                 <input
@@ -872,7 +872,7 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block xl:col-span-2">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Descrição
                 </span>
                 <textarea
