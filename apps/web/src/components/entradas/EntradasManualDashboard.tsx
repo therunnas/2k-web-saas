@@ -3,9 +3,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  CalendarClock,
   CheckCircle2,
-  FileText,
   Loader2,
   Pencil,
   Plus,
@@ -106,6 +104,19 @@ function formatCurrency(value: unknown) {
   }).format(toNumber(value));
 }
 
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
+}
+
 function formatDate(value: string | null) {
   if (!value) return "—";
 
@@ -146,22 +157,22 @@ function statusLabel(value: string | null) {
 
 function statusTone(value: string | null) {
   if (value === "PAGO") {
-    return "border-emerald-300/20 bg-emerald-300/10 text-emerald-200";
+    return "success";
   }
 
   if (value === "ATRASADO") {
-    return "border-rose-300/20 bg-rose-300/10 text-rose-200";
+    return "danger";
   }
 
   if (value === "AGUARDANDO_PAGAMENTO" || value === "A_RECEBER") {
-    return "border-cyan-300/20 bg-cyan-300/10 text-cyan-200";
+    return "info";
   }
 
   if (value === "NF_A_ENVIAR" || value === "GERAR_NF" || value === "CONFIRMAR_INFO") {
-    return "border-amber-300/20 bg-amber-300/10 text-amber-200";
+    return "attention";
   }
 
-  return "border-white/10 bg-white/[0.035] text-slate-300";
+  return "neutral";
 }
 
 function getInitials(value: string | null) {
@@ -176,7 +187,7 @@ function getInitials(value: string | null) {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="dashboard-label text-[10px] text-slate-500">
+    <span className="k-form-label">
       {children}
     </span>
   );
@@ -193,24 +204,18 @@ function StatCard({
   helper: string;
   tone?: "cyan" | "emerald" | "amber";
 }) {
-  const toneClass =
+  const helperClass =
     tone === "emerald"
-      ? "from-emerald-300/18 to-transparent text-emerald-200"
+      ? "k-kpi-helper-positive"
       : tone === "amber"
-        ? "from-amber-300/18 to-transparent text-amber-200"
-        : "from-cyan-300/18 to-transparent text-cyan-200";
+        ? "k-kpi-helper-warning"
+        : "k-kpi-helper-info";
 
   return (
-    <article className="relative min-h-[104px] overflow-hidden rounded-[16px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(10,13,20,0.98))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
-      <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${toneClass}`} />
-
-      <p className="dashboard-label text-[10px] text-slate-500">{label}</p>
-
-      <strong className="dashboard-number mt-3 block text-[25px] font-semibold leading-none text-white">
-        {value}
-      </strong>
-
-      <p className="mt-2 text-xs font-medium text-slate-500">{helper}</p>
+    <article className="k-kpi-strip-item">
+      <span className="k-kpi-label">{label}</span>
+      <strong className="k-kpi-value">{renderKpiValue(value)}</strong>
+      <span className={`k-kpi-helper ${helperClass}`}>{helper}</span>
     </article>
   );
 }
@@ -423,35 +428,31 @@ export function EntradasManualDashboard() {
     );
   }, [entries, query]);
 
-  const completionPercent = entries.length
-    ? Math.round((recebidas.length / entries.length) * 100)
-    : 0;
-
   return (
-    <div className="manual-page-v2 manual-page-entries space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page manual-page-v2 manual-page-entries space-y-6">
+      <header className="k-page-header k-page-heading">
         <div>
-          <p className="dashboard-label text-[11px] text-cyan-300">
+          <p className="k-eyebrow">
             Entradas
           </p>
 
-          <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
+          <h1 className="k-title">
             Lançar entrada manual.
           </h1>
 
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Cadastre uma entrada diretamente pelo painel. O registro alimenta financeiro, vencimentos e produções.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-page-actions">
           <button
             type="button"
             onClick={() => {
               loadCatalog();
               loadEntries();
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:bg-white/[0.06]"
+            className="k-button-ghost"
           >
             <RefreshCw size={16} />
             Atualizar
@@ -463,7 +464,7 @@ export function EntradasManualDashboard() {
               resetForm();
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="inline-flex items-center justify-center gap-2 rounded-[11px] border border-cyan-300/25 bg-cyan-300/12 px-4 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/18"
+            className="k-button-primary"
           >
             <Plus size={16} />
             Nova entrada
@@ -471,7 +472,7 @@ export function EntradasManualDashboard() {
         </div>
       </header>
 
-      <section className="manual-summary-strip grid gap-3 md:grid-cols-3">
+      <section className="k-kpi-strip" data-columns="3">
         <StatCard
           label="Entradas manuais"
           value={String(entries.length)}
@@ -489,32 +490,36 @@ export function EntradasManualDashboard() {
           label="Situação"
           value={`${recebidas.length}/${aReceber.length}`}
           helper="recebidas · a receber"
-          tone="emerald"
+          tone="amber"
         />
       </section>
-<section className="rounded-[18px] border border-cyan-300/15 bg-[linear-gradient(180deg,rgba(20,35,42,0.62),rgba(10,13,20,0.96))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 xl:p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-[14px] border border-cyan-300/20 bg-cyan-300/10 text-cyan-200">
-            <TrendingUp size={21} />
+      <section className="k-card k-form-card">
+        <div className="k-form-head">
+          <div className="k-form-title-row">
+            <div className="k-form-icon">
+              <TrendingUp size={17} />
+            </div>
+
+            <div>
+              <h2 className="k-section-title">
+                {isEditing ? "Editar entrada" : "Nova entrada"}
+              </h2>
+              <p className="k-muted mt-1 text-sm">
+                Equivalente à aba ENTRADAS da planilha.
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
-              {isEditing ? "Editar entrada" : "Nova entrada"}
-            </h2>
-            <p className="mt-1 text-sm font-medium text-cyan-100/65">
-              Equivalente à aba ENTRADAS da planilha.
-            </p>
-          </div>
+          <span className="k-form-tag">Postgres Neon</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 xl:grid-cols-2">
-          <label className="block">
+        <form onSubmit={handleSubmit} className="k-form-grid">
+          <label className="k-form-field">
             <FieldLabel>Grupo</FieldLabel>
             <select
               value={form.groupName}
               onChange={(event) => updateField("groupName", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione um grupo</option>
               {groups.map((group) => (
@@ -523,17 +528,17 @@ export function EntradasManualDashboard() {
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-xs font-medium text-slate-600">
+            <span className="k-form-hint">
               Para adicionar ou editar grupos, use Configurações.
-            </p>
+            </span>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Marca / cliente</FieldLabel>
             <select
               value={form.client}
               onChange={(event) => updateField("client", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione uma marca</option>
               {brands.map((brand) => (
@@ -542,47 +547,47 @@ export function EntradasManualDashboard() {
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-xs font-medium text-slate-600">
+            <span className="k-form-hint">
               Para adicionar ou editar marcas, use Configurações.
-            </p>
+            </span>
           </label>
 
-          <label className="block xl:col-span-2">
+          <label className="k-form-field" data-span="2">
             <FieldLabel>Projeto</FieldLabel>
             <input
               value={form.project}
               onChange={(event) => updateField("project", event.target.value)}
               placeholder="Ex: campanha de verão, reels, evento ou fotos em tempo real"
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Valor</FieldLabel>
             <input
               value={form.value}
               onChange={(event) => updateField("value", event.target.value)}
               placeholder="Ex: 5000 ou 5.000,00"
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>NF</FieldLabel>
             <input
               value={form.documentNumber}
               onChange={(event) => updateField("documentNumber", event.target.value)}
               placeholder="Ex: 123 ou vazio"
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Status comercial</FieldLabel>
             <select
               value={form.commercialStatus}
               onChange={(event) => updateField("commercialStatus", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="LEAD">Lead</option>
               <option value="NF_A_ENVIAR">NF a enviar</option>
@@ -595,12 +600,12 @@ export function EntradasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Status financeiro</FieldLabel>
             <select
               value={form.financialStatus}
               onChange={(event) => updateField("financialStatus", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="A_RECEBER">A receber</option>
               <option value="PAGO">Pago / recebido</option>
@@ -608,66 +613,66 @@ export function EntradasManualDashboard() {
             </select>
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Data de emissão</FieldLabel>
             <input
               type="date"
               value={form.issuedAt}
               onChange={(event) => updateField("issuedAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Previsão de recebimento</FieldLabel>
             <input
               type="date"
               value={form.dueAt}
               onChange={(event) => updateField("dueAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
-          <label className="block">
+          <label className="k-form-field">
             <FieldLabel>Data de recebimento real</FieldLabel>
             <input
               type="date"
               value={form.paidAt}
               onChange={(event) => updateField("paidAt", event.target.value)}
-              className="mt-2 h-11 w-full rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+              className="k-input mt-2 h-11 px-4 text-sm font-medium"
             />
           </label>
 
-          <label className="block xl:col-span-2">
+          <label className="k-form-field" data-span="2">
             <FieldLabel>Descrição / observações</FieldLabel>
             <textarea
               value={form.description}
               onChange={(event) => updateField("description", event.target.value)}
               rows={3}
               placeholder="Observações do projeto, job, entrega ou negociação."
-              className="mt-2 w-full resize-none rounded-[12px] border border-white/10 bg-[#070b13]/75 px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-textarea mt-2 w-full resize-none px-4 py-3 text-sm font-medium"
             />
           </label>
 
           {errorMessage ? (
-            <div className="rounded-[14px] border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-semibold text-rose-100 xl:col-span-2">
+            <div className="k-toast k-form-field" data-span="2" data-tone="danger">
               {errorMessage}
             </div>
           ) : null}
 
           {successMessage ? (
-            <div className="flex items-center gap-2 rounded-[14px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-100 xl:col-span-2">
+            <div className="k-toast k-form-field" data-span="2" data-tone="success">
               <CheckCircle2 size={17} />
               {successMessage}
             </div>
           ) : null}
 
-          <div className="flex flex-wrap justify-end gap-3 xl:col-span-2">
+          <div className="k-action-row k-form-field" data-span="2">
             {isEditing ? (
               <button
                 type="button"
                 onClick={resetForm}
-                className="inline-flex items-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.035] px-5 py-2.5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06]"
+                className="k-button-ghost px-5"
               >
                 <X size={16} />
                 Cancelar edição
@@ -677,7 +682,7 @@ export function EntradasManualDashboard() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-[11px] border border-cyan-300/20 bg-cyan-300/15 px-5 py-2.5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+              className="k-button-primary px-5 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
               {isEditing ? "Salvar alteração" : "Salvar entrada"}
@@ -686,13 +691,13 @@ export function EntradasManualDashboard() {
         </form>
       </section>
 
-      <section className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(10,13,20,0.98))] p-4 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-5 xl:p-6">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="k-card k-entry-table">
+        <div className="k-section-head flex-col items-start xl:flex-row xl:items-center">
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
+            <h2 className="k-section-title">
               Entradas manuais recentes
             </h2>
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="k-muted mt-2 text-sm">
               {filteredEntries.length} de {entries.length} entradas cadastradas.
             </p>
           </div>
@@ -706,14 +711,17 @@ export function EntradasManualDashboard() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar grupo, marca, projeto ou NF..."
-              className="h-10 w-full rounded-[12px] border border-white/10 bg-white/[0.035] pl-10 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40"
+              className="k-input h-9 pl-10 pr-4 text-sm font-medium"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-[14px] border border-white/10">
-          <div className="min-w-[1160px]">
-            <div className="grid grid-cols-[1.1fr_1.1fr_1.6fr_0.8fr_1fr_1fr_0.7fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        <div className="k-table-card overflow-x-auto">
+          <div className="k-table min-w-[1160px]">
+            <div
+              data-table-head
+              className="grid grid-cols-[1.1fr_1.1fr_1.6fr_0.8fr_1fr_1fr_0.7fr_0.8fr] px-5 py-3"
+            >
               <span>Grupo</span>
               <span>Marca</span>
               <span>Projeto</span>
@@ -725,51 +733,50 @@ export function EntradasManualDashboard() {
             </div>
 
             {loading ? (
-              <div className="px-5 py-6 text-sm font-medium text-slate-500">
+              <div className="k-empty">
                 Carregando entradas...
               </div>
             ) : filteredEntries.length ? (
               filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="grid min-h-[58px] grid-cols-[1.1fr_1.1fr_1.6fr_0.8fr_1fr_1fr_0.7fr_0.8fr] items-center border-b border-white/[0.055] px-5 py-3 text-sm last:border-b-0"
+                  className="k-table-row grid grid-cols-[1.1fr_1.1fr_1.6fr_0.8fr_1fr_1fr_0.7fr_0.8fr] items-center px-5"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-cyan-300/20 bg-cyan-300/10 text-xs font-semibold text-cyan-200">
+                    <span className="k-avatar">
                       {getInitials(entry.groupName)}
                     </span>
-                    <span className="truncate font-semibold text-white">
+                    <span className="truncate font-semibold text-slate-100">
                       {entry.groupName ?? "—"}
                     </span>
                   </div>
 
-                  <span className="truncate text-slate-300">
+                  <span className="truncate text-[12.5px] text-slate-300">
                     {entry.client ?? "—"}
                   </span>
-                  <span className="truncate text-slate-300">
+                  <span className="truncate text-[12.5px] text-slate-300">
                     {entry.project ?? "—"}
                   </span>
-                  <span className="dashboard-number font-semibold text-emerald-200">
+                  <span className="k-number font-semibold text-emerald-200">
                     {formatCurrency(entry.grossAmount)}
                   </span>
                   <span
-                    className={`w-fit rounded-full border px-3 py-1 text-xs font-semibold ${statusTone(
-                      entry.financialStatus ?? entry.status
-                    )}`}
+                    className="k-badge"
+                    data-tone={statusTone(entry.financialStatus ?? entry.status)}
                   >
                     {statusLabel(entry.financialStatus ?? entry.status)}
                   </span>
-                  <span className="dashboard-number text-slate-400">
+                  <span className="k-number text-slate-400">
                     {formatDate(entry.dueAt)}
                   </span>
-                  <span className="text-slate-400">
+                  <span className="text-[12.5px] text-slate-400">
                     {entry.documentNumber || "—"}
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="k-action-row justify-start">
                     <button
                       type="button"
                       onClick={() => startEdit(entry)}
-                      className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                      className="k-button-ghost min-h-8 px-3 text-xs"
                     >
                       <Pencil size={13} />
                       Editar
@@ -778,7 +785,7 @@ export function EntradasManualDashboard() {
                     <button
                       type="button"
                       onClick={() => handleDelete(entry.id)}
-                      className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-rose-400/20 bg-rose-400/10 px-3 py-1.5 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15"
+                      className="k-button-danger min-h-8 px-3 text-xs"
                     >
                       <Trash2 size={13} />
                       Excluir
@@ -787,7 +794,7 @@ export function EntradasManualDashboard() {
                 </div>
               ))
             ) : (
-              <div className="px-5 py-6 text-sm font-medium text-slate-500">
+              <div className="k-empty">
                 Nenhuma entrada manual encontrada.
               </div>
             )}

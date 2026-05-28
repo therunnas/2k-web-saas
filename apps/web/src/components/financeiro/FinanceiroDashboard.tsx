@@ -5,8 +5,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  Banknote,
-  CalendarDays,
   CircleDollarSign,
   Download,
   Pencil,
@@ -15,8 +13,6 @@ import {
   Save,
   Search,
   Trash2,
-  TrendingUp,
-  Wallet,
   X,
 } from "lucide-react";
 
@@ -87,7 +83,6 @@ type SummaryCard = {
   helper: string;
   delta: string;
   tone: SummaryTone;
-  icon: typeof TrendingUp;
 };
 
 const filterOptions = [
@@ -124,6 +119,19 @@ function formatCompactCurrency(value: number) {
   })
     .format(value || 0)
     .replace(",00", "");
+}
+
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
 }
 
 function formatPercent(value: number) {
@@ -171,44 +179,44 @@ function getStatusInfo(entry: FinanceEntry) {
   if (entry.type === "REVENUE") {
     return {
       label: "Recebido",
-      className: "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
+      tone: "success",
     };
   }
 
   if (entry.type === "RECEIVABLE") {
     return {
       label: "A receber",
-      className: "border-cyan-300/20 bg-cyan-300/10 text-cyan-200",
+      tone: "info",
     };
   }
 
   if (entry.type === "EXPENSE") {
     return {
       label: "Pago",
-      className: "border-rose-300/20 bg-rose-300/10 text-rose-200",
+      tone: "success",
     };
   }
 
   if (entry.type === "PAYABLE") {
     return {
       label: "A pagar",
-      className: "border-amber-300/20 bg-amber-300/10 text-amber-200",
+      tone: "attention",
     };
   }
 
   return {
     label: entry.status || entry.kind || "Sem status",
-    className: "border-white/10 bg-white/[0.04] text-slate-300",
+    tone: "neutral",
   };
 }
 
 function getDirectionIcon(entry: FinanceEntry) {
   if (entry.direction === "entrada") {
-    return <ArrowUpRight size={14} className="text-emerald-300" />;
+    return <ArrowUpRight size={14} className="text-cyan-300/75" />;
   }
 
   if (entry.direction === "saida") {
-    return <ArrowDownLeft size={14} className="text-rose-300" />;
+    return <ArrowDownLeft size={14} className="text-violet-300/65" />;
   }
 
   return <CircleDollarSign size={14} className="text-slate-500" />;
@@ -228,84 +236,29 @@ function getEntryDescription(entry: FinanceEntry) {
   return entry.project || entry.description || "Sem descrição";
 }
 
-function toneClasses(tone: SummaryTone) {
-  const map: Record<
-    SummaryTone,
-    {
-      text: string;
-      bg: string;
-      badge: string;
-      line: string;
-    }
-  > = {
-    cyan: {
-      text: "text-cyan-200",
-      bg: "bg-cyan-300/10",
-      badge: "border-cyan-300/20 bg-cyan-300/10 text-cyan-200",
-      line: "from-cyan-300/75 via-emerald-300/50 to-transparent",
-    },
-    emerald: {
-      text: "text-emerald-200",
-      bg: "bg-emerald-300/10",
-      badge: "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
-      line: "from-emerald-300/75 via-cyan-300/45 to-transparent",
-    },
-    amber: {
-      text: "text-amber-200",
-      bg: "bg-amber-300/10",
-      badge: "border-amber-300/20 bg-amber-300/10 text-amber-200",
-      line: "from-amber-300/75 via-orange-300/45 to-transparent",
-    },
-    rose: {
-      text: "text-rose-200",
-      bg: "bg-rose-300/10",
-      badge: "border-rose-300/20 bg-rose-300/10 text-rose-200",
-      line: "from-rose-300/70 via-violet-300/40 to-transparent",
-    },
-    violet: {
-      text: "text-violet-200",
-      bg: "bg-violet-300/10",
-      badge: "border-violet-300/20 bg-violet-300/10 text-violet-200",
-      line: "from-violet-300/75 via-cyan-300/40 to-transparent",
-    },
-  };
+function summaryHelperTone(card: SummaryCard) {
+  if (card.label === "A receber") return "k-kpi-helper-warning";
+  if (card.tone === "rose") return "k-kpi-helper-danger";
+  if (card.tone === "amber") return "k-kpi-helper-warning";
+  if (card.tone === "emerald") return "k-kpi-helper-positive";
+  if (card.label.includes("Lucro") && !card.delta.includes("-")) {
+    return "k-kpi-helper-positive";
+  }
+  if (card.label.includes("Caixa") && card.delta !== "Atenção") {
+    return "k-kpi-helper-positive";
+  }
 
-  return map[tone];
+  return "k-kpi-helper-info";
 }
 
 function SummaryMiniCard({ card }: { card: SummaryCard }) {
-  const Icon = card.icon;
-  const tone = toneClasses(card.tone);
-
   return (
-    <article className="group relative min-h-[104px] overflow-hidden rounded-[14px] border border-white/[0.075] bg-[linear-gradient(180deg,rgba(15,18,27,0.96),rgba(8,11,17,0.99))] p-4 shadow-[0_16px_48px_rgba(0,0,0,0.16)]">
-      <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${tone.line}`} />
-
-      <div
-        className={`absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-[10px] border border-current/20 ${tone.bg} ${tone.text}`}
-      >
-        <Icon size={15} />
-      </div>
-
-      <p className="dashboard-label pr-12 text-[9px] text-slate-500">
-        {card.label}
-      </p>
-
-      <strong className="dashboard-number mt-3 block truncate text-[23px] leading-none text-white">
-        {card.value}
-      </strong>
-
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="truncate text-[11px] font-medium text-slate-500">
-          {card.helper}
-        </p>
-
-        <span
-          className={`inline-flex h-6 shrink-0 items-center rounded-full border px-2.5 text-[10px] font-bold ${tone.badge}`}
-        >
-          {card.delta}
-        </span>
-      </div>
+    <article className="k-kpi-strip-item">
+      <span className="k-kpi-label">{card.label}</span>
+      <strong className="k-kpi-value">{renderKpiValue(card.value)}</strong>
+      <span className={`k-kpi-helper ${summaryHelperTone(card)}`}>
+        {card.delta}
+      </span>
     </article>
   );
 }
@@ -390,8 +343,7 @@ export function FinanceiroDashboard() {
         label: "Faturado",
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
         helper: "Receitas do ano",
-        delta: summary ? `${summary.entries} itens` : "—",
-        icon: TrendingUp,
+        delta: summary ? `${summary.entries} entradas` : "—",
         tone: "cyan",
       },
       {
@@ -399,7 +351,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
         helper: "Entradas pagas",
         delta: formatPercent(receivedPercent),
-        icon: Banknote,
         tone: "emerald",
       },
       {
@@ -407,7 +358,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
         helper: "Pendências abertas",
         delta: formatPercent(receivablePercent),
-        icon: CalendarDays,
         tone: receivablePercent > 20 ? "amber" : "cyan",
       },
       {
@@ -415,15 +365,13 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.paidExpenses) : "—",
         helper: "Despesas quitadas",
         delta: summary ? `${formatCompactCurrency(summary.totalExpenses)}` : "—",
-        icon: Wallet,
-        tone: "rose",
+        tone: "violet",
       },
       {
         label: "Lucro por competência",
         value: summary ? formatCompactCurrency(summary.totalProfit) : "—",
         helper: "Faturado menos saídas",
         delta: formatPercent(margin),
-        icon: CircleDollarSign,
         tone: margin < 0 ? "rose" : "violet",
       },
       {
@@ -431,7 +379,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.cashResult) : "—",
         helper: "Recebido menos saídas pagas",
         delta: summary && summary.cashResult < 0 ? "Atenção" : "Em ritmo",
-        icon: CircleDollarSign,
         tone: summary && summary.cashResult < 0 ? "rose" : "emerald",
       },
     ] satisfies SummaryCard[];
@@ -560,28 +507,28 @@ export function FinanceiroDashboard() {
   }
 
   return (
-    <div className="financeiro-v2 flex flex-col gap-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page financeiro-v2 flex flex-col gap-6">
+      <header className="k-page-header k-finance-header">
         <div>
-          <p className="dashboard-label text-[10px] text-cyan-300">
+          <p className="k-eyebrow">
             Financeiro
           </p>
 
-          <h1 className="mt-3 text-[38px] font-semibold leading-none tracking-[-0.07em] text-white sm:text-[44px]">
+          <h1 className="k-title">
             Financeiro.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Lançamentos, recebimentos, despesas e resultado consolidados dos
             dados ativos da operação.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-finance-actions">
           <button
             type="button"
             onClick={() => loadEntries()}
-            className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+            className="k-button-ghost"
           >
             <RefreshCw size={15} />
             {loading ? "Atualizando..." : "Atualizar"}
@@ -589,7 +536,7 @@ export function FinanceiroDashboard() {
 
           <button
             type="button"
-            className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-4 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+            className="k-button-ghost"
           >
             <Download size={15} />
             Exportar
@@ -597,7 +544,7 @@ export function FinanceiroDashboard() {
 
           <Link
             href="/entradas"
-            className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-cyan-300/25 bg-cyan-300/10 px-4 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/15"
+            className="k-button-primary"
           >
             <Plus size={15} />
             Nova entrada
@@ -606,31 +553,31 @@ export function FinanceiroDashboard() {
       </header>
 
       {errorMessage ? (
-        <div className="rounded-[14px] border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="rounded-[14px] border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-medium text-emerald-100">
+        <div className="k-toast" data-tone="success">
           {successMessage}
         </div>
       ) : null}
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <section className="k-kpi-strip k-finance-kpi-strip">
         {summaryCards.map((card) => (
           <SummaryMiniCard key={card.label} card={card} />
         ))}
       </section>
 
-      <section className="overflow-hidden rounded-[18px] border border-white/[0.085] bg-[linear-gradient(180deg,rgba(17,20,30,0.96),rgba(9,12,19,0.985))] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.22)] sm:p-5 xl:p-6">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="k-card k-finance-table">
+        <div className="k-section-head flex-col items-start xl:flex-row xl:items-center">
           <div>
-            <h2 className="text-[19px] font-semibold tracking-[-0.04em] text-white">
+            <h2 className="k-section-title">
               Lançamentos financeiros
             </h2>
 
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="k-muted mt-2 text-sm">
               {data
                 ? `${data.summary.filteredEntries} de ${data.summary.entries} lançamentos no ano.`
                 : "Carregando lançamentos financeiros."}
@@ -648,7 +595,7 @@ export function FinanceiroDashboard() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar cliente, grupo, projeto..."
-                className="h-10 w-full rounded-[10px] border border-white/10 bg-white/[0.035] pl-9 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40 xl:w-80"
+                className="k-input h-9 pl-9 pr-4 text-sm font-medium xl:w-80"
               />
             </form>
 
@@ -658,11 +605,8 @@ export function FinanceiroDashboard() {
                   key={option.value}
                   type="button"
                   onClick={() => setActiveFilter(option.value)}
-                  className={`h-9 rounded-[9px] border px-3 text-xs font-semibold transition ${
-                    activeFilter === option.value
-                      ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100"
-                      : "border-white/10 bg-white/[0.025] text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
-                  }`}
+                  className="k-filter-chip"
+                  aria-pressed={activeFilter === option.value}
                 >
                   {option.label}
                 </button>
@@ -671,9 +615,12 @@ export function FinanceiroDashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-[14px] border border-white/[0.075] bg-[#080c14]/55">
-          <div className="min-w-[1180px]">
-            <div className="grid grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] border-b border-white/[0.075] bg-white/[0.025] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+        <div className="k-table-card overflow-x-auto">
+          <div className="k-table min-w-[1180px]">
+            <div
+              data-table-head
+              className="grid grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] px-5 py-3"
+            >
               <span>Nome</span>
               <span>Projeto / descrição</span>
               <span>Competência</span>
@@ -692,65 +639,59 @@ export function FinanceiroDashboard() {
               return (
                 <div
                   key={entry.id}
-                  className="grid min-h-[62px] grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] items-center border-b border-white/[0.045] px-5 py-3 text-sm last:border-b-0 hover:bg-white/[0.018]"
+                  className="k-table-row grid grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] items-center border-b border-white/[0.045] px-5 last:border-b-0"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
-                        entry.direction === "entrada"
-                          ? "bg-emerald-400/10 text-emerald-200"
-                          : "bg-rose-400/10 text-rose-200"
-                      }`}
-                    >
+                    <span className="k-avatar">
                       {getInitials(name)}
                     </span>
 
                     <div className="min-w-0">
-                      <strong className="block truncate font-semibold text-white">
+                      <strong className="block truncate font-semibold text-slate-100">
                         {name}
                       </strong>
 
-                      <span className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                      <span className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-500">
                         {getDirectionIcon(entry)}
                         {getEntryKindLabel(entry)}
                       </span>
                     </div>
                   </div>
 
-                  <span className="line-clamp-2 pr-4 text-[13px] font-medium leading-5 text-slate-400">
+                  <span className="line-clamp-2 pr-4 text-[12.5px] font-medium leading-5 text-slate-400">
                     {description}
                   </span>
 
                   <div>
-                    <span className="dashboard-number block text-xs text-slate-300">
+                    <span className="k-number block text-xs text-slate-300">
                       {entry.competence ?? "—"}
                     </span>
-                    <span className="mt-1 block text-[11px] text-slate-600">
+                      <span className="mt-0.5 block text-[10.5px] text-slate-600">
                       {formatDate(entry.date)}
                     </span>
                   </div>
 
-                  <span className="truncate pr-3 text-[13px] font-medium text-slate-400">
+                  <span className="truncate pr-3 text-[12.5px] font-medium text-slate-400">
                     {entry.category ?? "—"}
                   </span>
 
                   <span
-                    className={`dashboard-number text-right text-sm font-semibold ${
-                      entry.direction === "entrada"
-                        ? "text-emerald-200"
-                        : "text-rose-200"
+                    className={`k-number text-right text-sm font-semibold ${
+                      entry.value < 0
+                        ? "text-rose-200"
+                        : entry.direction === "entrada"
+                          ? "text-emerald-200"
+                          : "text-slate-200"
                     }`}
                   >
                     {formatCurrency(entry.value)}
                   </span>
 
-                  <span
-                    className={`w-fit rounded-full border px-2.5 py-1 text-[11px] font-semibold ${status.className}`}
-                  >
+                  <span className="k-badge" data-tone={status.tone}>
                     {status.label}
                   </span>
 
-                  <span className="dashboard-number text-xs text-slate-500">
+                  <span className="k-number text-xs text-slate-500">
                     {entry.sourceSheet ?? "—"} #{entry.sourceRow ?? "—"}
                   </span>
 
@@ -758,9 +699,10 @@ export function FinanceiroDashboard() {
                     <button
                       type="button"
                       onClick={() => startEdit(entry)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] border border-white/10 bg-white/[0.035] text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
-                      aria-label="Editar lançamento"
-                    >
+                    className="k-button-ghost p-0"
+                    data-icon-only="true"
+                    aria-label="Editar lançamento"
+                  >
                       <Pencil size={13} />
                     </button>
 
@@ -768,7 +710,7 @@ export function FinanceiroDashboard() {
                       type="button"
                       onClick={() => handleDeleteFinanceEntry(entry.id)}
                       disabled={deletingId === entry.id}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] border border-rose-400/20 bg-rose-400/10 text-rose-100 transition hover:bg-rose-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="k-icon-button k-danger-subtle disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label="Excluir lançamento"
                     >
                       <Trash2 size={13} />
@@ -794,10 +736,10 @@ export function FinanceiroDashboard() {
 
       {editingEntry && editForm ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <section className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[18px] border border-white/10 bg-[#0b101b] p-5 shadow-2xl">
+          <section className="k-modal max-h-[92vh] w-full max-w-4xl overflow-y-auto p-5">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="dashboard-label text-[10px] text-cyan-300">
+                <p className="k-form-label text-cyan-300">
                   Editar lançamento
                 </p>
 
@@ -814,7 +756,7 @@ export function FinanceiroDashboard() {
               <button
                 type="button"
                 onClick={closeEdit}
-                className="rounded-[10px] border border-white/10 bg-white/[0.035] p-2 text-slate-300 transition hover:bg-white/[0.06]"
+                className="k-icon-button"
               >
                 <X size={18} />
               </button>
@@ -822,13 +764,13 @@ export function FinanceiroDashboard() {
 
             <form onSubmit={handleSaveEdit} className="grid gap-4 xl:grid-cols-2">
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Tipo
                 </span>
                 <select
                   value={editForm.type}
                   onChange={(event) => updateEditField("type", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+                  className="k-select mt-2 h-11 px-4 text-sm font-medium"
                 >
                   {typeOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -839,98 +781,98 @@ export function FinanceiroDashboard() {
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Valor
                 </span>
                 <input
                   value={editForm.value}
                   onChange={(event) => updateEditField("value", event.target.value)}
                   placeholder="Ex.: 5000 ou 5.000,00"
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Cliente / fornecedor
                 </span>
                 <input
                   value={editForm.client}
                   onChange={(event) => updateEditField("client", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Grupo
                 </span>
                 <input
                   value={editForm.groupName}
                   onChange={(event) => updateEditField("groupName", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Projeto
                 </span>
                 <input
                   value={editForm.project}
                   onChange={(event) => updateEditField("project", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Categoria
                 </span>
                 <input
                   value={editForm.category}
                   onChange={(event) => updateEditField("category", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Competência
                 </span>
                 <input
                   value={editForm.competence}
                   onChange={(event) => updateEditField("competence", event.target.value)}
                   placeholder="Ex.: 05/2026"
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Data
                 </span>
                 <input
                   type="date"
                   value={editForm.date}
                   onChange={(event) => updateEditField("date", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block xl:col-span-2">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Status
                 </span>
                 <input
                   value={editForm.status}
                   onChange={(event) => updateEditField("status", event.target.value)}
-                  className="mt-2 h-11 w-full rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
                 />
               </label>
 
               <label className="block xl:col-span-2">
-                <span className="dashboard-label text-[10px] text-slate-500">
+                <span className="k-form-label">
                   Descrição
                 </span>
                 <textarea
@@ -939,7 +881,7 @@ export function FinanceiroDashboard() {
                     updateEditField("description", event.target.value)
                   }
                   rows={3}
-                  className="mt-2 w-full resize-none rounded-[10px] border border-white/10 bg-[#070b13]/75 px-4 py-3 text-sm font-medium text-white outline-none placeholder:text-slate-600 focus:border-cyan-300/40"
+                  className="k-textarea mt-2 w-full px-4 py-3 text-sm font-medium"
                 />
               </label>
 
@@ -947,7 +889,7 @@ export function FinanceiroDashboard() {
                 <button
                   type="button"
                   onClick={closeEdit}
-                  className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-5 text-sm font-semibold text-slate-300 transition hover:bg-white/[0.06]"
+                  className="k-button-ghost px-5"
                 >
                   <X size={15} />
                   Cancelar
@@ -956,7 +898,7 @@ export function FinanceiroDashboard() {
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="inline-flex h-10 items-center gap-2 rounded-[10px] border border-cyan-300/20 bg-cyan-300/15 px-5 text-sm font-semibold text-cyan-100 transition hover:bg-cyan-300/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="k-button-primary px-5 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Save size={15} />
                   {savingEdit ? "Salvando..." : "Salvar edição"}

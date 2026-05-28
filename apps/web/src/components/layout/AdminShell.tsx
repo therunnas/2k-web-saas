@@ -19,6 +19,7 @@ import {
   LogOut,
   Menu,
   Network,
+  RefreshCw,
   Search,
   Settings,
   Target,
@@ -161,8 +162,8 @@ function SidebarContent({
   onLogout: () => void;
 }) {
   return (
-    <div className="flex h-full flex-col bg-[#07080d] text-white">
-      <div className="border-b border-white/10 px-4 py-4">
+    <div className="flex h-full flex-col bg-[linear-gradient(180deg,oklch(0.14_0.012_270)_0%,oklch(0.125_0.01_270)_100%)] text-white">
+      <div className="border-b border-[var(--line-soft)] px-[22px] pb-[18px] pt-6">
         <Link
           href="/dashboard"
           onClick={onNavigate}
@@ -174,43 +175,37 @@ function SidebarContent({
             width={168}
             height={48}
             priority
-            className="h-auto w-[122px] opacity-95"
+            className="h-[22px] w-auto opacity-[0.92]"
           />
         </Link>
 
-        <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.035] p-3">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="dashboard-label text-[10px] text-slate-500">
-              Workspace
-            </p>
-
-            <span className="rounded-full bg-emerald-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-300">
-              Online
-            </span>
-          </div>
-
+        <div className="k-card-soft mt-[14px] p-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-cyan-300/20 bg-cyan-300/10 text-xs font-bold text-cyan-100">
+            <span className="flex h-[30px] w-11 shrink-0 items-center justify-center rounded-lg border border-cyan-300/30 bg-[radial-gradient(circle_at_30%_25%,oklch(0.22_0.025_270),oklch(0.16_0.014_270))] text-[11px] font-bold text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.05),0_0_12px_-2px_oklch(0.82_0.13_200_/_0.18)]">
               2K
             </span>
 
             <div className="min-w-0">
-              <strong className="block truncate text-sm font-semibold text-white">
-                2K Studios
-              </strong>
-              <span className="block truncate text-xs font-medium text-slate-500">
+              <p className="dashboard-label text-[9px] tracking-[0.2em] text-[var(--fg-3)]">
                 Painel privado
+              </p>
+              <strong className="mt-1 block truncate text-[12.5px] font-semibold leading-tight text-white">
+                2K STUDIOS
+              </strong>
+              <span className="mt-1 inline-flex items-center gap-[5px] font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--pos)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--pos)] shadow-[0_0_8px_var(--pos)]" />
+                online
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2.5 py-4">
-        <div className="space-y-4">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-2">
+        <div className="space-y-2">
           {navGroups.map((group) => (
             <section key={group.label}>
-              <p className="dashboard-label mb-2 px-3 text-[10px] text-slate-600">
+              <p className="dashboard-label px-3 pb-1 pt-[14px] text-[9px] tracking-[0.2em] text-[var(--fg-3)]">
                 {group.label}
               </p>
 
@@ -224,10 +219,10 @@ function SidebarContent({
                       key={item.href}
                       href={item.href}
                       onClick={onNavigate}
-                      className={`group flex items-center gap-3 rounded-[12px] px-3 py-2 text-[13px] font-semibold transition ${
+                      className={`group relative flex items-center gap-2.5 rounded-[9px] px-3 py-2 text-[12.5px] transition ${
                         active
-                          ? "border border-cyan-300/20 bg-cyan-300/10 text-white shadow-[inset_3px_0_0_rgba(34,211,238,0.9)]"
-                          : "border border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.035] hover:text-slate-100"
+                          ? "bg-[linear-gradient(90deg,var(--cyan-soft),transparent_70%)] font-medium text-white before:absolute before:-left-2.5 before:bottom-[7px] before:top-[7px] before:w-0.5 before:rounded-sm before:bg-[var(--cyan)] before:shadow-[0_0_10px_var(--cyan)]"
+                          : "text-[var(--fg-2)] hover:bg-[oklch(0.2_0.014_270_/_0.6)] hover:text-[var(--fg-1)]"
                       }`}
                     >
                       <Icon
@@ -249,15 +244,15 @@ function SidebarContent({
         </div>
       </nav>
 
-      <div className="border-t border-white/10 p-3">
-        <div className="mb-3 rounded-[14px] border border-cyan-300/15 bg-cyan-300/[0.04] p-3">
-          <p className="text-xs font-semibold text-slate-300">Suporte</p>
-          <p className="mt-1 text-xs text-slate-600">Atendimento rápido</p>
+      <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-[14px] py-3">
+        <div className="k-card-soft border-cyan-300/30 bg-[linear-gradient(135deg,var(--cyan-soft),transparent_60%),var(--bg-1)] px-3 py-2.5">
+          <p className="text-xs font-semibold text-slate-300">Atalhos</p>
+          <p className="mt-1 font-mono text-[10px] text-slate-500">⌘K · buscar</p>
         </div>
 
-        <div className="flex items-center justify-between gap-3 rounded-[16px] border border-white/10 bg-white/[0.035] p-3">
+        <div className="flex items-center justify-between gap-3 px-0.5 py-1">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-violet-300/25 bg-violet-400/15 text-xs font-bold text-white">
+            <span className="k-avatar h-[30px] w-[30px] rounded-[9px] text-[11px] text-[var(--bg-0)]">
               {getInitials(user?.name)}
             </span>
 
@@ -275,7 +270,7 @@ function SidebarContent({
           <button
             type="button"
             onClick={onLogout}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-white/10 text-slate-400 transition hover:border-rose-300/30 hover:bg-rose-400/10 hover:text-rose-200"
+            className="k-icon-button h-[26px] min-h-[26px] w-[26px] min-w-[26px] rounded-[7px] text-slate-400 hover:border-rose-300/30 hover:bg-rose-400/10 hover:text-rose-200"
             aria-label="Sair"
           >
             <LogOut size={16} />
@@ -341,10 +336,10 @@ export function AdminShell({ children }: AdminShellProps) {
   const sidebarUser = user === undefined ? null : user;
 
   return (
-    <main className="dashboard-ui min-h-screen bg-[#07080d] text-white">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(900px_600px_at_18%_-10%,rgba(124,58,237,0.10),transparent_62%),radial-gradient(1000px_700px_at_100%_110%,rgba(34,211,238,0.07),transparent_62%)]" />
+    <main className="dashboard-ui min-h-screen bg-[var(--bg-0)] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(900px_600px_at_8%_-10%,oklch(0.72_0.18_295_/_0.10),transparent_60%),radial-gradient(1100px_700px_at_95%_110%,oklch(0.82_0.13_200_/_0.08),transparent_60%)] before:absolute before:inset-0 before:bg-[linear-gradient(oklch(0.27_0.018_270_/_0.4)_1px,transparent_1px),linear-gradient(90deg,oklch(0.27_0.018_270_/_0.4)_1px,transparent_1px)] before:bg-[length:56px_56px] before:opacity-[0.35]" />
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] border-r border-white/10 bg-[#07080d]/95 backdrop-blur-xl xl:block">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[var(--side-w)] border-r border-[var(--line-soft)] bg-[var(--bg-0)]/95 backdrop-blur-xl xl:block">
         <SidebarContent
           pathname={pathname}
           user={sidebarUser}
@@ -383,9 +378,9 @@ export function AdminShell({ children }: AdminShellProps) {
         </div>
       ) : null}
 
-      <section className="relative min-h-screen xl:pl-[240px]">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07080d]/82 px-4 py-2.5 backdrop-blur-xl sm:px-5 xl:px-6">
-          <div className="flex items-center justify-between gap-4">
+      <section className="relative min-h-screen xl:pl-[var(--side-w)]">
+        <header className="sticky top-0 z-30 h-[var(--top-h)] border-b border-[var(--line-soft)] bg-[var(--bg-0)]/60 px-4 backdrop-blur-xl sm:px-5 xl:px-6">
+          <div className="flex h-full items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
@@ -396,44 +391,47 @@ export function AdminShell({ children }: AdminShellProps) {
                 <Menu size={18} />
               </button>
 
-              <div className="hidden min-w-0 items-center gap-2 text-xs font-medium text-slate-500 md:flex">
-                <span>2K STUDIOS</span>
-                <span className="text-slate-700">/</span>
-                <span className="truncate text-slate-300">
+              <div className="hidden min-w-0 items-center gap-2 text-xs font-medium text-[var(--fg-3)] md:flex">
+                <span className="truncate text-[var(--fg-1)]">
                   {pathname === "/dashboard"
-                    ? "Dashboard executivo"
+                    ? "Visão geral"
                     : pathname.replace("/", "") || "Painel"}
                 </span>
+                <span className="opacity-50">·</span>
+                <span>Ano fiscal 2026</span>
               </div>
             </div>
 
-            <div className="hidden w-full max-w-[390px] items-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-slate-500 lg:flex">
+            <div className="hidden h-8 min-w-[280px] items-center gap-2.5 rounded-[9px] border border-[var(--line)] bg-[var(--bg-1)] px-3 text-[12px] text-[var(--fg-3)] lg:flex">
               <Search size={15} />
               <span className="text-xs">Buscar lançamento, projeto...</span>
+              <kbd className="ml-auto rounded-[5px] border border-[var(--line)] bg-[var(--bg-0)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--fg-2)]">
+                ⌘K
+              </kbd>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 sm:flex">
-                <CalendarDays size={14} />
-                Ano fiscal 2026
-              </div>
-
-              <div className="hidden rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 sm:block">
-                01 Jan — 31 Dez 2026
-              </div>
+              <button
+                type="button"
+                className="k-icon-button"
+                aria-label="Atualizar"
+              >
+                <RefreshCw size={15} />
+              </button>
 
               <button
                 type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-[11px] border border-white/10 bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                className="k-icon-button relative"
                 aria-label="Notificações"
               >
                 <Bell size={16} />
+                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[var(--pos)] shadow-[0_0_8px_var(--pos)]" />
               </button>
             </div>
           </div>
         </header>
 
-        <div className="relative px-4 py-4 sm:px-5 xl:px-6">{children}</div>
+        <div className="relative">{children}</div>
       </section>
     </main>
   );

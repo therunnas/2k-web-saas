@@ -1,13 +1,12 @@
-﻿"use client";
+"use client";
 
+import type { CSSProperties, MouseEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import {
   ArrowUpRight,
   CalendarDays,
   DollarSign,
   PieChart,
-  SlidersHorizontal,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -26,8 +25,11 @@ type MonthlyRevenueItem = {
   label: string;
   value: number | null;
   revenue: number;
+  received: number;
+  receivable: number;
   expenses: number;
   profit: number;
+  cash: number;
   margin: number;
   topClient: MonthlyTopClient | null;
 };
@@ -63,6 +65,8 @@ type LatestEntry = {
 
 type FinanceSummary = {
   entries: number;
+  revenueEntries?: number;
+  expenseEntries?: number;
   totalRevenue: number;
   receivedTotal: number;
   receivableTotal: number;
@@ -147,8 +151,11 @@ const emptyMonths: MonthlyRevenueItem[] = [
   label: `${String(index + 1).padStart(2, "0")}/2026`,
   value: null,
   revenue: 0,
+  received: 0,
+  receivable: 0,
   expenses: 0,
   profit: 0,
+  cash: 0,
   margin: 0,
   topClient: null,
 }));
@@ -164,6 +171,46 @@ function formatCurrency(value: number) {
 
 function formatCompactCurrency(value: number) {
   return formatCurrency(value).replace(",00", "");
+}
+
+function formatChartCurrency(value: number) {
+  if (Math.abs(value) >= 1000) {
+    return `R$ ${(value / 1000).toLocaleString("pt-BR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })}k`;
+  }
+
+  return formatCompactCurrency(value);
+}
+
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
+}
+
+function renderMoneyParts(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  const [whole, cents] = currencyMatch[1].split(",");
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {whole}
+      {cents ? <span className="k-kpi-cents">,{cents}</span> : null}
+    </>
+  );
 }
 
 function formatPercent(value: number) {
@@ -195,757 +242,428 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-type KpiVisualKind = "pos" | "warn" | "neg" | "neutral";
-
-type KpiVisual = {
-  delta: string;
-  kind: KpiVisualKind;
-  spark: number[];
-  accent: "cyan" | "purple" | "amber" | "rose";
-};
-
-const kpiVisuals: Record<string, KpiVisual> = {
-  Faturamento: {
-    delta: "+ 12,4%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [40, 55, 38, 70, 62, 88, 92, 100, 86, 95, 110, 124],
-  },
-  "Recebido em caixa": {
-    delta: "+ 8,1%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [22, 30, 28, 48, 55, 62, 70, 78, 82, 88, 95, 102],
-  },
-  "Lucro por competência": {
-    delta: "+ 22,1%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [10, 22, 35, 42, 55, 70, 82, 92, 102, 115, 125, 130],
-  },
-  "A receber": {
-    delta: "- 3,2%",
-    kind: "warn",
-    accent: "purple",
-    spark: [80, 72, 78, 60, 65, 55, 58, 50, 52, 48, 50, 48],
-  },
-  "Saídas pagas": {
-    delta: "+ 5,7%",
-    kind: "neg",
-    accent: "rose",
-    spark: [12, 18, 22, 30, 38, 48, 58, 68, 78, 90, 102, 114],
-  },
-  "A pagar": {
-    delta: "+R$ 2,1K",
-    kind: "warn",
-    accent: "amber",
-    spark: [8, 6, 10, 14, 12, 16, 20, 18, 22, 19, 17, 16],
-  },
-  "Resultado de caixa real": {
-    delta: "+ 18,9%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [10, 18, 26, 35, 42, 52, 60, 70, 80, 86, 92, 98],
-  },
-  "Caixa comprometido": {
-    delta: "—",
-    kind: "warn",
-    accent: "purple",
-    spark: [60, 64, 70, 72, 68, 74, 78, 76, 80, 78, 82, 82],
-  },
-  "Margem por competência": {
-    delta: "+ 1,8 pp",
-    kind: "pos",
-    accent: "cyan",
-    spark: [38, 42, 41, 44, 46, 47, 49, 48, 50, 49, 50, 50],
-  },
-};
-
-function getKpiVisual(item: DashboardKpi): KpiVisual {
-  return (
-    kpiVisuals[item.label] ?? {
-      delta: item.trend,
-      kind:
-        item.trendDirection === "up"
-          ? "pos"
-          : item.trendDirection === "down"
-            ? "neg"
-            : "neutral",
-      accent: item.trendDirection === "down" ? "rose" : "cyan",
-      spark: [10, 18, 15, 24, 22, 30, 34, 32, 38, 42, 40, 46],
-    }
-  );
-}
-
-function buildSparkPath(values: number[], width = 360, height = 86) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const paddingX = 0;
-  const paddingY = 12;
-
-  return values
-    .map((value, index) => {
-      const x = paddingX + (index * (width - paddingX * 2)) / (values.length - 1);
-      const normalized = (value - min) / range;
-      const y = height - paddingY - normalized * (height - paddingY * 2);
-
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
-
-function MiniSparkline({
-  values,
-  accent = "cyan",
+function RevenueChart({
+  monthly,
+  summary,
 }: {
-  values: number[];
-  accent?: KpiVisual["accent"];
+  monthly: MonthlyRevenueItem[];
+  summary: FinanceSummary | null;
 }) {
-  const width = 360;
-  const height = 86;
-  const path = buildSparkPath(values, width, height);
-  const areaPath = `${path} L ${width} ${height} L 0 ${height} Z`;
+  const [hoveredPoint, setHoveredPoint] = useState<ActiveChartPoint | null>(null);
 
-  const color =
-    accent === "purple"
-      ? "#a78bfa"
-      : accent === "amber"
-        ? "#fbbf24"
-        : accent === "rose"
-          ? "#fb7185"
-          : "#22d3ee";
+  const width = 920;
+  const height = 280;
+  const padding = { left: 56, right: 24, top: 32, bottom: 36 };
+  const target = summary?.totalRevenue ? summary.totalRevenue / 12 : 25083.33;
+  const now = new Date();
+  const nowIndex = now.getFullYear() === 2026 ? now.getMonth() : 4;
 
-  const gradientId = `spark-${accent}`;
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="pointer-events-none absolute inset-x-0 bottom-0 h-[52px] w-full opacity-90"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={`${gradientId}-area`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.24" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.015" />
-        </linearGradient>
-      </defs>
-
-      <path d={areaPath} fill={`url(#${gradientId}-area)`} />
-      <path
-        d={path}
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function TrendBadge({
-  label,
-  kind,
-}: {
-  label: string;
-  kind: KpiVisualKind;
-}) {
-  const className =
-    kind === "pos"
-      ? "border-emerald-300/20 bg-emerald-300/12 text-emerald-200"
-      : kind === "neg"
-        ? "border-rose-300/20 bg-rose-300/12 text-rose-200"
-        : kind === "warn"
-          ? "border-amber-300/20 bg-amber-300/12 text-amber-200"
-          : "border-cyan-300/20 bg-cyan-300/12 text-cyan-200";
-
-  return (
-    <span
-      className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-bold tracking-[-0.02em] ${className}`}
-    >
-      {label}
-    </span>
-  );
-}
-
-function RevenueChart({ monthly }: { monthly: MonthlyRevenueItem[] }) {
-  const [hoveredPoint, setHoveredPoint] = useState<ActiveChartPoint | null>(
-    null
+  const maxValue = Math.max(
+    130000,
+    target * 1.18,
+    ...monthly.map((item) => item.revenue || item.value || 0),
+    ...monthly.map((item) => item.received || 0),
   );
 
-    const [selectedPoint, setSelectedPoint] = useState<ActiveChartPoint | null>(
-    null
-  );
+  const x = (index: number) =>
+    padding.left +
+    (index * (width - padding.left - padding.right)) /
+      Math.max(monthly.length - 1, 1);
 
-const width = 1120;
-  const height = 300;
-  const paddingX = 74;
-  const paddingY = 42;
-
-  const values = monthly
-    .map((item) => item.value)
-    .filter((value): value is number => typeof value === "number");
-
-  const maxValue = Math.max(...values, 120000);
-  const minValue = 0;
+  const y = (value: number) =>
+    padding.top +
+    (1 - value / maxValue) * (height - padding.top - padding.bottom);
 
   const points: ChartPoint[] = monthly.map((item, index) => {
-    const x = paddingX + (index * (width - paddingX * 2)) / (monthly.length - 1);
-
-    if (item.value === null) {
-      return {
-        ...item,
-        x,
-        y: null,
-      };
-    }
-
-    const normalized = (item.value - minValue) / (maxValue - minValue);
-    const y = height - paddingY - normalized * (height - paddingY * 2);
-
+    const value = typeof item.value === "number" ? item.value : item.revenue;
     return {
       ...item,
-      x,
-      y,
+      value: value > 0 ? value : null,
+      x: x(index),
+      y: value > 0 ? y(value) : null,
     };
   });
 
+  const receivedPoints = monthly
+    .map((item, index) =>
+      item.received > 0
+        ? {
+            x: x(index),
+            y: y(item.received),
+            value: item.received,
+            index,
+          }
+        : null,
+    )
+    .filter(
+      (
+        point,
+      ): point is {
+        x: number;
+        y: number;
+        value: number;
+        index: number;
+      } => Boolean(point),
+    );
+
   const visiblePoints = points
     .map((point) => {
-      if (
-        typeof point.value === "number" &&
-        typeof point.y === "number" &&
-        point.topClient
-      ) {
-        return point as ActiveChartPoint;
+      if (typeof point.value !== "number" || typeof point.y !== "number") {
+        return null;
       }
 
-      if (typeof point.value === "number" && typeof point.y === "number") {
-        return {
-          ...point,
-          topClient: {
+      return {
+        ...point,
+        value: point.value,
+        y: point.y,
+        topClient:
+          point.topClient ??
+          {
             name: "Sem cliente",
             revenue: point.revenue,
             profit: point.profit,
             margin: formatPercent(point.margin),
           },
-        } as ActiveChartPoint;
-      }
-
-      return null;
+      } as ActiveChartPoint;
     })
     .filter((point): point is ActiveChartPoint => Boolean(point));
 
-  const path = visiblePoints
-    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-    .join(" ");
+  const linePath = (items: Array<{ x: number; y: number }>) =>
+    items
+      .map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`)
+      .join(" ");
 
-  const areaPath =
-    visiblePoints.length > 1
-      ? `${path} L ${visiblePoints[visiblePoints.length - 1].x} ${
-          height - paddingY
-        } L ${visiblePoints[0].x} ${height - paddingY} Z`
+  const areaPath = (items: Array<{ x: number; y: number }>) =>
+    items.length > 1
+      ? `${linePath(items)} L${items[items.length - 1].x},${y(0)} L${
+          items[0].x
+        },${y(0)} Z`
       : "";
 
-  const lastVisiblePoint = visiblePoints[visiblePoints.length - 1];
-  const axisValues = [120000, 90000, 60000, 30000, 0];
+  const yTicks = [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
+  const hoveredIndex = hoveredPoint ? monthly.findIndex((item) => item.label === hoveredPoint.label) : -1;
+  const hoveredReceived = hoveredIndex >= 0 ? monthly[hoveredIndex]?.received ?? 0 : 0;
+  const tooltipLeft = hoveredPoint ? clamp((hoveredPoint.x / width) * 100, 18, 78) : 50;
 
-  const tooltipLeft = hoveredPoint
-    ? clamp((hoveredPoint.x / width) * 100, 17, 83)
-    : 50;
+  function handleChartMove(event: MouseEvent<SVGSVGElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const relativeX = ((event.clientX - rect.left) / rect.width) * width;
+    let closest = visiblePoints[0] ?? null;
+    let closestDistance = Number.POSITIVE_INFINITY;
 
-  const tooltipTop = hoveredPoint
-    ? clamp((hoveredPoint.y / height) * 100, 24, 76)
-    : 50;
+    for (const point of visiblePoints) {
+      const distance = Math.abs(point.x - relativeX);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closest = point;
+      }
+    }
 
-  const tooltipBelow = hoveredPoint ? hoveredPoint.y < 150 : false;
+    setHoveredPoint(closest);
+  }
 
   return (
-    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.16)]">
-      <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <section className="k-chart-card">
+      <div className="k-section-head">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
-              Faturamento anual
-            </h2>
-
-            <span className="flex h-5 w-5 items-center justify-center rounded-full border border-white/15 text-[10px] text-slate-400">
-              i
-            </span>
+          <h2>Faturamento anual</h2>
+          <div className="k-section-sub">
+            Dados reais importados da planilha financeira e consolidados pelo PostgreSQL Neon.
           </div>
-
-          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
-            Dados reais importados da planilha financeira e consolidados pelo
-            PostgreSQL Neon.
-          </p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]">
+        <div className="k-chart-tabs" aria-label="Visualização do gráfico">
+          <button type="button" className="k-chart-tab" aria-pressed="true">
             Mensal
           </button>
-
-          <button className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]">
-            <SlidersHorizontal size={16} />
-            Filtros
+          <button type="button" className="k-chart-tab" aria-pressed="false">
+            Trimestral
+          </button>
+          <button type="button" className="k-chart-tab" aria-pressed="false">
+            Acumulado
           </button>
         </div>
       </div>
 
-      <div
-        className="relative overflow-visible rounded-[16px] border border-white/[0.06] bg-[#080d17] p-3"
-        onMouseLeave={() => { if (!selectedPoint) setHoveredPoint(null); }}
-      >
+      <div className="k-chart-meta">
+        <div className="k-chart-metric" data-tone="cyan">
+          <span className="k-chart-metric-label">Faturamento</span>
+          <span className="k-chart-metric-value">
+            {formatCurrency(summary?.totalRevenue ?? 0)}
+          </span>
+        </div>
+        <div className="k-chart-metric" data-tone="purple">
+          <span className="k-chart-metric-label">Recebido em caixa</span>
+          <span className="k-chart-metric-value">
+            {formatCurrency(summary?.receivedTotal ?? 0)}
+          </span>
+        </div>
+
+        <div className="k-chart-legend">
+          <span><i className="k-legend-line" />Faturado</span>
+          <span><i className="k-legend-dash" style={{ color: "var(--purple)" }} />Recebido</span>
+          <span><i className="k-legend-dash" />Meta</span>
+        </div>
+      </div>
+
+      <div className="k-chart-shell" onMouseLeave={() => setHoveredPoint(null)}>
         {hoveredPoint ? (
           <div
-            className="pointer-events-auto absolute z-30 w-[292px] rounded-2xl border border-cyan-300/20 bg-[#070b13]/95 p-4 text-xs text-white shadow-[0_0_50px_rgba(34,211,238,0.22)] backdrop-blur-xl"
+            className="k-chart-tooltip"
             style={{
-              left: `${tooltipLeft}%`,
-              top: `${tooltipTop}%`,
-              transform: tooltipBelow
-                ? "translate(-50%, 22px)"
-                : "translate(-50%, calc(-100% - 22px))",
+              left: `calc(${tooltipLeft}% + 12px)`,
+              top: 70,
             }}
           >
-            <div className="mb-3 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-cyan-300" />
-              <strong className="font-semibold uppercase tracking-[0.18em] text-white">
-                {hoveredPoint.month} / {hoveredPoint.label}
-              </strong>
+            <div className="k-chart-tooltip-title">{hoveredPoint.month} / 2026</div>
+            <div className="k-chart-tooltip-row">
+              <span className="k-chart-tooltip-swatch" style={{ background: "linear-gradient(90deg, var(--cyan), var(--purple))" }} />
+              <span className="k-chart-tooltip-label">Faturado</span>
+              <span className="k-chart-tooltip-value">{formatCurrency(hoveredPoint.value)}</span>
             </div>
-
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-slate-500">Faturamento total</span>
-              <strong className="dashboard-number text-white">
-                {formatCurrency(hoveredPoint.value)}
-              </strong>
+            <div className="k-chart-tooltip-row">
+              <span className="k-chart-tooltip-swatch" style={{ background: "var(--purple)" }} />
+              <span className="k-chart-tooltip-label">Recebido</span>
+              <span className="k-chart-tooltip-value">{formatCurrency(hoveredReceived)}</span>
             </div>
-
-            <div className="py-3">
-              <span className="text-slate-500">Maior cliente por faturamento</span>
-              <strong className="mt-1 block text-sm font-semibold text-white">
-                {hoveredPoint.topClient.name}
-              </strong>
+            <div className="k-chart-tooltip-row">
+              <span className="k-chart-tooltip-swatch" style={{ background: "var(--fg-3)" }} />
+              <span className="k-chart-tooltip-label">Meta</span>
+              <span className="k-chart-tooltip-value">{formatCurrency(target)}</span>
             </div>
-
-            <div className="grid grid-cols-3 gap-2 border-t border-white/10 pt-3">
-              <div>
-                <span className="block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
-                  Receita
-                </span>
-                <strong className="dashboard-number mt-1 block text-cyan-200">
-                  {formatCompactCurrency(hoveredPoint.topClient.revenue)}
-                </strong>
-              </div>
-
-              <div>
-                <span className="block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
-                  Partic.
-                </span>
-                <strong className="dashboard-number mt-1 block text-violet-300">
-                  {formatPercent(hoveredPoint.topClient.participationPercent ?? 0)}
-                </strong>
-              </div>
-
-              <div>
-                <span className="block text-[10px] font-medium uppercase tracking-[0.12em] text-slate-500">
-                  Proj.
-                </span>
-                <strong className="dashboard-number mt-1 block text-white">
-                  {`${hoveredPoint.topClient.projectsCount ?? 0} proj.`}
-                </strong>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (hoveredPoint) setSelectedPoint(hoveredPoint);
-              }}
-              onPointerDown={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (hoveredPoint) setSelectedPoint(hoveredPoint);
-              }}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (hoveredPoint) setSelectedPoint(hoveredPoint);
-              }}
-              className="mt-4 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-left text-slate-300 transition hover:border-cyan-300/40 hover:bg-cyan-300/10 hover:text-white"
-            >
-              <span>Ver detalhes do mês</span>
-              <ArrowUpRight size={14} />
-            </button>
-
-            {selectedPoint && typeof document !== "undefined" ? createPortal(
-
-              <div className="fixed inset-0 z-[9999] flex justify-end bg-black/70 backdrop-blur-sm">
-                <button
-                  type="button"
-                  aria-label="Fechar detalhes do mês"
-                  className="absolute inset-0 cursor-default"
-                  onClick={() => setSelectedPoint(null)}
-                />
-
-                <aside className="relative h-screen w-full max-w-[640px] overflow-y-auto border-l border-white/10 bg-[#070b13] p-5 shadow-[0_0_80px_rgba(0,0,0,0.55)] sm:p-6">
-                  <div className="mb-4 flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                        Detalhamento mensal
-                      </p>
-                      <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
-                        Detalhes de {selectedPoint.month}/{selectedPoint.label}
-                      </h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-400">
-                        Resumo executivo do mês selecionado com faturamento, saídas, resultado e maior cliente por faturamento.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPoint(null)}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-xl text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <section className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Faturamento
-                      </p>
-                      <strong className="dashboard-number mt-1.5 block text-lg text-white">
-                        {formatCurrency(selectedPoint.revenue)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Receita total do mês
-                      </span>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Saídas
-                      </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-rose-200">
-                        {formatCurrency(selectedPoint.expenses)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Custos e despesas do mês
-                      </span>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Lucro por competência
-                      </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-cyan-200">
-                        {formatCurrency(selectedPoint.profit)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Faturamento menos saídas
-                      </span>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                        Margem
-                      </p>
-                      <strong className="dashboard-number mt-2 block text-xl text-violet-300">
-                        {formatPercent(selectedPoint.margin)}
-                      </strong>
-                      <span className="mt-1 block text-xs text-slate-500">
-                        Lucro sobre faturamento
-                      </span>
-                    </div>
-                  </section>
-
-                  <section className="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
-                      Maior cliente por faturamento
-                    </p>
-
-                    <h4 className="mt-2 text-xl font-semibold text-white">
-                      {selectedPoint.topClient.name}
-                    </h4>
-
-                    <div className="mt-4 grid grid-cols-3 gap-3 border-t border-white/10 pt-4">
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                          Receita
-                        </p>
-                        <strong className="dashboard-number mt-1 block text-sm text-cyan-200">
-                          {formatCurrency(selectedPoint.topClient.revenue)}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                          Partic.
-                        </p>
-                        <strong className="dashboard-number mt-1 block text-sm text-violet-300">
-                          {formatPercent(selectedPoint.topClient.participationPercent ?? 0)}
-                        </strong>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                          Proj.
-                        </p>
-                        <strong className="dashboard-number mt-1 block text-sm text-white">
-                          {selectedPoint.topClient.projectsCount ?? 0} proj.
-                        </strong>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                      Leitura executiva
-                    </p>
-
-                    <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
-                      <li>
-                        Receita total do mês:{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatCurrency(selectedPoint.revenue)}
-                        </strong>
-                      </li>
-                      <li>
-                        Saídas lançadas:{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatCurrency(selectedPoint.expenses)}
-                        </strong>
-                      </li>
-                      <li>
-                        Resultado por competência:{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatCurrency(selectedPoint.profit)}
-                        </strong>
-                      </li>
-                      <li>
-                        O cliente/grupo principal concentrou{" "}
-                        <strong className="dashboard-number text-white">
-                          {formatPercent(selectedPoint.topClient.participationPercent ?? 0)}
-                        </strong>{" "}
-                        do faturamento mensal.
-                      </li>
-                    </ul>
-                  </section>
-                </aside>
-              </div>
-            , document.body
-            ) : null}
           </div>
         ) : null}
 
-        <div className="overflow-x-auto overflow-y-visible">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            className="h-[250px] min-w-[820px] w-full overflow-visible sm:h-[270px] xl:h-[292px]"
-            role="img"
-            aria-label="Gráfico anual de faturamento"
-          >
-            <defs>
-              <linearGradient
-                id="chartLineEnterprise"
-                x1="0"
-                x2="1"
-                y1="0"
-                y2="0"
-              >
-                <stop offset="0%" stopColor="#22d3ee" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="block h-auto min-w-[860px] w-full cursor-crosshair"
+          role="img"
+          aria-label="Gráfico anual de faturamento"
+          onMouseMove={handleChartMove}
+        >
+          <defs>
+            <linearGradient id="dashboardFatFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="oklch(0.82 0.13 200)" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="oklch(0.82 0.13 200)" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="dashboardReceivedFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="oklch(0.72 0.18 295)" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="oklch(0.72 0.18 295)" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="dashboardFatStroke" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0%" stopColor="oklch(0.82 0.13 200)" />
+              <stop offset="100%" stopColor="oklch(0.72 0.18 295)" />
+            </linearGradient>
+          </defs>
 
-              <linearGradient
-                id="chartAreaEnterprise"
-                x1="0"
-                x2="0"
-                y1="0"
-                y2="1"
-              >
-                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.012" />
-              </linearGradient>
-            </defs>
+          {[
+            { label: "Q1", start: 0, end: 2, color: "oklch(0.82 0.13 200 / 0.04)" },
+            { label: "Q2", start: 3, end: 5, color: "oklch(0.72 0.18 295 / 0.04)" },
+            { label: "Q3", start: 6, end: 8, color: "oklch(0.82 0.13 200 / 0.02)" },
+            { label: "Q4", start: 9, end: 11, color: "oklch(0.72 0.18 295 / 0.02)" },
+          ].map((zone) => {
+            const x1 = x(zone.start) - 28;
+            const x2 = x(zone.end) + 28;
+            return (
+              <g key={zone.label}>
+                <rect
+                  x={x1}
+                  y={padding.top}
+                  width={x2 - x1}
+                  height={height - padding.top - padding.bottom}
+                  fill={zone.color}
+                />
+                <text
+                  x={(x1 + x2) / 2}
+                  y={padding.top - 10}
+                  className="qz"
+                  textAnchor="middle"
+                  fill="oklch(0.5 0.015 270)"
+                >
+                  {zone.label}
+                </text>
+              </g>
+            );
+          })}
 
-            {axisValues.map((value) => {
-              const normalized = (value - minValue) / (maxValue - minValue);
-              const y =
-                height - paddingY - normalized * (height - paddingY * 2);
-
-              return (
-                <g key={value}>
-                  <line
-                    x1={paddingX}
-                    x2={width - paddingX}
-                    y1={y}
-                    y2={y}
-                    stroke="rgba(255,255,255,0.07)"
-                    strokeWidth="1"
-                  />
-
-                  <text
-                    x="0"
-                    y={y + 4}
-                    fill="rgba(203,213,225,0.55)"
-                    fontSize="11"
-                    fontWeight="600"
-                  >
-                    {formatAxisValue(value)}
-                  </text>
-                </g>
-              );
-            })}
-
-            {points.map((point) => (
+          {yTicks.map((tick) => (
+            <g key={tick}>
               <line
-                key={`grid-${point.label}`}
-                x1={point.x}
-                x2={point.x}
-                y1={paddingY}
-                y2={height - paddingY}
-                stroke="rgba(255,255,255,0.032)"
-                strokeWidth="1"
+                x1={padding.left}
+                x2={width - padding.right}
+                y1={y(tick)}
+                y2={y(tick)}
+                stroke="oklch(0.27 0.018 270 / 0.4)"
+                strokeDasharray="2 4"
               />
-            ))}
+              <text
+                x={padding.left - 10}
+                y={y(tick) + 3}
+                fill="oklch(0.5 0.015 270)"
+                fontSize="9.5"
+                fontFamily="var(--font-mono-dashboard)"
+                textAnchor="end"
+              >
+                {tick === 0 ? "R$ 0" : formatChartCurrency(tick)}
+              </text>
+            </g>
+          ))}
 
-            {areaPath ? (
-              <path d={areaPath} fill="url(#chartAreaEnterprise)" />
-            ) : null}
-
-            <path
-              d={path}
-              fill="none"
-              stroke="url(#chartLineEnterprise)"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          {monthly.map((item, index) => (
+            <line
+              key={`vertical-${item.label}`}
+              x1={x(index)}
+              x2={x(index)}
+              y1={padding.top}
+              y2={height - padding.bottom}
+              stroke="oklch(0.27 0.018 270 / 0.22)"
             />
+          ))}
 
-            {lastVisiblePoint ? (
-              <line
-                x1={lastVisiblePoint.x}
-                y1={height - paddingY}
-                x2={width - paddingX}
-                y2={height - paddingY}
-                stroke="rgba(148,163,184,0.35)"
-                strokeWidth="2"
-                strokeDasharray="6 8"
+          <line
+            x1={padding.left}
+            x2={width - padding.right}
+            y1={y(target)}
+            y2={y(target)}
+            stroke="oklch(0.6 0.02 270)"
+            strokeDasharray="3 5"
+            opacity="0.55"
+          />
+          <text
+            x={width - padding.right - 6}
+            y={y(target) - 6}
+            fill="oklch(0.65 0.015 270)"
+            fontSize="9.5"
+            fontFamily="var(--font-mono-dashboard)"
+            letterSpacing="0.08em"
+            textAnchor="end"
+          >
+            META · {formatChartCurrency(target)}
+          </text>
+
+          {receivedPoints.length > 1 ? (
+            <>
+              <path d={areaPath(receivedPoints)} fill="url(#dashboardReceivedFill)" opacity="0.72" />
+              <path
+                d={linePath(receivedPoints)}
+                fill="none"
+                stroke="oklch(0.72 0.18 295)"
+                strokeDasharray="4 4"
+                strokeWidth="1.6"
+                opacity="0.68"
               />
-            ) : null}
+            </>
+          ) : null}
 
-            {points.map((point) => (
-              <g key={point.label}>
-                {typeof point.y === "number" && typeof point.value === "number" ? (
+          {visiblePoints.length > 1 ? (
+            <>
+              <path d={areaPath(visiblePoints)} fill="url(#dashboardFatFill)" opacity="0.82" />
+              <path
+                d={linePath(visiblePoints)}
+                fill="none"
+                stroke="url(#dashboardFatStroke)"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.4"
+              />
+            </>
+          ) : null}
+
+          {monthly.map((item, index) => (
+            <text
+              key={item.month}
+              x={x(index)}
+              y={height - 14}
+              fill={points[index]?.value ? "oklch(0.7 0.015 270)" : "oklch(0.4 0.015 270)"}
+              fontSize="10"
+              fontWeight={index === nowIndex ? "600" : "400"}
+              textAnchor="middle"
+            >
+              {item.month.toUpperCase()}
+            </text>
+          ))}
+
+          {visiblePoints.map((point) => {
+            const pointIndex = monthly.findIndex((item) => item.label === point.label);
+            return (
+              <g key={point.label} opacity={hoveredPoint && hoveredPoint.label !== point.label ? 0.42 : 1}>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={hoveredPoint?.label === point.label ? 7 : 6}
+                  fill="oklch(0.13 0.012 270)"
+                  stroke="oklch(0.82 0.13 200)"
+                  strokeWidth="2"
+                />
+                <circle cx={point.x} cy={point.y} r="2.5" fill="oklch(0.82 0.13 200)" />
+                <text
+                  x={point.x}
+                  y={point.y - 14}
+                  fill="oklch(0.86 0.01 270)"
+                  fontSize="10"
+                  fontFamily="var(--font-mono-dashboard)"
+                  fontWeight="500"
+                  textAnchor="middle"
+                >
+                  {formatChartCurrency(point.value)}
+                </text>
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r="18"
+                  fill="transparent"
+                  onMouseEnter={() => setHoveredPoint(point)}
+                />
+                {pointIndex === nowIndex ? (
                   <>
                     <line
                       x1={point.x}
-                      y1={point.y}
                       x2={point.x}
-                      y2={height - paddingY}
-                      stroke={
-                        hoveredPoint?.label === point.label
-                          ? "rgba(34,211,238,0.35)"
-                          : "transparent"
-                      }
-                      strokeWidth="1.5"
-                      strokeDasharray="4 5"
+                      y1={padding.top}
+                      y2={height - padding.bottom}
+                      stroke="oklch(0.82 0.13 200 / 0.3)"
+                      strokeDasharray="2 3"
                     />
-
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r="18"
-                      fill="transparent"
-                      className="cursor-pointer"
-                      onMouseEnter={() => {
-                        if (
-                          typeof point.value !== "number" ||
-                          typeof point.y !== "number"
-                        ) {
-                          return;
-                        }
-
-                        const activePoint: ActiveChartPoint = {
-                          ...point,
-                          value: point.value,
-                          y: point.y,
-                          topClient:
-                            point.topClient ??
-                            {
-                              name: "Sem cliente",
-                              revenue: point.revenue,
-                              profit: point.profit,
-                              margin: formatPercent(point.margin),
-                            },
-                        };
-
-                        setHoveredPoint(activePoint);
-                      }}
+                    <rect
+                      x={point.x - 22}
+                      y={padding.top - 4}
+                      width="44"
+                      height="14"
+                      rx="3"
+                      fill="oklch(0.82 0.13 200 / 0.22)"
+                      stroke="oklch(0.82 0.13 200 / 0.5)"
                     />
-
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r={hoveredPoint?.label === point.label ? "7" : "5"}
-                      fill="#080d17"
-                      stroke={
-                        hoveredPoint?.label === point.label
-                          ? "#a78bfa"
-                          : "#22d3ee"
-                      }
-                      strokeWidth="3"
-                      className="pointer-events-none"
-                    />
-
                     <text
                       x={point.x}
-                      y={point.y - 16}
+                      y={padding.top + 6}
+                      fill="oklch(0.86 0.01 270)"
+                      fontSize="8.5"
+                      fontFamily="var(--font-mono-dashboard)"
+                      fontWeight="600"
+                      letterSpacing="0.18em"
                       textAnchor="middle"
-                      fill="rgba(226,232,240,0.82)"
-                      fontSize="11"
-                      fontWeight="650"
-                      className="pointer-events-none"
                     >
-                      {formatCompactCurrency(point.value)}
+                      AGORA
                     </text>
                   </>
-                ) : (
-                  <circle
-                    cx={point.x}
-                    cy={height - paddingY}
-                    r="5"
-                    fill="#080d17"
-                    stroke="rgba(148,163,184,0.35)"
-                    strokeWidth="2"
-                  />
-                )}
-
-                <text
-                  x={point.x}
-                  y={height - 6}
-                  textAnchor="middle"
-                  fill={
-                    typeof point.value === "number"
-                      ? "rgba(203,213,225,0.78)"
-                      : "rgba(100,116,139,0.7)"
-                  }
-                  fontSize="11"
-                  fontWeight="650"
-                >
-                  {point.month}
-                </text>
+                ) : null}
               </g>
-            ))}
-          </svg>
-        </div>
+            );
+          })}
+
+          {points.map((point) =>
+            point.value === null ? (
+              <circle
+                key={`future-${point.label}`}
+                cx={point.x}
+                cy={y(0)}
+                r="3"
+                fill="oklch(0.18 0.014 270)"
+                stroke="oklch(0.3 0.018 270)"
+              />
+            ) : null,
+          )}
+        </svg>
       </div>
     </section>
   );
@@ -993,19 +711,17 @@ function OperationStrip({
   ];
 
   return (
-    <div className="operation-strip grid overflow-hidden rounded-[16px] border border-white/10 bg-white/[0.025] shadow-[0_12px_38px_rgba(0,0,0,0.12)] sm:grid-cols-2 xl:grid-cols-5">
+    <div className="k-operation-strip">
       {metrics.map((metric) => (
-        <div
-          key={metric.label}
-          className="border-b border-white/[0.07] px-4 py-3 last:border-b-0 sm:border-r xl:border-b-0"
-        >
-          <p className="dashboard-label text-[10px] text-slate-500">
-            {metric.label}
-          </p>
-          <strong className="dashboard-number mt-1.5 block text-lg text-white">
+        <div key={metric.label} className="k-operation-item">
+          <p className="k-operation-label">{metric.label}</p>
+          <strong
+            className="k-operation-value"
+            data-accent={metric.label === "Produções ativas" ? "cyan" : undefined}
+          >
             {metric.value}
           </strong>
-          <span className="mt-1 block text-xs font-medium text-slate-500">
+          <span className="k-kpi-helper k-kpi-helper-info">
             {metric.helper}
           </span>
         </div>
@@ -1014,93 +730,117 @@ function OperationStrip({
   );
 }
 
+function kpiHelperTone(item: DashboardKpi) {
+  const label = item.label.toLowerCase();
+  const trend = item.trend.toLowerCase();
+
+  if (trend.includes("atras") || trend.includes("crític")) {
+    return "k-kpi-helper-danger";
+  }
+
+  if (label.includes("receber") || label.includes("pagar") || trend.includes("pend")) {
+    return "k-kpi-helper-warning";
+  }
+
+  if (item.trendDirection === "down") {
+    return "k-kpi-helper-danger";
+  }
+
+  if (item.trendDirection === "up") {
+    return "k-kpi-helper-positive";
+  }
+
+  return "k-kpi-helper-info";
+}
+
+function Sparkline({
+  data,
+  color = "var(--cyan)",
+}: {
+  data: number[];
+  color?: string;
+}) {
+  const width = 260;
+  const height = 56;
+  const min = Math.min(...data, 0);
+  const max = Math.max(...data, 1);
+  const range = max - min || 1;
+
+  const points = data.map((value, index) => {
+    const x = (index * width) / Math.max(data.length - 1, 1);
+    const y = height - ((value - min) / range) * (height - 10) - 5;
+    return [x, y] as const;
+  });
+
+  const path = points
+    .map(([x, y], index) => `${index === 0 ? "M" : "L"}${x},${y}`)
+    .join(" ");
+
+  const area = `${path} L${width},${height} L0,${height} Z`;
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full" aria-hidden="true">
+      <path d={area} fill={color} opacity="0.08" />
+      <path
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
 function KpiPanel({
   item,
   iconIndex,
-  primary = false,
+  spark,
 }: {
   item: DashboardKpi;
   iconIndex: number;
-  primary?: boolean;
+  spark: number[];
 }) {
   const Icon = kpiIcons[iconIndex] ?? DollarSign;
-  const visual = getKpiVisual(item);
-
-  const accentText =
-    visual.accent === "purple"
-      ? "text-violet-300"
-      : visual.accent === "amber"
-        ? "text-amber-300"
-        : visual.accent === "rose"
-          ? "text-rose-300"
-          : "text-cyan-300";
+  const tone =
+    item.trendDirection === "up"
+      ? "positive"
+      : item.trendDirection === "down"
+        ? "danger"
+        : "warning";
 
   return (
     <article
-      className={`group relative overflow-hidden border border-white/10 bg-[#0b101b] shadow-[0_14px_46px_rgba(0,0,0,0.16)] ${
-        primary
-          ? "min-h-[118px] rounded-[15px] p-4"
-          : "min-h-[62px] rounded-[12px] p-0"
-      }`}
+      className="k-kpi-primary"
+      style={{
+        "--accent": "var(--cyan)",
+        "--accent-soft": "var(--cyan-soft)",
+        "--accent-edge": "var(--cyan-edge)",
+      } as CSSProperties}
     >
-      {primary ? (
-        <MiniSparkline values={visual.spark} accent={visual.accent} />
-      ) : null}
+      <span className="k-kpi-primary-corner" />
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-cyan-300/70 via-emerald-300/55 to-transparent" />
-
-      <div
-        className={`absolute right-4 top-4 flex items-center justify-center border border-current/20 bg-current/10 ${accentText} ${
-          primary ? "h-8 w-8 rounded-[10px]" : "hidden"
-        }`}
-      >
-        <Icon size={primary ? 15 : 0} />
+      <div className="k-kpi-primary-head">
+        <span className="k-kpi-label">{item.label}</span>
+        <span className="k-kpi-primary-icon">
+          <Icon size={18} />
+        </span>
       </div>
 
-      <div className="relative z-10 flex h-full flex-col">
-        <p
-          className={`dashboard-label pr-14 text-slate-500 ${
-            primary ? "text-[9px]" : "text-[9px]"
-          }`}
-        >
-          {item.label}
-        </p>
+      <strong className="k-kpi-primary-value">
+        {renderMoneyParts(item.value)}
+      </strong>
 
-        <strong
-          className={`dashboard-number mt-3 block truncate text-white ${
-            primary ? "text-[29px] leading-none" : "text-[18px] leading-none"
-          }`}
-        >
-          {item.value}
-        </strong>
+      <div className="k-kpi-primary-foot">
+        <span className="k-kpi-primary-desc">{item.helper}</span>
+        <span className="k-kpi-delta" data-tone={tone}>
+          {item.trend}
+        </span>
+      </div>
 
-        <div
-          className={`mt-auto flex items-end justify-between gap-3 ${
-            primary ? "pt-3" : "pt-1"
-          }`}
-        >
-          <div className="min-w-0">
-            <p
-              className={`truncate text-xs font-semibold ${
-                visual.kind === "pos"
-                  ? "text-emerald-300"
-                  : visual.kind === "neg"
-                    ? "text-rose-300"
-                    : visual.kind === "warn"
-                      ? "text-amber-300"
-                      : "text-cyan-300"
-              }`}
-            >
-              {item.trend}
-            </p>
-
-            <p className="mt-1 truncate text-[11px] font-medium text-slate-500">
-              {item.helper}
-            </p>
-          </div>
-
-          <TrendBadge label={visual.delta} kind={visual.kind} />
-        </div>
+      <div className="k-kpi-spark">
+        <Sparkline data={spark} />
       </div>
     </article>
   );
@@ -1129,79 +869,87 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
     {
       label: "Faturamento",
       value: formatPercent(summary?.totalRevenue ? 86.87 : 0),
-      color: "bg-cyan-300",
+      color: "var(--cyan)",
     },
     {
       label: "Recebimento",
       value: formatPercent(receivedRate),
-      color: "bg-emerald-300",
+      color: "oklch(0.78 0.14 220)",
     },
     {
       label: "Margem",
       value: formatPercent(margin),
-      color: "bg-violet-300",
+      color: "var(--purple)",
     },
     {
       label: "Caixa real",
       value: formatCurrency(summary?.cashResult ?? 0),
-      color: "bg-slate-300",
+      color: "oklch(0.7 0.18 280)",
     },
   ];
+  const radius = 56;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (score / 100) * circumference;
 
   return (
-    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.16)]">
+    <section className="k-score-card">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <p className="dashboard-label text-[10px] text-cyan-300">
+          <p className="k-eyebrow">
             Score do ciclo · AF 2026
           </p>
-          <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em] text-white">
+          <h2 className="mt-2 text-[14.5px] font-semibold tracking-[-0.01em] text-white">
             Performance de metas
           </h2>
         </div>
 
-        <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+        <span className="k-badge" data-tone="success">
           Em ritmo
         </span>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[132px_1fr] md:items-center xl:grid-cols-1 2xl:grid-cols-[132px_1fr]">
-        <div className="relative mx-auto flex h-[122px] w-[122px] items-center justify-center rounded-full">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: `conic-gradient(#22d3ee 0deg, #a78bfa ${score * 3.6}deg, rgba(255,255,255,0.08) ${score * 3.6}deg)`,
-            }}
-          />
-          <div className="absolute inset-[10px] rounded-full bg-[#0b101b]" />
-          <div className="relative text-center">
-            <strong className="dashboard-number block text-[26px] leading-none text-white">
-              {formatPercent(score)}
-            </strong>
-            <span className="dashboard-label mt-1 block text-[9px] text-slate-500">
-              média geral
-            </span>
+      <div className="k-score-wrap">
+        <div className="k-score-gauge">
+          <svg viewBox="0 0 132 132" className="block rotate-[-90deg]">
+            <defs>
+              <linearGradient id="dashboardGaugeGrad" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stopColor="oklch(0.82 0.13 200)" />
+                <stop offset="100%" stopColor="oklch(0.72 0.18 295)" />
+              </linearGradient>
+            </defs>
+            <circle cx="66" cy="66" r={radius} fill="none" stroke="var(--bg-3)" strokeWidth="8" />
+            <circle
+              cx="66"
+              cy="66"
+              r={radius}
+              fill="none"
+              stroke="url(#dashboardGaugeGrad)"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              strokeLinecap="round"
+              strokeWidth="8"
+              style={{ filter: "drop-shadow(0 0 4px oklch(0.82 0.13 200 / 0.24))" }}
+            />
+          </svg>
+
+          <div className="k-score-num">
+            <span className="value">{formatPercent(score)}</span>
+            <span className="label">Média geral</span>
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="k-score-rings">
           {rows.map((row) => (
-            <div key={row.label} className="grid grid-cols-[1fr_auto] items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className={`h-2.5 w-2.5 rounded-full ${row.color}`} />
-                <span className="text-sm font-medium text-slate-400">
-                  {row.label}
-                </span>
-              </div>
-              <strong className="dashboard-number text-sm text-white">
-                {row.value}
-              </strong>
+            <div key={row.label} className="k-score-ring">
+              <span className="swatch" style={{ background: row.color }} />
+              <span className="label">{row.label}</span>
+              <strong className="value">{row.value}</strong>
             </div>
           ))}
 
-          <div className="rounded-[14px] border border-emerald-300/20 bg-emerald-300/10 px-4 py-3 text-xs font-medium leading-5 text-emerald-100">
-            Diagnóstico: ciclo dentro da banda esperada; acompanhe recebimentos
-            e despesas em aberto.
+          <div className="k-diagnostic-box">
+            <strong style={{ color: "var(--cyan)" }}>Diagnóstico:</strong>{" "}
+            ciclo dentro da banda esperada; acompanhe recebimentos e despesas em aberto.
           </div>
         </div>
       </div>
@@ -1217,23 +965,24 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
   }
 
   return (
-    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.14)]">
-      <div className="mb-5 flex items-center justify-between gap-4">
+    <section className="k-pipeline-card">
+      <div className="k-section-head">
         <div>
-          <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
+          <h2>
             Próximas produções
           </h2>
-          <p className="mt-1 text-sm font-medium text-slate-500">
+          <div className="k-section-sub">
             {pipeline.length} captações em andamento ou pré-produção
-          </p>
+          </div>
         </div>
 
-        <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
+        <button className="k-button-ghost min-h-9">
           Ver todas
+          <ArrowUpRight size={12} />
         </button>
       </div>
 
-      <div className="grid gap-3 xl:grid-cols-5">
+      <div className="k-pipeline-grid">
         {pipeline.map((entry, index) => {
           const title =
             entry.project ||
@@ -1254,35 +1003,32 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
           return (
             <article
               key={`${entry.id}-${entry.sourceRow}-${index}`}
-              className="relative overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.025] p-4"
+              className="k-production-card"
             >
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <span className="dashboard-code text-xs text-slate-500">
+              <div className="k-production-top">
+                <span className="k-production-code">
                   {label}
                 </span>
 
-                <span className="text-[11px] font-semibold text-emerald-300">
+                <span className="k-production-status">
                   {entry.overdue ? "Atraso" : entry.status || "Roteiro"}
                 </span>
               </div>
 
-              <h3 className="line-clamp-2 min-h-[38px] text-sm font-semibold leading-5 text-white">
+              <h3 className="k-production-title">
                 {title}
               </h3>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <strong className="dashboard-number text-sm text-emerald-300">
+              <div className="k-production-meta">
+                <strong className="k-number text-sm text-emerald-300">
                   {formatCompactCurrency(entry.revenue)}
                 </strong>
 
                 <span className="text-xs text-slate-500">{percent}%</span>
               </div>
 
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-300"
-                  style={{ width: `${percent}%` }}
-                />
+              <div className="k-progress-line">
+                <div style={{ width: `${percent}%` }} />
               </div>
             </article>
           );
@@ -1330,6 +1076,9 @@ export function DashboardOverview() {
 
   const monthly = overview?.monthly?.length ? overview.monthly : emptyMonths;
   const summary = overview?.summary ?? null;
+  const revenueSpark = monthly.map((item) => item.revenue || item.value || 0);
+  const receivedSpark = monthly.map((item) => item.received || 0);
+  const profitSpark = monthly.map((item) => item.profit || 0);
 
   const kpis: DashboardKpi[] = useMemo(() => {
     if (!summary) {
@@ -1342,19 +1091,23 @@ export function DashboardOverview() {
       {
         label: "Faturamento",
         value: fmt(summary.totalRevenue),
-        helper: "Total faturado no ano (competência)",
-        trend: "Independe de ter sido recebido",
+        helper: `Total faturado · ${summary.revenueEntries ?? summary.entries} entradas`,
+        trend: `${summary.revenueEntries ?? summary.entries} entradas`,
         trendDirection: "up",
       },
       {
         label: "Recebido em caixa",
         value: fmt(summary.receivedTotal),
-        helper: "Entradas efetivamente recebidas",
-        trend: `${formatPercent(
+        helper: `${formatPercent(
           summary.totalRevenue > 0
             ? (summary.receivedTotal / summary.totalRevenue) * 100
             : 0,
         )} do faturamento`,
+        trend: `${formatPercent(
+          summary.totalRevenue > 0
+            ? (summary.receivedTotal / summary.totalRevenue) * 100
+            : 0,
+        )}`,
         trendDirection: "up",
       },
       {
@@ -1371,8 +1124,8 @@ export function DashboardOverview() {
         label: "Saídas pagas",
         value: fmt(summary.paidExpenses),
         helper: "Despesas já pagas",
-        trend: "Saídas com status pago",
-        trendDirection: "down",
+        trend: "Saídas pagas",
+        trendDirection: "neutral",
       },
       {
         label: "A pagar",
@@ -1399,7 +1152,7 @@ export function DashboardOverview() {
         label: "Lucro por competência",
         value: fmt(summary.totalProfit),
         helper: "Faturamento menos todas as saídas lançadas",
-        trend: "Resultado do período",
+        trend: formatPercent(summary.margin),
         trendDirection: summary.totalProfit < 0 ? "down" : "up",
       },
       {
@@ -1447,98 +1200,115 @@ export function DashboardOverview() {
   );
 
   return (
-    <div className="dashboard-overview-v2 dashboard-pro-compact space-y-4">
-      <header className="grid gap-3 xl:grid-cols-[1fr_auto] xl:items-end">
+    <div className="k-page dashboard-overview-v2 space-y-5 sm:space-y-6">
+      <header className="k-dashboard-hero">
         <div>
-          <p className="dashboard-label text-[10px] text-cyan-300">
+          <p className="k-eyebrow">
             Visão geral · Ano fiscal 2026
           </p>
 
-          <h1 className="mt-2 text-[30px] font-semibold leading-none tracking-[-0.055em] text-white sm:text-[34px]">
+          <h1 className="k-title">
             Olá, Vinicius.
           </h1>
 
-          <p className="mt-2 max-w-2xl text-[13px] font-medium leading-5 text-slate-400 sm:text-sm">
+          <p className="k-subtitle">
             Visão geral da operação financeira e audiovisual da 2K STUDIOS com
             dados reais da planilha importada.
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-start gap-2 xl:justify-end">
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.03] px-3.5 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
-          >
-            <ArrowUpRight size={14} />
-            Exportar
-          </button>
-
+        <div className="hero-actions flex flex-wrap gap-2">
           <button
             type="button"
             onClick={loadOverview}
-            className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-cyan-300/20 bg-cyan-300/10 px-3.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/15"
+            className="k-button-ghost"
           >
-            {loading ? "Atualizando..." : "+ Nova entrada"}
+            {loading ? "Atualizando..." : "Atualizar dados"}
           </button>
+
+          <div className="k-button-ghost">
+            <CalendarDays size={16} />
+            Ano fiscal 2026
+          </div>
+
+          <div className="k-button-ghost">
+            01 Jan — 31 Dez 2026
+          </div>
         </div>
       </header>
 
       {errorMessage ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
 
       <OperationStrip overview={overview} summary={summary} />
 
-      <div className="grid gap-3 xl:grid-cols-3">
+      <div className="k-kpi-primary-grid">
         {primaryKpis.map(({ item, index }) => (
-          <KpiPanel key={item.label} item={item} iconIndex={index} primary />
-        ))}
-      </div>
-
-      <div className="grid overflow-hidden rounded-[16px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.14)] md:grid-cols-3 xl:grid-cols-6">
-        {secondaryKpis.map(({ item, index }) => (
-          <div
+          <KpiPanel
             key={item.label}
-            className="border-b border-white/[0.07] p-3 last:border-b-0 md:border-r xl:border-b-0"
-          >
-            <KpiPanel item={item} iconIndex={index} />
-          </div>
+            item={item}
+            iconIndex={index}
+            spark={
+              item.label === "Recebido em caixa"
+                ? receivedSpark
+                : item.label === "Lucro por competência"
+                  ? profitSpark
+                  : revenueSpark
+            }
+          />
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.68fr_0.92fr]">
-        <RevenueChart monthly={monthly} />
+      <div className="k-kpi-strip">
+        {secondaryKpis.map(({ item }) => (
+          <article key={item.label} className="k-kpi-strip-item">
+            <span className="k-kpi-label">{item.label}</span>
+            <strong className="k-kpi-value">{renderKpiValue(item.value)}</strong>
+            <span className={`k-kpi-helper ${kpiHelperTone(item)}`}>
+              {item.trend}
+            </span>
+          </article>
+        ))}
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[1.65fr_1fr]">
+        <RevenueChart monthly={monthly} summary={summary} />
         <ScoreCard summary={summary} />
       </div>
 
       <PipelineStrip entries={overview?.latestEntries ?? []} />
 
-      <section className="dashboard-bottom-panels grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-        <div className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-5">
-          <div className="mb-5 flex items-center justify-between gap-4">
+      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+        <div className="k-list-card">
+          <div className="k-section-head">
             <div className="flex items-center gap-3">
-              <Users className="text-violet-300" size={21} />
+              <Users className="text-violet-300" size={18} />
               <div>
-                <h2 className="text-xl font-semibold tracking-[-0.035em]">
+                <h2>
                   Top grupos por faturamento
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <div className="k-section-sub">
                   5 de {overview?.topGroups?.length ?? 0} grupos · participação
                   no ano fiscal 2026
-                </p>
+                </div>
               </div>
             </div>
 
-            <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
+            <button className="k-button-ghost min-h-9">
               Ver todos
+              <ArrowUpRight size={12} />
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
-            <div className="min-w-[760px]">
-              <div className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+          <div className="k-table-card overflow-x-auto">
+            <div className="k-table min-w-[760px]">
+              <div
+                data-table-head
+                className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] px-5 py-3"
+              >
                 <span>#</span>
                 <span>Grupo</span>
                 <span>Faturamento</span>
@@ -1549,40 +1319,40 @@ export function DashboardOverview() {
               {(overview?.topGroups ?? []).slice(0, 5).map((group) => (
                 <div
                   key={group.name}
-                  className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                  className="k-table-row grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
                 >
                   <span className="text-slate-500">{group.rank}</span>
 
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-violet-500/25 text-xs font-semibold text-violet-200">
+                  <div className="k-row-avatar">
+                    <span className="k-avatar h-8 w-8 rounded-[10px] text-xs">
                       {getInitials(group.name)}
                     </span>
                     <div className="min-w-0">
-                      <strong className="block truncate font-semibold">
+                      <strong className="k-row-name block truncate">
                         {group.name}
                       </strong>
-                      <span className="text-[11px] font-medium text-slate-500">
+                      <span className="k-row-meta">
                         {group.projectsCount} proj. · ticket{" "}
                         {formatCompactCurrency(group.ticketMedio)}
                       </span>
                     </div>
                   </div>
 
-                  <span className="dashboard-number text-slate-300">
+                  <span className="k-number text-slate-300">
                     {formatCompactCurrency(group.revenue)}
                   </span>
 
-                  <span className="dashboard-number font-semibold text-emerald-300">
+                  <span className="k-number font-semibold text-emerald-300">
                     {formatCompactCurrency(group.received)}
                   </span>
 
                   <div className="flex items-center gap-3">
-                    <span className="dashboard-number w-12 text-slate-300">
+                    <span className="k-number w-12 text-slate-300">
                       {formatPercent(group.participationPercent)}
                     </span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+                    <div className="k-bar-track flex-1">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-300"
+                        className="k-bar-fill"
                         style={{
                           width: `${clamp(group.participationPercent, 0, 100)}%`,
                         }}
@@ -1601,22 +1371,23 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-5">
-          <div className="mb-5 flex items-center justify-between gap-4">
+        <div className="k-list-card">
+          <div className="k-section-head">
             <div className="flex items-center gap-3">
-              <CalendarDays className="text-violet-300" size={21} />
+              <CalendarDays className="text-violet-300" size={18} />
               <div>
-                <h2 className="text-xl font-semibold tracking-[-0.035em]">
+                <h2>
                   Próximos recebimentos
                 </h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <div className="k-section-sub">
                   {receivableRows.length} pendências recentes em aberto
-                </p>
+                </div>
               </div>
             </div>
 
-            <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
+            <button className="k-button-ghost min-h-9">
               Vencimentos
+              <ArrowUpRight size={12} />
             </button>
           </div>
 
@@ -1636,10 +1407,10 @@ export function DashboardOverview() {
               return (
                 <div
                   key={`${item.id}-${item.sourceRow}`}
-                  className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-[16px] border border-white/[0.06] bg-white/[0.02] px-4 py-3"
+                  className="k-table-row grid grid-cols-[1fr_auto] items-center gap-4 rounded-[10px] border border-white/[0.06] bg-white/[0.02] px-4 py-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-violet-500/25 text-xs font-semibold text-violet-200">
+                    <span className="k-avatar h-8 w-8 rounded-[10px] text-xs">
                       {getInitials(clientName)}
                     </span>
 
@@ -1654,15 +1425,12 @@ export function DashboardOverview() {
                   </div>
 
                   <div className="text-right">
-                    <strong className="dashboard-number block text-sm text-slate-200">
+                    <strong className="k-number block text-sm text-slate-200">
                       {formatCompactCurrency(item.revenue)}
                     </strong>
                     <span
-                      className={`mt-1 inline-flex rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
-                        item.overdue
-                          ? "bg-rose-400/10 text-rose-200"
-                          : "bg-emerald-400/10 text-emerald-200"
-                      }`}
+                      className="k-badge mt-1"
+                      data-tone={item.overdue ? "danger" : "attention"}
                     >
                       {item.overdue ? "Atrasado" : item.status || "Aguardando"}
                     </span>
@@ -1672,24 +1440,19 @@ export function DashboardOverview() {
             })}
 
             {!receivableRows.length ? (
-              <div className="rounded-[16px] border border-white/10 px-5 py-6 text-sm font-medium text-slate-500">
-                Nenhum recebimento encontrado.
+              <div className="k-empty">
+                <h4>Nenhum recebimento encontrado</h4>
+                <p>Quando houver pendências recentes em aberto, elas aparecerão aqui.</p>
               </div>
             ) : null}
           </div>
         </div>
       </section>
 
-      <footer className="flex flex-col gap-3 border-t border-white/10 px-1 pt-5 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+      <footer className="k-dashboard-footer">
         <span>Sincronizado · 14:32 BRT · {summary?.entries ?? 0} lançamentos processados</span>
         <span className="dashboard-code">2K STUDIOS · painel interno · v0.7.2</span>
       </footer>
     </div>
   );
 }
-
-
-
-
-
-

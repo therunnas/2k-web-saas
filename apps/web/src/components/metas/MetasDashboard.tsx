@@ -98,28 +98,28 @@ function clamp(value: number, min: number, max: number) {
 
 function getProgressTone(goal: GoalItem) {
   if (goal.lowerIsBetter) {
-    if (goal.current <= goal.target) return "bg-emerald-300";
-    if (goal.current <= goal.target * 1.15) return "bg-cyan-300";
-    return "bg-rose-300";
+    if (goal.current <= goal.target) return "k-report-bar-emerald";
+    if (goal.current <= goal.target * 1.15) return "k-report-bar-cyan";
+    return "k-report-bar-rose";
   }
 
-  if (goal.progress >= 100) return "bg-emerald-300";
-  if (goal.progress >= 75) return "bg-cyan-300";
-  if (goal.progress >= 50) return "bg-violet-300";
-  return "bg-rose-300";
+  if (goal.progress >= 100) return "k-report-bar-emerald";
+  if (goal.progress >= 75) return "k-report-bar-cyan";
+  if (goal.progress >= 50) return "k-report-bar-violet";
+  return "k-report-bar-rose";
 }
 
-function getStatusClass(goal: GoalItem) {
+function getStatusTone(goal: GoalItem) {
   if (goal.lowerIsBetter) {
-    if (goal.current <= goal.target) return "bg-emerald-400/10 text-emerald-200";
-    if (goal.current <= goal.target * 1.15) return "bg-cyan-400/10 text-cyan-200";
-    return "bg-rose-400/10 text-rose-200";
+    if (goal.current <= goal.target) return "success";
+    if (goal.current <= goal.target * 1.15) return "info";
+    return "danger";
   }
 
-  if (goal.progress >= 100) return "bg-emerald-400/10 text-emerald-200";
-  if (goal.progress >= 75) return "bg-cyan-400/10 text-cyan-200";
-  if (goal.progress >= 50) return "bg-violet-400/10 text-violet-200";
-  return "bg-rose-400/10 text-rose-200";
+  if (goal.progress >= 100) return "success";
+  if (goal.progress >= 75) return "info";
+  if (goal.progress >= 50) return "neutral";
+  return "danger";
 }
 
 export function MetasDashboard() {
@@ -208,35 +208,35 @@ export function MetasDashboard() {
   const monthly = data?.monthly ?? [];
 
   return (
-    <div className="ops-page-v2 final-page-v2 final-page-goals space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page space-y-6">
+      <header className="k-page-header k-page-heading">
         <div>
-          <p className="dashboard-label text-[11px] text-cyan-300">
+          <p className="k-eyebrow">
             Metas
           </p>
 
-          <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
+          <h1 className="k-title">
             Metas comerciais e financeiras.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Acompanhamento de metas automáticas com base nos dados reais da
             planilha: faturamento, recebimento, lucro, margem, despesas e
             valores a receber.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-page-actions">
           <button
             type="button"
             onClick={loadGoals}
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="k-button-ghost"
           >
             <RefreshCw size={16} />
             {loading ? "Atualizando..." : "Atualizar"}
           </button>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+          <div className="k-button-secondary">
             <CalendarDays size={16} />
             Ano fiscal 2026
           </div>
@@ -244,36 +244,36 @@ export function MetasDashboard() {
       </header>
 
       {errorMessage ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="k-kpi-strip">
         {summaryCards.map((card) => {
           const Icon = card.icon;
 
           return (
             <article
               key={card.label}
-              className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]"
+              className="k-kpi-strip-item"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="dashboard-label text-[11px] text-slate-500">
+                  <p className="k-kpi-label">
                     {card.label}
                   </p>
 
-                  <strong className="dashboard-number mt-3 block truncate text-[25px] font-semibold text-white">
+                  <strong className="k-kpi-value">
                     {card.value}
                   </strong>
 
-                  <p className="mt-2 text-xs font-medium text-slate-500">
+                  <p className="k-kpi-helper k-kpi-helper-info">
                     {card.helper}
                   </p>
                 </div>
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/[0.04]">
+                <div className="k-report-icon">
                   <Icon size={22} className={card.tone} />
                 </div>
               </div>
@@ -282,78 +282,83 @@ export function MetasDashboard() {
         })}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.42fr]">
-        <div className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <Target size={21} className="text-cyan-300" />
-            <div>
-              <h2 className="text-xl font-semibold tracking-[-0.035em]">
-                Metas principais
-              </h2>
+      <section className="k-goals-layout">
+        <div className="k-card k-goals-panel">
+          <div className="k-section-head k-goals-panel-head">
+            <div className="k-form-title-row">
+              <div className="k-form-icon">
+                <Target size={17} />
+              </div>
+              <div>
+                <h2>
+                  Metas principais
+                </h2>
 
-              <p className="mt-2 text-sm font-medium text-slate-500">
-                Realizado versus meta sugerida para o ciclo atual.
-              </p>
+                <p className="k-section-sub">
+                  Realizado versus meta sugerida para o ciclo atual.
+                </p>
+              </div>
             </div>
+
+            <span className="k-badge" data-tone="info">
+              AF 2026
+            </span>
           </div>
 
-          <div className="space-y-4">
+          <div className="k-goals-list">
             {goals.map((goal) => (
               <article
                 key={goal.id}
-                className="rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+                className="k-goal-row"
               >
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-base font-semibold text-white">
-                        {goal.label}
-                      </h3>
+                <div className="k-goal-row-main">
+                  <div className="k-goal-row-copy">
+                    <div className="k-goal-row-header">
+                      <h3>{goal.label}</h3>
 
                       <span
-                        className={`rounded-lg px-3 py-1 text-xs font-semibold ${getStatusClass(
-                          goal
-                        )}`}
+                        className="k-goal-status"
+                        data-tone={getStatusTone(goal)}
                       >
                         {goal.status}
                       </span>
                     </div>
 
-                    <p className="mt-2 text-sm font-medium leading-6 text-slate-500">
+                    <p>
                       {goal.description}
                     </p>
                   </div>
 
-                  <div className="grid shrink-0 grid-cols-2 gap-6 text-right">
-                    <div>
-                      <span className="dashboard-label text-[10px] text-slate-600">
+                  <div className="k-goal-metrics">
+                    <div className="k-goal-metric">
+                      <span>
                         Atual
                       </span>
-                      <strong className="dashboard-number mt-1 block text-sm font-semibold text-white">
+                      <strong className="k-goal-value">
                         {formatGoalValue(goal, goal.current)}
                       </strong>
                     </div>
 
-                    <div>
-                      <span className="dashboard-label text-[10px] text-slate-600">
+                    <div className="k-goal-metric">
+                      <span>
                         Meta
                       </span>
-                      <strong className="dashboard-number mt-1 block text-sm font-semibold text-cyan-200">
+                      <strong className="k-goal-target">
                         {formatGoalValue(goal, goal.target)}
                       </strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <div className="mb-2 flex items-center justify-between text-xs font-medium text-slate-500">
+                <div className="k-goal-progress-block">
+                  <div className="k-goal-progress-head">
                     <span>Progresso</span>
                     <span>{formatPercent(goal.progress)}</span>
                   </div>
 
-                  <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="k-goal-progress-track">
                     <div
-                      className={`h-full rounded-full ${getProgressTone(goal)}`}
+                      className={`k-goal-progress-bar ${getProgressTone(goal)}`}
                       style={{
                         width: `${clamp(goal.progress, 4, 100)}%`,
                       }}
@@ -364,26 +369,28 @@ export function MetasDashboard() {
             ))}
 
             {!goals.length ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm font-medium text-slate-500">
+              <div className="k-empty">
                 Nenhuma meta encontrada.
               </div>
             ) : null}
           </div>
         </div>
 
-        <aside className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-          <div className="mb-5">
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
+        <aside className="k-card k-goal-reading-card">
+          <div className="k-section-head">
+            <div>
+            <h2>
               Leitura executiva
             </h2>
 
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="k-section-sub">
               Diagnóstico automático do ciclo atual.
             </p>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.06] p-4">
+          <div className="k-compact-list">
+            <div className="k-card-soft k-diagnostic-box">
               <p className="text-sm font-semibold text-cyan-100">
                 Metas automáticas
               </p>
@@ -394,7 +401,7 @@ export function MetasDashboard() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+            <div className="k-card-soft">
               <p className="text-sm font-semibold text-white">
                 Próxima evolução
               </p>
@@ -410,20 +417,22 @@ export function MetasDashboard() {
         </aside>
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-        <div className="mb-5">
-          <h2 className="text-xl font-semibold tracking-[-0.035em]">
+      <section className="k-card k-goal-card">
+        <div className="k-section-head">
+          <div>
+          <h2>
             Progresso mensal
           </h2>
 
-          <p className="mt-2 text-sm font-medium text-slate-500">
+          <p className="k-section-sub">
             Faturamento, recebimento e controle de despesas por mês.
           </p>
+          </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-white/10">
-          <div className="min-w-[1080px]">
-            <div className="grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        <div className="k-table-card overflow-x-auto">
+          <div className="k-table min-w-[1080px]">
+            <div data-table-head className="grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr] px-5 py-3">
               <span>Mês</span>
               <span>Faturamento</span>
               <span>Meta fat.</span>
@@ -435,17 +444,17 @@ export function MetasDashboard() {
             {monthly.map((item) => (
               <div
                 key={item.label}
-                className="grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                className="k-table-row grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr] items-center border-b border-white/[0.045] px-5 last:border-b-0"
               >
                 <div>
-                  <strong className="block font-semibold text-white">
+                  <strong className="block font-semibold text-slate-100">
                     {item.month}
                   </strong>
-                  <span className="text-xs text-slate-600">{item.label}</span>
+                  <span className="k-muted text-xs">{item.label}</span>
                 </div>
 
                 <div>
-                  <span className="dashboard-number block text-slate-200">
+                  <span className="k-number block text-slate-200">
                     {formatCurrency(item.revenue)}
                   </span>
                   <span className="mt-1 block text-xs text-cyan-300">
@@ -453,12 +462,12 @@ export function MetasDashboard() {
                   </span>
                 </div>
 
-                <span className="dashboard-number text-cyan-200">
+                <span className="k-number text-cyan-200">
                   {formatCurrency(item.revenueTarget)}
                 </span>
 
                 <div>
-                  <span className="dashboard-number block text-emerald-200">
+                  <span className="k-number block text-emerald-200">
                     {formatCurrency(item.received)}
                   </span>
                   <span className="mt-1 block text-xs text-emerald-300">
@@ -467,7 +476,7 @@ export function MetasDashboard() {
                 </div>
 
                 <div>
-                  <span className="dashboard-number block text-rose-200">
+                  <span className="k-number block text-rose-200">
                     {formatCurrency(item.expenses)}
                   </span>
                   <span className="mt-1 block text-xs text-slate-600">
@@ -475,7 +484,7 @@ export function MetasDashboard() {
                   </span>
                 </div>
 
-                <span className="w-fit rounded-lg bg-white/[0.06] px-3 py-1 text-xs font-semibold text-slate-300">
+                <span className="k-badge" data-tone="info">
                   {item.status}
                 </span>
               </div>
