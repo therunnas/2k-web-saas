@@ -288,7 +288,7 @@ const width = 1120;
   const tooltipBelow = hoveredPoint ? hoveredPoint.y < 150 : false;
 
   return (
-    <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.22)] sm:p-5 xl:p-6">
+    <section className="k-card p-4 sm:p-5 xl:p-6">
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-2">
@@ -308,11 +308,11 @@ const width = 1120;
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <button className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]">
+          <button className="k-button-ghost">
             Mensal
           </button>
 
-          <button className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]">
+          <button className="k-button-ghost">
             <SlidersHorizontal size={16} />
             Filtros
           </button>
@@ -320,7 +320,7 @@ const width = 1120;
       </div>
 
       <div
-        className="relative overflow-visible rounded-[1.5rem] border border-white/[0.06] bg-[#080d17] p-3 sm:p-4 xl:p-5"
+        className="k-table-card relative overflow-visible p-3 sm:p-4 xl:p-5"
         onMouseLeave={() => { if (!selectedPoint) setHoveredPoint(null); }}
       >
         {hoveredPoint ? (
@@ -818,7 +818,7 @@ function OperationStrip({
   ];
 
   return (
-    <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.025] shadow-[0_18px_60px_rgba(0,0,0,0.18)] sm:grid-cols-2 xl:grid-cols-5">
+    <div className="k-table-card grid overflow-hidden sm:grid-cols-2 xl:grid-cols-5">
       {metrics.map((metric) => (
         <div
           key={metric.label}
@@ -858,7 +858,7 @@ function KpiPanel({
 
   return (
     <article
-      className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.22)] ${
+      className={`k-kpi-card group ${
         primary ? "min-h-[170px] p-7" : "min-h-[112px] p-5"
       }`}
     >
@@ -872,7 +872,7 @@ function KpiPanel({
       </p>
 
       <strong
-        className={`dashboard-number mt-5 block truncate text-white ${
+        className={`k-number mt-5 block truncate text-white ${
           primary ? "text-[38px] leading-none" : "text-[24px] leading-none"
         }`}
       >
@@ -930,7 +930,7 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
   ];
 
   return (
-    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-6 shadow-[0_18px_70px_rgba(0,0,0,0.20)]">
+    <section className="k-card p-6">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <p className="dashboard-label text-[10px] text-cyan-300">
@@ -941,7 +941,7 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
           </h2>
         </div>
 
-        <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+        <span className="k-badge" data-tone="success">
           Em ritmo
         </span>
       </div>
@@ -956,7 +956,7 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
           />
           <div className="absolute inset-[10px] rounded-full bg-[#0b101b]" />
           <div className="relative text-center">
-            <strong className="dashboard-number block text-[34px] leading-none text-white">
+            <strong className="k-number block text-[34px] leading-none text-white">
               {formatPercent(score)}
             </strong>
             <span className="dashboard-label mt-1 block text-[9px] text-slate-500">
@@ -974,7 +974,7 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
                   {row.label}
                 </span>
               </div>
-              <strong className="dashboard-number text-sm text-white">
+              <strong className="k-number text-sm text-white">
                 {row.value}
               </strong>
             </div>
@@ -998,7 +998,7 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
   }
 
   return (
-    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-5 shadow-[0_18px_70px_rgba(0,0,0,0.18)]">
+    <section className="k-card p-5">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
@@ -1009,7 +1009,7 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
           </p>
         </div>
 
-        <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
+        <button className="k-button-ghost min-h-9">
           Ver todas
         </button>
       </div>
@@ -1035,7 +1035,7 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
           return (
             <article
               key={`${entry.id}-${entry.sourceRow}-${index}`}
-              className="relative overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.025] p-4"
+              className="k-card rounded-[18px] p-4"
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <span className="dashboard-code text-xs text-slate-500">
@@ -1052,7 +1052,7 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
               </h3>
 
               <div className="mt-4 flex items-center justify-between gap-3">
-                <strong className="dashboard-number text-sm text-emerald-300">
+                <strong className="k-number text-sm text-emerald-300">
                   {formatCompactCurrency(entry.revenue)}
                 </strong>
 
@@ -1228,8 +1228,8 @@ export function DashboardOverview() {
   );
 
   return (
-    <div className="dashboard-overview-v2 space-y-5 sm:space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page dashboard-overview-v2 space-y-5 sm:space-y-6">
+      <header className="k-page-header xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">
             Visão geral · Ano fiscal 2026
@@ -1249,24 +1249,24 @@ export function DashboardOverview() {
           <button
             type="button"
             onClick={loadOverview}
-            className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="k-button-ghost"
           >
             {loading ? "Atualizando..." : "Atualizar dados"}
           </button>
 
-          <div className="flex items-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+          <div className="k-button-ghost">
             <CalendarDays size={16} />
             Ano fiscal 2026
           </div>
 
-          <div className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+          <div className="k-button-ghost">
             01 Jan — 31 Dez 2026
           </div>
         </div>
       </header>
 
       {errorMessage ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-card border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
           {errorMessage}
         </div>
       ) : null}
@@ -1279,7 +1279,7 @@ export function DashboardOverview() {
         ))}
       </div>
 
-      <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.18)] md:grid-cols-3 xl:grid-cols-6">
+      <div className="k-table-card grid overflow-hidden md:grid-cols-3 xl:grid-cols-6">
         {secondaryKpis.map(({ item, index }) => (
           <div
             key={item.label}
@@ -1298,7 +1298,7 @@ export function DashboardOverview() {
       <PipelineStrip entries={overview?.latestEntries ?? []} />
 
       <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+        <div className="k-card p-4 sm:p-5 xl:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Users className="text-violet-300" size={21} />
@@ -1313,12 +1313,12 @@ export function DashboardOverview() {
               </div>
             </div>
 
-            <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
+            <button className="k-button-ghost min-h-9">
               Ver todos
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
+          <div className="k-table-card overflow-x-auto">
             <div className="min-w-[760px]">
               <div className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
                 <span>#</span>
@@ -1336,7 +1336,7 @@ export function DashboardOverview() {
                   <span className="text-slate-500">{group.rank}</span>
 
                   <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-violet-500/25 text-xs font-semibold text-violet-200">
+                    <span className="k-avatar h-8 w-8 rounded-[10px] text-xs">
                       {getInitials(group.name)}
                     </span>
                     <div className="min-w-0">
@@ -1350,16 +1350,16 @@ export function DashboardOverview() {
                     </div>
                   </div>
 
-                  <span className="dashboard-number text-slate-300">
+                  <span className="k-number text-slate-300">
                     {formatCompactCurrency(group.revenue)}
                   </span>
 
-                  <span className="dashboard-number font-semibold text-emerald-300">
+                  <span className="k-number font-semibold text-emerald-300">
                     {formatCompactCurrency(group.received)}
                   </span>
 
                   <div className="flex items-center gap-3">
-                    <span className="dashboard-number w-12 text-slate-300">
+                    <span className="k-number w-12 text-slate-300">
                       {formatPercent(group.participationPercent)}
                     </span>
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
@@ -1383,7 +1383,7 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+        <div className="k-card p-4 sm:p-5 xl:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CalendarDays className="text-violet-300" size={21} />
@@ -1397,7 +1397,7 @@ export function DashboardOverview() {
               </div>
             </div>
 
-            <button className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/[0.05]">
+            <button className="k-button-ghost min-h-9">
               Vencimentos
             </button>
           </div>
@@ -1421,7 +1421,7 @@ export function DashboardOverview() {
                   className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-[16px] border border-white/[0.06] bg-white/[0.02] px-4 py-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-violet-500/25 text-xs font-semibold text-violet-200">
+                    <span className="k-avatar h-8 w-8 rounded-[10px] text-xs">
                       {getInitials(clientName)}
                     </span>
 
@@ -1436,15 +1436,12 @@ export function DashboardOverview() {
                   </div>
 
                   <div className="text-right">
-                    <strong className="dashboard-number block text-sm text-slate-200">
+                    <strong className="k-number block text-sm text-slate-200">
                       {formatCompactCurrency(item.revenue)}
                     </strong>
                     <span
-                      className={`mt-1 inline-flex rounded-lg px-2.5 py-1 text-[11px] font-semibold ${
-                        item.overdue
-                          ? "bg-rose-400/10 text-rose-200"
-                          : "bg-emerald-400/10 text-emerald-200"
-                      }`}
+                      className="k-badge mt-1"
+                      data-tone={item.overdue ? "danger" : "attention"}
                     >
                       {item.overdue ? "Atrasado" : item.status || "Aguardando"}
                     </span>
@@ -1469,4 +1466,3 @@ export function DashboardOverview() {
     </div>
   );
 }
-
