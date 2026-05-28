@@ -274,6 +274,53 @@ function SmallRanking({
   );
 }
 
+function OperationalStatusCard({ items }: { items: Bucket[] }) {
+  const maxValue = Math.max(...items.map((item) => item.count), 1);
+
+  return (
+    <section className="k-card k-status-operational-card">
+      <div className="k-section-head">
+        <div>
+          <h2>Status operacional</h2>
+          <div className="k-section-sub">Distribuição dos eventos do ciclo.</div>
+        </div>
+      </div>
+
+      <div className="k-status-operational-list">
+        {items.map((item) => (
+          <div
+            key={item.name}
+            className="k-status-operational-item"
+            data-tone={getPipelineStatusTone(item.name)}
+          >
+            <div className="k-status-operational-row">
+              <span className="k-status-operational-label">{item.name}</span>
+              <strong className="k-status-operational-value">{item.count}</strong>
+            </div>
+
+            <div className="k-status-operational-track">
+              <div
+                className="k-status-operational-bar"
+                style={{
+                  width: `${clamp((item.count / maxValue) * 100, 6, 100)}%`,
+                }}
+              />
+            </div>
+
+            <p className="k-status-operational-helper">
+              {formatCompactCurrency(item.value)}
+            </p>
+          </div>
+        ))}
+
+        {!items.length ? (
+          <div className="k-empty">Nenhum status operacional encontrado.</div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export function AgendaDashboard() {
   const [data, setData] = useState<AgendaOverviewResponse | null>(null);
   const [activeType, setActiveType] = useState("all");
@@ -583,7 +630,7 @@ export function AgendaDashboard() {
 
         <aside className="space-y-6">
           <SmallRanking title="Tipos de evento" items={byType} />
-          <SmallRanking title="Status operacional" items={byStatus} />
+          <OperationalStatusCard items={byStatus} />
         </aside>
       </section>
 

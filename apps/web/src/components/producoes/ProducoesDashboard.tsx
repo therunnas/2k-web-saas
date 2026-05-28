@@ -263,6 +263,20 @@ export function ProducoesDashboard() {
 
   const productions = data?.productions ?? [];
   const pipeline = data?.pipeline ?? [];
+  const nextCapture = useMemo(() => {
+    const pendingProductions = productions.filter((item) => {
+      const status = `${item.status} ${item.pipelineStage}`.toLowerCase();
+
+      return item.receivable > 0 || status.includes("pendente") || item.type === "RECEIVABLE";
+    });
+
+    return [...(pendingProductions.length ? pendingProductions : productions)].sort(
+      (a, b) => b.value - a.value,
+    )[0] ?? null;
+  }, [productions]);
+  const nextCaptureLinkedCount = nextCapture
+    ? productions.filter((item) => item.group === nextCapture.group).length
+    : 0;
 
   return (
     <div className="k-page space-y-6">
@@ -430,46 +444,96 @@ export function ProducoesDashboard() {
           </div>
         </div>
 
-        <aside className="k-card k-recent-list">
-          <div className="k-section-head">
-            <div>
-            <h2>
-              Status do pipeline
-            </h2>
+        <aside className="space-y-5">
+          <div className="k-card k-pipeline-status-card">
+            <div className="k-section-head">
+              <div>
+                <h2>
+                  Status do pipeline
+                </h2>
 
-            <p className="k-section-sub">
-              Distribuição operacional dos projetos.
-            </p>
+                <p className="k-section-sub">
+                  Distribuição operacional dos projetos.
+                </p>
+              </div>
+            </div>
+
+            <div className="k-pipeline-status-list">
+              {pipeline.map((stage) => (
+                <div
+                  key={stage.name}
+                  className="k-pipeline-status-item"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span
+                      className="k-pipeline-status-badge"
+                      data-tone={getPipelineTone(stage.name)}
+                    >
+                      {stage.name}
+                    </span>
+
+                    <strong className="k-pipeline-status-value">
+                      {stage.count}
+                    </strong>
+                  </div>
+
+                  <p className="k-pipeline-status-helper">
+                    Produções nesta etapa.
+                  </p>
+                </div>
+              ))}
+
+              {!pipeline.length ? (
+                <div className="k-empty">
+                  Nenhum status de produção encontrado.
+                </div>
+              ) : null}
             </div>
           </div>
 
-          <div className="space-y-3">
-            {pipeline.map((stage) => (
-              <div
-                key={stage.name}
-                className="k-card-soft p-4"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="k-badge" data-tone={getPipelineTone(stage.name)}>
-                    {stage.name}
+          <div className="k-card k-next-capture-card">
+            <div className="k-next-capture-header">
+              <div>
+                <h2>Próxima captação</h2>
+                <p>Job de maior valor pendente</p>
+              </div>
+
+              <span className="k-next-capture-rec">
+                <span />
+                REC
+              </span>
+            </div>
+
+            {nextCapture ? (
+              <div className="k-next-capture-body">
+                <div className="k-next-capture-identity">
+                  <span className="k-next-capture-avatar">
+                    {getInitials(nextCapture.group)}
                   </span>
 
-                  <strong className="k-number text-lg font-semibold text-white">
-                    {stage.count}
-                  </strong>
+                  <div className="min-w-0">
+                    <strong className="k-next-capture-title">
+                      {nextCapture.group}
+                    </strong>
+                    <span className="k-next-capture-meta">
+                      {formatDate(nextCapture.date)} · {nextCapture.brand}
+                    </span>
+                  </div>
                 </div>
 
-                <p className="mt-2 text-xs font-medium text-slate-500">
-                  Produções nesta etapa.
+                <strong className="k-next-capture-value">
+                  {formatCurrency(nextCapture.value)}
+                </strong>
+
+                <p className="k-next-capture-helper">
+                  {(nextCapture.description || nextCapture.project).trim()} · {nextCaptureLinkedCount} entradas vinculadas ao grupo.
                 </p>
               </div>
-            ))}
-
-            {!pipeline.length ? (
+            ) : (
               <div className="k-empty">
-                Nenhum status de produção encontrado.
+                Nenhuma captação pendente encontrada.
               </div>
-            ) : null}
+            )}
           </div>
         </aside>
       </section>
