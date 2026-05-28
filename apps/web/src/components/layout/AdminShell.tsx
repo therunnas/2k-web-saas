@@ -31,6 +31,8 @@ type SessionUser = {
   name: string;
   email: string;
   role: "ADMIN";
+  username?: string | null;
+  avatarDataUrl?: string | null;
 };
 
 type AdminShellProps = {
@@ -150,6 +152,68 @@ function roleLabel(role?: string | null) {
   return role;
 }
 
+function getSidebarSubLabel(user?: SessionUser | null) {
+  if (user?.username) return `@${user.username}`;
+  return user ? roleLabel(user.role) : "—";
+}
+
+function UserAvatar({ user }: { user: SessionUser | null }) {
+  const className =
+    "k-avatar h-[30px] w-[30px] overflow-hidden rounded-[9px] text-[11px] text-[var(--bg-0)]";
+
+  if (user?.avatarDataUrl) {
+    return (
+      <span className={className}>
+        <img
+          src={user.avatarDataUrl}
+          alt="Foto de perfil"
+          className="h-full w-full object-cover"
+        />
+      </span>
+    );
+  }
+
+  return <span className={className}>{getInitials(user?.name)}</span>;
+}
+
+function SidebarAvatar({ user }: { user: SessionUser | null }) {
+  const className =
+    "k-avatar h-[30px] w-[30px] overflow-hidden rounded-[9px] text-[11px] text-[var(--bg-0)]";
+
+  if (user?.avatarDataUrl) {
+    return (
+      <span className={className}>
+        <img
+          src={user.avatarDataUrl}
+          alt="Foto de perfil"
+          className="h-full w-full object-cover"
+        />
+      </span>
+    );
+  }
+
+  return <span className={className}>{getInitials(user?.name)}</span>;
+}
+
+function isPrimaryAdminEmail(email?: string | null) {
+  const normalized = email?.trim().toLowerCase();
+
+  return (
+    normalized === "admin@2kstudios.com" ||
+    normalized === "admin@2kstudio.com"
+  );
+}
+
+function getSessionDisplayName(user?: SessionUser | null) {
+  if (!user) return "Carregando...";
+  return user.name?.trim() || "Administrador";
+}
+
+function getSessionInitials(user?: SessionUser | null) {
+  if (!user) return "2K";
+  return getInitials(user.name);
+}
+
 function SidebarContent({
   pathname,
   user,
@@ -161,6 +225,18 @@ function SidebarContent({
   onNavigate?: () => void;
   onLogout: () => void;
 }) {
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  function handleAccountNavigate() {
+    setAccountMenuOpen(false);
+    onNavigate?.();
+  }
+
+  function handleAccountLogout() {
+    setAccountMenuOpen(false);
+    onLogout();
+  }
+
   return (
     <div className="flex h-full flex-col bg-[linear-gradient(180deg,oklch(0.14_0.012_270)_0%,oklch(0.125_0.01_270)_100%)] text-white">
       <div className="border-b border-[var(--line-soft)] px-[22px] pb-[18px] pt-6">
@@ -179,26 +255,6 @@ function SidebarContent({
           />
         </Link>
 
-        <div className="k-card-soft mt-[14px] p-3">
-          <div className="flex items-center gap-3">
-            <span className="flex h-[30px] w-11 shrink-0 items-center justify-center rounded-lg border border-cyan-300/30 bg-[radial-gradient(circle_at_30%_25%,oklch(0.22_0.025_270),oklch(0.16_0.014_270))] text-[11px] font-bold text-white shadow-[inset_0_1px_0_oklch(1_0_0_/_0.05),0_0_12px_-2px_oklch(0.82_0.13_200_/_0.18)]">
-              2K
-            </span>
-
-            <div className="min-w-0">
-              <p className="dashboard-label text-[9px] tracking-[0.2em] text-[var(--fg-3)]">
-                Painel privado
-              </p>
-              <strong className="mt-1 block truncate text-[12.5px] font-semibold leading-tight text-white">
-                2K STUDIOS
-              </strong>
-              <span className="mt-1 inline-flex items-center gap-[5px] font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--pos)]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[var(--pos)] shadow-[0_0_8px_var(--pos)]" />
-                online
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2.5 py-2">
@@ -244,33 +300,65 @@ function SidebarContent({
         </div>
       </nav>
 
-      <div className="flex flex-col gap-2.5 border-t border-[var(--line-soft)] px-[14px] py-3">
-        <div className="k-card-soft border-cyan-300/30 bg-[linear-gradient(135deg,var(--cyan-soft),transparent_60%),var(--bg-1)] px-3 py-2.5">
-          <p className="text-xs font-semibold text-slate-300">Atalhos</p>
-          <p className="mt-1 font-mono text-[10px] text-slate-500">⌘K · buscar</p>
-        </div>
+      <div className="relative border-t border-[var(--line-soft)] px-[14px] py-3">
+        {accountMenuOpen ? (
+          <div className="absolute bottom-[76px] left-[14px] right-[14px] z-50 rounded-[14px] border border-white/[0.10] bg-[#1f2025] p-2 shadow-[0_20px_70px_rgba(0,0,0,0.55)]">
+            <Link
+              href="/conta/perfil"
+              onClick={handleAccountNavigate}
+              className="flex items-center justify-between rounded-[10px] px-3 py-3 text-sm font-medium text-slate-100 transition hover:bg-white/[0.06]"
+            >
+              <span>Perfil</span>
+              <span className="text-slate-500">›</span>
+            </Link>
 
-        <div className="flex items-center justify-between gap-3 px-0.5 py-1">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="k-avatar h-[30px] w-[30px] rounded-[9px] text-[11px] text-[var(--bg-0)]">
-              {getInitials(user?.name)}
-            </span>
+            <Link
+              href="/configuracoes"
+              onClick={handleAccountNavigate}
+              className="flex items-center justify-between rounded-[10px] px-3 py-3 text-sm font-medium text-slate-100 transition hover:bg-white/[0.06]"
+            >
+              <span>Configurações</span>
+              <span className="text-slate-500">›</span>
+            </Link>
 
-            <div className="min-w-0">
+            <div className="my-1 h-px bg-white/[0.08]" />
+
+            <button
+              type="button"
+              onClick={handleAccountLogout}
+              className="flex w-full items-center justify-between rounded-[10px] px-3 py-3 text-left text-sm font-medium text-slate-100 transition hover:bg-rose-400/10 hover:text-rose-200"
+            >
+              <span>Sair</span>
+              <LogOut size={16} />
+            </button>
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setAccountMenuOpen((current) => !current)}
+            className="group flex min-w-0 flex-1 items-center gap-3 rounded-[12px] px-1 py-1 text-left transition hover:bg-white/[0.04]"
+            aria-expanded={accountMenuOpen}
+            aria-label="Abrir menu da conta"
+          >
+            <SidebarAvatar user={user} />
+
+            <span className="min-w-0">
               <strong className="block truncate text-sm font-semibold text-white">
-                {user?.name ?? "Carregando..."}
+                {getSessionDisplayName(user)}
               </strong>
 
               <span className="block truncate text-xs font-medium text-slate-500">
-                {user ? roleLabel(user.role) : "—"}
+                {getSidebarSubLabel(user)}
               </span>
-            </div>
-          </div>
+            </span>
+          </button>
 
           <button
             type="button"
-            onClick={onLogout}
-            className="k-icon-button h-[26px] min-h-[26px] w-[26px] min-w-[26px] rounded-[7px] text-slate-400 hover:border-rose-300/30 hover:bg-rose-400/10 hover:text-rose-200"
+            onClick={handleAccountLogout}
+            className="k-icon-button h-[30px] min-h-[30px] w-[30px] min-w-[30px] rounded-[8px] text-slate-400 hover:border-rose-300/30 hover:bg-rose-400/10 hover:text-rose-200"
             aria-label="Sair"
           >
             <LogOut size={16} />
@@ -318,8 +406,45 @@ export function AdminShell({ children }: AdminShellProps) {
 
     loadSession();
 
+    function handleProfileUpdated(event: Event) {
+      const detail = (event as CustomEvent<Partial<SessionUser>>).detail;
+
+      setUser((current) =>
+        current
+          ? {
+              ...current,
+              ...detail,
+            }
+          : current,
+      );
+    }
+
+    window.addEventListener("profile-updated", handleProfileUpdated);
+
     return () => {
       cancelled = true;
+      window.removeEventListener("profile-updated", handleProfileUpdated);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleProfileUpdated(event: Event) {
+      const detail = (event as CustomEvent<Partial<SessionUser>>).detail;
+
+      setUser((current) =>
+        current
+          ? {
+              ...current,
+              ...detail,
+            }
+          : current,
+      );
+    }
+
+    window.addEventListener("profile-updated", handleProfileUpdated);
+
+    return () => {
+      window.removeEventListener("profile-updated", handleProfileUpdated);
     };
   }, []);
 

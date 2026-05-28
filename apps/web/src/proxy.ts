@@ -30,6 +30,7 @@ const protectedRoutes = [
   "/relatorios",
   "/metas",
   "/configuracoes",
+  "/conta",
 ];
 
 function getSecretKey() {
@@ -162,5 +163,6 @@ export const config = {
     "/relatorios/:path*",
     "/metas/:path*",
     "/configuracoes/:path*",
+    "/conta/:path*",
   ],
 };
