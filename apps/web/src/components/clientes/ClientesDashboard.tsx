@@ -64,6 +64,19 @@ function formatCompactCurrency(value: number) {
   }).format(value || 0);
 }
 
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
+}
+
 function formatDate(value: string | null) {
   if (!value) return "—";
 
@@ -90,6 +103,17 @@ function getInitials(name: string) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function statusTone(value: string | null) {
+  if (!value) return "neutral";
+  if (value === "PAGO" || value === "RECEBIDO") return "success";
+  if (value === "ATRASADO") return "danger";
+  if (value === "A_RECEBER" || value === "AGUARDANDO_PAGAMENTO") return "info";
+  if (value === "NF_A_ENVIAR" || value === "GERAR_NF" || value === "CONFIRMAR_INFO") {
+    return "attention";
+  }
+  return "neutral";
 }
 
 export function ClientesDashboard() {
@@ -149,36 +173,31 @@ export function ClientesDashboard() {
         label: "Grupos ativos",
         value: summary ? String(summary.totalGroups) : "—",
         helper: "Grupos com entrada no ano",
-        icon: Users,
-        tone: "text-cyan-300",
+        tone: "k-kpi-helper-info",
       },
       {
         label: "Faturamento",
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
         helper: "Total por grupos/clientes",
-        icon: CircleDollarSign,
-        tone: "text-emerald-300",
+        tone: "k-kpi-helper-positive",
       },
       {
         label: "Recebido",
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
         helper: "Entradas pagas",
-        icon: TrendingUp,
-        tone: "text-emerald-300",
+        tone: "k-kpi-helper-positive",
       },
       {
         label: "A receber",
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
         helper: "Entradas pendentes",
-        icon: CalendarDays,
-        tone: "text-cyan-300",
+        tone: "k-kpi-helper-info",
       },
       {
         label: "Projetos",
         value: summary ? String(summary.totalProjects) : "—",
         helper: "Projetos identificados",
-        icon: Building2,
-        tone: "text-violet-300",
+        tone: "k-kpi-helper-info",
       },
       {
         label: "Top cliente",
@@ -186,8 +205,7 @@ export function ClientesDashboard() {
         helper: summary?.topClient
           ? formatCompactCurrency(summary.topClient.revenue)
           : "Sem dados",
-        icon: ArrowUpRight,
-        tone: "text-violet-300",
+        tone: "k-kpi-helper-info",
       },
     ];
   }, [data]);
@@ -195,34 +213,34 @@ export function ClientesDashboard() {
   const clients = data?.clients ?? [];
 
   return (
-    <div className="ops-page-v2 ops-page-clients space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page space-y-6">
+      <header className="k-page-header k-page-heading">
         <div>
-          <p className="dashboard-label text-[11px] text-cyan-300">
+          <p className="k-eyebrow">
             Clientes
           </p>
 
-          <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
+          <h1 className="k-title">
             Clientes e grupos.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Ranking de grupos, marcas, projetos, valores recebidos e pendências
             calculados diretamente das entradas da planilha.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-page-actions">
           <button
             type="button"
             onClick={() => loadClients()}
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="k-button-ghost"
           >
             <RefreshCw size={16} />
             {loading ? "Atualizando..." : "Atualizar"}
           </button>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+          <div className="k-button-secondary">
             <CalendarDays size={16} />
             Ano fiscal 2026
           </div>
@@ -230,52 +248,29 @@ export function ClientesDashboard() {
       </header>
 
       {errorMessage ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
 
-      <section className="ops-summary-strip grid gap-0 md:grid-cols-3 xl:grid-cols-6">
-        {summaryCards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <article
-              key={card.label}
-              className="ops-summary-card relative overflow-hidden border border-white/10 bg-[#0b101b] p-5"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="dashboard-label text-[11px] text-slate-500">
-                    {card.label}
-                  </p>
-
-                  <strong className="dashboard-number mt-3 block truncate text-[25px] font-semibold text-white">
-                    {card.value}
-                  </strong>
-
-                  <p className="mt-2 text-xs font-medium text-slate-500">
-                    {card.helper}
-                  </p>
-                </div>
-
-                <div className="ops-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-white/[0.04]">
-                  <Icon size={22} className={card.tone} />
-                </div>
-              </div>
-            </article>
-          );
-        })}
+      <section className="k-kpi-strip">
+        {summaryCards.map((card) => (
+          <article key={card.label} className="k-kpi-strip-item">
+            <span className="k-kpi-label">{card.label}</span>
+            <strong className="k-kpi-value">{renderKpiValue(card.value)}</strong>
+            <span className={`k-kpi-helper ${card.tone}`}>{card.helper}</span>
+          </article>
+        ))}
       </section>
 
-      <section className="ops-card rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="k-card k-entry-table k-ranking-table">
+        <div className="k-section-head flex-col items-start xl:flex-row xl:items-center">
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
+            <h2>
               Ranking de grupos e clientes
             </h2>
 
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="k-section-sub">
               {data
                 ? `${clients.length} grupos/clientes encontrados.`
                 : "Carregando clientes."}
@@ -292,14 +287,14 @@ export function ClientesDashboard() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar grupo, marca ou projeto..."
-              className="h-11 w-full rounded-2xl border border-white/10 bg-white/[0.035] pl-10 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40 lg:w-96"
+              className="k-input h-9 pl-10 pr-4 text-sm font-medium lg:w-96"
             />
           </form>
         </div>
 
-        <div className="ops-table-wrap overflow-x-auto rounded-2xl border border-white/10">
-          <div className="min-w-[1080px]">
-            <div className="grid grid-cols-[0.45fr_1.8fr_1fr_1fr_1fr_1fr_1.3fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        <div className="k-table-card overflow-x-auto">
+          <div className="k-table min-w-[1080px]">
+            <div data-table-head className="grid grid-cols-[0.45fr_1.8fr_1fr_1fr_1fr_1fr_1.3fr] px-5 py-3">
               <span>#</span>
               <span>Grupo / cliente</span>
               <span>Faturamento</span>
@@ -312,19 +307,19 @@ export function ClientesDashboard() {
             {clients.map((client, index) => (
               <div
                 key={client.name}
-                className="grid grid-cols-[0.45fr_1.8fr_1fr_1fr_1fr_1fr_1.3fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                className="k-table-row k-client-row grid grid-cols-[0.45fr_1.8fr_1fr_1fr_1fr_1fr_1.3fr] items-center border-b border-white/[0.045] px-5 last:border-b-0"
               >
-                <span className="dashboard-number text-slate-500">
+                <span className="k-number text-slate-500">
                   {index + 1}
                 </span>
 
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-500/25 text-xs font-semibold text-violet-200">
+                  <span className="k-avatar k-avatar-brand">
                     {getInitials(client.name)}
                   </span>
 
                   <div className="min-w-0">
-                    <strong className="block truncate font-semibold text-white">
+                    <strong className="block truncate font-semibold text-slate-100">
                       {client.name}
                     </strong>
 
@@ -336,22 +331,22 @@ export function ClientesDashboard() {
                   </div>
                 </div>
 
-                <span className="dashboard-number font-semibold text-slate-200">
+                <span className="k-number font-semibold text-slate-200">
                   {formatCurrency(client.revenue)}
                 </span>
 
-                <span className="dashboard-number text-emerald-200">
+                <span className="k-number text-emerald-200">
                   {formatCurrency(client.received)}
                 </span>
 
                 <div>
-                  <span className="dashboard-number block text-cyan-200">
+                  <span className="k-number block text-cyan-200">
                     {formatCurrency(client.receivable)}
                   </span>
 
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="k-bar-track mt-2">
                     <div
-                      className="h-full rounded-full bg-cyan-300"
+                      className="k-bar-fill"
                       style={{
                         width: `${clamp(client.openPercent, 0, 100)}%`,
                       }}
@@ -360,7 +355,7 @@ export function ClientesDashboard() {
                 </div>
 
                 <div>
-                  <span className="dashboard-number block text-slate-300">
+                  <span className="k-number block text-slate-300">
                     {client.projectsCount}
                   </span>
                   <span className="mt-1 block text-xs text-slate-600">
@@ -372,15 +367,20 @@ export function ClientesDashboard() {
                   <span className="line-clamp-1 text-sm font-medium text-slate-300">
                     {client.lastProject ?? "—"}
                   </span>
-                  <span className="mt-1 block text-xs text-slate-600">
-                    {formatDate(client.lastDate)}
-                  </span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-xs text-slate-600">{formatDate(client.lastDate)}</span>
+                    {client.lastStatus ? (
+                      <span className="k-badge" data-tone={statusTone(client.lastStatus)}>
+                        {client.lastStatus}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ))}
 
             {!clients.length ? (
-              <div className="px-5 py-8 text-sm font-medium text-slate-500">
+              <div className="k-empty">
                 Nenhum cliente encontrado para a busca atual.
               </div>
             ) : null}

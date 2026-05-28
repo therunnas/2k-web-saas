@@ -1045,10 +1045,20 @@ a {
 
 .k-page-heading {
   display: flex;
+  width: 100%;
+  flex-direction: row;
   align-items: flex-end;
   justify-content: space-between;
   gap: 22px;
   flex-wrap: wrap;
+  margin-left: 0;
+  text-align: left;
+}
+
+.k-page-heading > :first-child {
+  min-width: 0;
+  max-width: 640px;
+  margin-left: 0;
 }
 
 .k-page-actions {
@@ -1057,6 +1067,7 @@ a {
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 8px;
+  margin-left: auto;
 }
 
 .k-finance-kpi-strip {
@@ -1269,6 +1280,78 @@ a {
   color: var(--crit);
 }
 
+.k-ranking-table .k-table-row,
+.k-due-table .k-table-row {
+  min-height: 52px;
+}
+
+.k-avatar-brand,
+.k-avatar-soft {
+  border: 1px solid var(--cyan-edge);
+  background:
+    radial-gradient(circle at 80% 0%, var(--purple-soft), transparent 58%),
+    var(--cyan-soft);
+  color: oklch(0.88 0.08 210);
+}
+
+.k-avatar-soft {
+  border-color: var(--line-soft);
+  background: var(--bg-3);
+  color: var(--fg-2);
+}
+
+.k-recent-list {
+  padding: 20px;
+}
+
+.k-recent-list .k-section-head {
+  margin-bottom: 16px;
+}
+
+.k-recent-list .k-card-soft {
+  border-color: var(--line-soft);
+  border-radius: 10px;
+}
+
+.k-status-dot {
+  width: 6px;
+  height: 6px;
+  display: inline-block;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.k-badge-paid,
+.k-badge-waiting,
+.k-badge-pending,
+.k-badge-overdue {
+  min-height: 20px;
+}
+
+.k-badge-paid {
+  border-color: oklch(0.82 0.16 160 / 0.24);
+  background: var(--pos-soft);
+  color: var(--pos);
+}
+
+.k-badge-waiting {
+  border-color: var(--cyan-edge);
+  background: var(--cyan-soft);
+  color: var(--cyan);
+}
+
+.k-badge-pending {
+  border-color: oklch(0.82 0.14 75 / 0.28);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.k-badge-overdue {
+  border-color: oklch(0.74 0.18 25 / 0.26);
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+
 @media (max-width: 1280px) {
   .k-kpi-primary-grid {
     grid-template-columns: 1fr;
@@ -1306,6 +1389,16 @@ a {
   .k-dashboard-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .k-page-heading > :first-child,
+  .k-page-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .k-page-actions {
+    justify-content: flex-start;
   }
 
   .k-form-grid {
