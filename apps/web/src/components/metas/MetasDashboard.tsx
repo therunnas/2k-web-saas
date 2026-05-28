@@ -208,7 +208,7 @@ export function MetasDashboard() {
   const monthly = data?.monthly ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="ops-page-v2 final-page-v2 final-page-goals space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">
@@ -486,3 +486,4 @@ export function MetasDashboard() {
     </div>
   );
 }
+

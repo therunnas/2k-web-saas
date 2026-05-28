@@ -1,15 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import {
   BarChart3,
-  CircleMinus,
-  CirclePlus,
+  Bell,
   CalendarClock,
   CalendarDays,
+  CircleMinus,
+  CirclePlus,
   Clapperboard,
   CreditCard,
   FileText,
@@ -17,20 +19,13 @@ import {
   LogOut,
   Menu,
   Network,
+  Search,
   Settings,
   Target,
   Users,
   X,
 } from "lucide-react";
 
-/**
- * Subconjunto do payload da sessão consumido pela sidebar.
- *
- * Bate com o que `/api/auth/session` retorna no campo `session` e com o
- * `SessionPayload` de `@/lib/auth`. Mantido como type local em vez de
- * importar do server para evitar acoplar este client component a módulos
- * server-side (e quebrar a fronteira "use client").
- */
 type SessionUser = {
   name: string;
   email: string;
@@ -41,71 +36,91 @@ type AdminShellProps = {
   children: ReactNode;
 };
 
-const navItems = [
+const navGroups = [
   {
-    label: "Visão geral",
-    href: "/dashboard",
-    icon: LayoutDashboard,
+    label: "Operação",
+    items: [
+      {
+        label: "Visão geral",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+      },
+      {
+        label: "Financeiro",
+        href: "/financeiro",
+        icon: BarChart3,
+      },
+      {
+        label: "Entradas",
+        href: "/entradas",
+        icon: CirclePlus,
+      },
+      {
+        label: "Saídas",
+        href: "/saidas",
+        icon: CircleMinus,
+      },
+    ],
   },
   {
-    label: "Financeiro",
-    href: "/financeiro",
-    icon: BarChart3,
+    label: "Comercial",
+    items: [
+      {
+        label: "Clientes",
+        href: "/clientes",
+        icon: Users,
+      },
+      {
+        label: "Grupos",
+        href: "/grupos",
+        icon: Network,
+      },
+      {
+        label: "Vencimentos",
+        href: "/vencimentos",
+        icon: CalendarClock,
+      },
+    ],
   },
   {
-    label: "Entradas",
-    href: "/entradas",
-    icon: CirclePlus,
+    label: "Estúdio",
+    items: [
+      {
+        label: "Despesas",
+        href: "/despesas",
+        icon: CreditCard,
+      },
+      {
+        label: "Produções",
+        href: "/producoes",
+        icon: Clapperboard,
+      },
+      {
+        label: "Agenda",
+        href: "/agenda",
+        icon: CalendarDays,
+      },
+    ],
   },
   {
-    label: "Saídas",
-    href: "/saidas",
-    icon: CircleMinus,
-  },
-  {
-    label: "Clientes",
-    href: "/clientes",
-    icon: Users,
-  },
-  {
-    label: "Grupos",
-    href: "/grupos",
-    icon: Network,
-  },
-  {
-    label: "Vencimentos",
-    href: "/vencimentos",
-    icon: CalendarClock,
-  },
-  {
-    label: "Despesas",
-    href: "/despesas",
-    icon: CreditCard,
-  },
-  {
-    label: "Produções",
-    href: "/producoes",
-    icon: Clapperboard,
-  },
-  {
-    label: "Agenda",
-    href: "/agenda",
-    icon: CalendarDays,
-  },
-  {
-    label: "Relatórios",
-    href: "/relatorios",
-    icon: FileText,
-  },
-  {
-    label: "Metas",
-    href: "/metas",
-    icon: Target,
-  },
-  {
-    label: "Configurações",
-    href: "/configuracoes",
-    icon: Settings,
+    label: "Inteligência",
+    items: [
+      {
+        label: "Relatórios",
+        href: "/relatorios",
+        icon: FileText,
+      },
+      {
+        label: "Metas",
+        href: "/metas",
+        icon: Target,
+      },
+      {
+        label: "Configurações",
+        href: "/configuracoes",
+        icon: Settings,
+      },
+    ],
   },
 ];
 
@@ -117,26 +132,14 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function Brand() {
-  return (
-    <Link href="/dashboard" className="flex items-center gap-2">
-      <span className="text-[30px] font-semibold tracking-[-0.08em]">
-        <span className="text-violet-400">2</span>
-        <span className="text-cyan-300">K</span>
-      </span>
-
-      <span className="text-[13px] font-semibold uppercase tracking-[0.32em] text-white">
-        Studios
-      </span>
-    </Link>
-  );
-}
-
 function getInitials(name?: string | null) {
   if (!name) return "2K";
+
   const parts = name.trim().split(/\s+/).filter(Boolean);
+
   if (parts.length === 0) return "2K";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
@@ -158,79 +161,112 @@ function SidebarContent({
   onLogout: () => void;
 }) {
   return (
-    <div className="flex h-full flex-col">
-      <div className="px-6 pb-5 pt-7">
-        <Brand />
-      </div>
+    <div className="flex h-full flex-col bg-[#07080d] text-white">
+      <div className="border-b border-white/10 px-4 py-4">
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          className="flex items-center"
+        >
+          <Image
+            src="/assets/2k-studios-logo.png"
+            alt="2K STUDIOS"
+            width={168}
+            height={48}
+            priority
+            className="h-auto w-[122px] opacity-95"
+          />
+        </Link>
 
-      <div className="mx-4 mb-4 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-        <p className="dashboard-label text-[10px] text-slate-500">Workspace</p>
+        <div className="mt-4 rounded-[14px] border border-white/10 bg-white/[0.035] p-3">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="dashboard-label text-[10px] text-slate-500">
+              Workspace
+            </p>
 
-        <div className="mt-3 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-sm font-semibold text-white">
-            2K
-          </span>
-
-          <div className="min-w-0">
-            <strong className="block truncate text-sm font-semibold text-white">
-              2K Studios
-            </strong>
-            <span className="text-xs font-medium text-slate-500">
-              Painel privado
+            <span className="rounded-full bg-emerald-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-emerald-300">
+              Online
             </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-cyan-300/20 bg-cyan-300/10 text-xs font-bold text-cyan-100">
+              2K
+            </span>
+
+            <div className="min-w-0">
+              <strong className="block truncate text-sm font-semibold text-white">
+                2K Studios
+              </strong>
+              <span className="block truncate text-xs font-medium text-slate-500">
+                Painel privado
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
-        {navItems.map((item) => {
-          const active = isActive(pathname, item.href);
-          const Icon = item.icon;
+      <nav className="flex-1 overflow-y-auto px-2.5 py-4">
+        <div className="space-y-4">
+          {navGroups.map((group) => (
+            <section key={group.label}>
+              <p className="dashboard-label mb-2 px-3 text-[10px] text-slate-600">
+                {group.label}
+              </p>
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition ${
-                active
-                  ? "bg-white/[0.085] text-white shadow-[inset_3px_0_0_rgba(34,211,238,0.9)]"
-                  : "text-slate-400 hover:bg-white/[0.045] hover:text-slate-200"
-              }`}
-            >
-              <Icon
-                size={17}
-                className={
-                  active
-                    ? "text-cyan-300"
-                    : "text-slate-500 group-hover:text-slate-300"
-                }
-              />
-              {item.label}
-            </Link>
-          );
-        })}
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const active = isActive(pathname, item.href);
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onNavigate}
+                      className={`group flex items-center gap-3 rounded-[12px] px-3 py-2 text-[13px] font-semibold transition ${
+                        active
+                          ? "border border-cyan-300/20 bg-cyan-300/10 text-white shadow-[inset_3px_0_0_rgba(34,211,238,0.9)]"
+                          : "border border-transparent text-slate-400 hover:border-white/10 hover:bg-white/[0.035] hover:text-slate-100"
+                      }`}
+                    >
+                      <Icon
+                        size={16}
+                        className={
+                          active
+                            ? "text-cyan-300"
+                            : "text-slate-600 group-hover:text-slate-300"
+                        }
+                      />
+
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
       </nav>
 
-      <div className="border-t border-white/10 p-4">
-        <div className="mb-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-          <p className="text-xs font-semibold text-slate-400">Suporte</p>
-          <p className="mt-1 text-xs font-medium text-slate-600">
-            Atendimento rápido
-          </p>
+      <div className="border-t border-white/10 p-3">
+        <div className="mb-3 rounded-[14px] border border-cyan-300/15 bg-cyan-300/[0.04] p-3">
+          <p className="text-xs font-semibold text-slate-300">Suporte</p>
+          <p className="mt-1 text-xs text-slate-600">Atendimento rápido</p>
         </div>
 
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+        <div className="flex items-center justify-between gap-3 rounded-[16px] border border-white/10 bg-white/[0.035] p-3">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-300 text-xs font-semibold text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-violet-300/25 bg-violet-400/15 text-xs font-bold text-white">
               {getInitials(user?.name)}
             </span>
 
             <div className="min-w-0">
-              <strong className="block truncate text-sm font-semibold">
+              <strong className="block truncate text-sm font-semibold text-white">
                 {user?.name ?? "Carregando..."}
               </strong>
-              <span className="text-xs font-medium text-slate-500">
+
+              <span className="block truncate text-xs font-medium text-slate-500">
                 {user ? roleLabel(user.role) : "—"}
               </span>
             </div>
@@ -239,7 +275,7 @@ function SidebarContent({
           <button
             type="button"
             onClick={onLogout}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 text-slate-400 transition hover:bg-white/[0.05] hover:text-white"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-white/10 text-slate-400 transition hover:border-rose-300/30 hover:bg-rose-400/10 hover:text-rose-200"
             aria-label="Sair"
           >
             <LogOut size={16} />
@@ -253,12 +289,8 @@ function SidebarContent({
 export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // `undefined` = ainda carregando, `null` = não autenticado.
-  // Em prática, se o middleware está fazendo o trabalho dele, todo
-  // mount do AdminShell ocorre com sessão válida — mas tratamos o caso
-  // de borda (cookie expirado durante navegação) sem quebrar a UI.
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<SessionUser | null | undefined>(undefined);
 
   useEffect(() => {
@@ -309,8 +341,10 @@ export function AdminShell({ children }: AdminShellProps) {
   const sidebarUser = user === undefined ? null : user;
 
   return (
-    <main className="dashboard-ui min-h-screen bg-[#070b13] text-white">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[260px] border-r border-white/10 bg-[#070b13]/95 backdrop-blur-xl xl:block">
+    <main className="dashboard-ui min-h-screen bg-[#07080d] text-white">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(900px_600px_at_18%_-10%,rgba(124,58,237,0.10),transparent_62%),radial-gradient(1000px_700px_at_100%_110%,rgba(34,211,238,0.07),transparent_62%)]" />
+
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[240px] border-r border-white/10 bg-[#07080d]/95 backdrop-blur-xl xl:block">
         <SidebarContent
           pathname={pathname}
           user={sidebarUser}
@@ -322,17 +356,17 @@ export function AdminShell({ children }: AdminShellProps) {
         <div className="fixed inset-0 z-50 xl:hidden">
           <button
             type="button"
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Fechar menu"
           />
 
-          <aside className="absolute inset-y-0 left-0 w-[ min(86vw,320px) ] border-r border-white/10 bg-[#070b13] shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+          <aside className="absolute inset-y-0 left-0 w-[min(88vw,330px)] border-r border-white/10 bg-[#07080d] shadow-[0_24px_90px_rgba(0,0,0,0.55)]">
             <div className="absolute right-4 top-4 z-10">
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035] text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
+                className="flex h-10 w-10 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.035] text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
                 aria-label="Fechar menu"
               >
                 <X size={18} />
@@ -349,48 +383,57 @@ export function AdminShell({ children }: AdminShellProps) {
         </div>
       ) : null}
 
-      <section className="min-h-screen xl:pl-[260px]">
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#070b13]/80 px-4 py-4 backdrop-blur-xl sm:px-6 xl:px-8">
+      <section className="relative min-h-screen xl:pl-[240px]">
+        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07080d]/82 px-4 py-2.5 backdrop-blur-xl sm:px-5 xl:px-6">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.035] text-slate-300 transition hover:bg-white/[0.06] hover:text-white xl:hidden"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border border-white/10 bg-white/[0.035] text-slate-300 transition hover:bg-white/[0.06] hover:text-white xl:hidden"
                 aria-label="Abrir menu"
               >
                 <Menu size={18} />
               </button>
 
-              <div className="xl:hidden">
-                <Link href="/dashboard" className="flex items-center gap-2">
-                  <span className="text-[26px] font-semibold tracking-[-0.08em]">
-                    <span className="text-violet-400">2</span>
-                    <span className="text-cyan-300">K</span>
-                  </span>
-                  <span className="hidden text-[11px] font-semibold uppercase tracking-[0.28em] sm:block">
-                    Studios
-                  </span>
-                </Link>
+              <div className="hidden min-w-0 items-center gap-2 text-xs font-medium text-slate-500 md:flex">
+                <span>2K STUDIOS</span>
+                <span className="text-slate-700">/</span>
+                <span className="truncate text-slate-300">
+                  {pathname === "/dashboard"
+                    ? "Dashboard executivo"
+                    : pathname.replace("/", "") || "Painel"}
+                </span>
               </div>
             </div>
 
-            <div className="hidden xl:block" />
+            <div className="hidden w-full max-w-[390px] items-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-slate-500 lg:flex">
+              <Search size={15} />
+              <span className="text-xs">Buscar lançamento, projeto...</span>
+            </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="hidden items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2 text-xs font-medium text-slate-300 sm:flex">
-                <CalendarDays size={15} />
+            <div className="flex shrink-0 items-center gap-2">
+              <div className="hidden items-center gap-2 rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 sm:flex">
+                <CalendarDays size={14} />
                 Ano fiscal 2026
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-medium text-slate-300 sm:px-4">
+              <div className="hidden rounded-[12px] border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-medium text-slate-300 sm:block">
                 01 Jan — 31 Dez 2026
               </div>
+
+              <button
+                type="button"
+                className="flex h-9 w-9 items-center justify-center rounded-[11px] border border-white/10 bg-white/[0.03] text-slate-400 transition hover:bg-white/[0.06] hover:text-white"
+                aria-label="Notificações"
+              >
+                <Bell size={16} />
+              </button>
             </div>
           </div>
         </header>
 
-        <div className="px-4 py-6 sm:px-6 xl:px-8">{children}</div>
+        <div className="relative px-4 py-4 sm:px-5 xl:px-6">{children}</div>
       </section>
     </main>
   );

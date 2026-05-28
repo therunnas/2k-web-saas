@@ -343,7 +343,7 @@ export function AgendaDashboard() {
   const byStatus = data?.breakdown.byStatus ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="ops-page-v2 ops-page-agenda space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">
@@ -574,7 +574,7 @@ export function AgendaDashboard() {
           </div>
         </div>
 
-        <aside className="space-y-6">
+        <aside className="ops-page-v2 ops-page-agenda space-y-6">
           <SmallRanking title="Tipos de evento" items={byType} />
           <SmallRanking title="Status operacional" items={byStatus} />
         </aside>
@@ -625,3 +625,4 @@ export function AgendaDashboard() {
     </div>
   );
 }
+

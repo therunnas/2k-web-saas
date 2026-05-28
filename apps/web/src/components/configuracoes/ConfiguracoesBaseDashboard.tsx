@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -337,7 +337,7 @@ export function ConfiguracoesBaseDashboard() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="manual-page-v2 final-page-v2 final-page-config space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">

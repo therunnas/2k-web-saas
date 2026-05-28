@@ -1,9 +1,37 @@
-@import "@fontsource-variable/inter";
+﻿@import "@fontsource-variable/inter";
 @import "tailwindcss";
 
 :root {
-  --background: #070b13;
+  --background: #090a10;
   --foreground: #f8fafc;
+
+  --bg-0: oklch(0.13 0.012 270);
+  --bg-1: oklch(0.16 0.014 270);
+  --bg-2: oklch(0.185 0.016 270);
+  --bg-3: oklch(0.22 0.018 270);
+
+  --line: oklch(0.27 0.018 270);
+  --line-soft: oklch(0.22 0.015 270);
+
+  --fg-0: oklch(0.98 0.005 270);
+  --fg-1: oklch(0.86 0.01 270);
+  --fg-2: oklch(0.66 0.015 270);
+  --fg-3: oklch(0.48 0.015 270);
+
+  --cyan: oklch(0.82 0.13 200);
+  --cyan-soft: oklch(0.82 0.13 200 / 0.14);
+  --cyan-edge: oklch(0.82 0.13 200 / 0.32);
+
+  --purple: oklch(0.72 0.18 295);
+  --purple-soft: oklch(0.72 0.18 295 / 0.16);
+  --purple-edge: oklch(0.72 0.18 295 / 0.36);
+
+  --pos: oklch(0.82 0.16 160);
+  --pos-soft: oklch(0.82 0.16 160 / 0.14);
+  --warn: oklch(0.82 0.14 75);
+  --warn-soft: oklch(0.82 0.14 75 / 0.14);
+  --crit: oklch(0.74 0.18 25);
+  --crit-soft: oklch(0.74 0.18 25 / 0.14);
 
   --font-dashboard:
     "Inter Variable",
@@ -22,6 +50,14 @@
     "Roboto Mono",
     Consolas,
     monospace;
+
+  --shadow-glow-cyan:
+    0 0 0 1px var(--cyan-edge),
+    0 8px 32px -8px oklch(0.82 0.13 200 / 0.35);
+
+  --shadow-glow-purple:
+    0 0 0 1px var(--purple-edge),
+    0 8px 32px -8px oklch(0.72 0.18 295 / 0.35);
 }
 
 * {
@@ -29,6 +65,7 @@
 }
 
 html {
+  min-height: 100%;
   background: var(--background);
   color: var(--foreground);
   text-rendering: optimizeLegibility;
@@ -40,11 +77,14 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 32%),
-    radial-gradient(circle at top right, rgba(34, 211, 238, 0.08), transparent 28%),
-    var(--background);
+    radial-gradient(900px 600px at 8% -10%, oklch(0.72 0.18 295 / 0.10), transparent 60%),
+    radial-gradient(1100px 700px at 95% 110%, oklch(0.82 0.13 200 / 0.08), transparent 60%),
+    linear-gradient(180deg, #090a10 0%, #07080d 100%);
   color: var(--foreground);
   font-family: var(--font-dashboard);
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
   font-feature-settings:
     "cv02",
     "cv03",
@@ -52,6 +92,7 @@ body {
     "cv11",
     "tnum";
   font-variant-numeric: tabular-nums;
+  overflow-x: hidden;
 }
 
 button,
@@ -61,13 +102,17 @@ select {
   font: inherit;
 }
 
+button {
+  color: inherit;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
 ::selection {
-  background: rgba(34, 211, 238, 0.28);
+  background: oklch(0.82 0.13 200 / 0.28);
   color: #ffffff;
 }
 
@@ -114,4 +159,3280 @@ a {
 .dashboard-code {
   font-family: var(--font-mono-dashboard);
   font-variant-numeric: tabular-nums;
+}
+
+.app-surface {
+  background: oklch(0.16 0.014 270 / 0.82);
+  border: 1px solid oklch(0.27 0.018 270 / 0.9);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px);
+}
+
+.app-card {
+  background: linear-gradient(
+    180deg,
+    oklch(0.185 0.016 270 / 0.92),
+    oklch(0.145 0.014 270 / 0.94)
+  );
+  border: 1px solid oklch(0.27 0.018 270 / 0.88);
+  border-radius: 18px;
+}
+
+.app-input {
+  background: oklch(0.16 0.014 270);
+  border: 1px solid oklch(0.27 0.018 270);
+  color: var(--fg-0);
+}
+
+.app-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--cyan-soft);
+  outline: none;
+}
+
+.app-button-primary {
+  background:
+    linear-gradient(180deg, oklch(0.82 0.13 200 / 0.18), oklch(0.72 0.18 295 / 0.18)),
+    linear-gradient(135deg, oklch(0.22 0.04 200), oklch(0.18 0.05 295));
+  border: 1px solid var(--cyan-edge);
+  color: var(--fg-0);
+  box-shadow:
+    0 1px 0 oklch(1 0 0 / 0.05) inset,
+    0 6px 24px -8px oklch(0.82 0.13 200 / 0.35);
+}
+
+.app-button-primary:hover {
+  filter: brightness(1.08);
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard visual refinement                                   */
+/* Escopo seguro: apenas DashboardOverview com .dashboard-overview-v2          */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 {
+  position: relative;
+  max-width: 1540px;
+  margin-inline: auto;
+}
+
+.dashboard-overview-v2 > header {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid oklch(0.27 0.018 270 / 0.78);
+  border-radius: 24px;
+  background:
+    radial-gradient(700px 220px at 0% 0%, oklch(0.82 0.13 200 / 0.08), transparent 60%),
+    radial-gradient(580px 240px at 100% 0%, oklch(0.72 0.18 295 / 0.08), transparent 58%),
+    linear-gradient(180deg, oklch(0.16 0.014 270 / 0.92), oklch(0.125 0.012 270 / 0.94));
+  padding: 22px;
+  box-shadow: 0 26px 90px rgba(0, 0, 0, 0.22);
+}
+
+.dashboard-overview-v2 > header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(90deg, black, transparent 82%);
+  opacity: 0.65;
+}
+
+.dashboard-overview-v2 > header > * {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-overview-v2 > header p:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.dashboard-overview-v2 > header p:first-child::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 18px oklch(0.82 0.13 200 / 0.9);
+}
+
+.dashboard-overview-v2 > header h1 {
+  margin-top: 10px;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 0.95;
+  letter-spacing: -0.065em;
+}
+
+.dashboard-overview-v2 > header h1::after {
+  content: "operação no ritmo.";
+  display: inline;
+  margin-left: 10px;
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dashboard-overview-v2 > header p:not(:first-child) {
+  max-width: 720px;
+  color: var(--fg-2);
+}
+
+.dashboard-overview-v2 > header button,
+.dashboard-overview-v2 > header [class*="rounded-2xl"] {
+  border-color: oklch(0.27 0.018 270 / 0.86) !important;
+  background: oklch(0.16 0.014 270 / 0.74) !important;
+  color: var(--fg-1) !important;
+  border-radius: 14px !important;
+}
+
+.dashboard-kpi-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px !important;
+}
+
+.dashboard-kpi-grid > article {
+  position: relative;
+  overflow: hidden;
+  min-height: 136px !important;
+  border: 1px solid oklch(0.27 0.018 270 / 0.86) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(240px 120px at 100% 0%, oklch(0.82 0.13 200 / 0.065), transparent 64%),
+    linear-gradient(180deg, oklch(0.17 0.014 270 / 0.95), oklch(0.13 0.012 270 / 0.98)) !important;
+  padding: 20px !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+.dashboard-kpi-grid > article::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, oklch(0.82 0.13 200 / 0.45), transparent);
+  opacity: 0.8;
+}
+
+.dashboard-kpi-grid > article::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: oklch(0.82 0.13 200 / 0.07);
+  border: 1px solid oklch(0.82 0.13 200 / 0.10);
+  filter: blur(0);
+  opacity: 0.7;
+}
+
+.dashboard-kpi-grid > article .dashboard-label {
+  color: var(--fg-3) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.18em !important;
+}
+
+.dashboard-kpi-grid > article .dashboard-number {
+  margin-top: 14px !important;
+  font-size: clamp(22px, 2vw, 30px) !important;
+  line-height: 1 !important;
+  color: var(--fg-0) !important;
+}
+
+.dashboard-kpi-grid > article p {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-kpi-grid > article p:last-child {
+  color: var(--fg-3) !important;
+}
+
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid) {
+  border: 1px solid oklch(0.27 0.018 270 / 0.86);
+  border-radius: 22px;
+  background:
+    radial-gradient(700px 260px at 0% 0%, oklch(0.82 0.13 200 / 0.04), transparent 62%),
+    linear-gradient(180deg, oklch(0.155 0.014 270 / 0.92), oklch(0.115 0.012 270 / 0.96));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.20);
+}
+
+.dashboard-overview-v2 svg {
+  filter: drop-shadow(0 18px 38px rgba(34, 211, 238, 0.055));
+}
+
+.dashboard-overview-v2 table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.dashboard-overview-v2 th {
+  color: var(--fg-3) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+}
+
+.dashboard-overview-v2 td {
+  border-color: oklch(0.27 0.018 270 / 0.55) !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-overview-v2 > header {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-overview-v2 > header h1::after {
+    display: block;
+    margin-left: 0;
+    margin-top: 6px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard fidelity pass                                        */
+/* Aproxima o dashboard real do protótipo aprovado no Claude Design            */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+
+/* Header mais limpo, sem parecer card fechado */
+.dashboard-overview-v2 > header {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 8px 0 26px !important;
+  overflow: visible !important;
+}
+
+.dashboard-overview-v2 > header::before {
+  display: none !important;
+}
+
+.dashboard-overview-v2 > header p:first-child {
+  color: var(--cyan) !important;
+  font-size: 10px !important;
+  font-weight: 760 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+}
+
+.dashboard-overview-v2 > header h1 {
+  margin-top: 8px !important;
+  font-size: clamp(34px, 3.2vw, 48px) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.065em !important;
+}
+
+.dashboard-overview-v2 > header h1::after {
+  content: none !important;
+}
+
+.dashboard-overview-v2 > header h1 span,
+.dashboard-overview-v2 > header strong {
+  background: linear-gradient(90deg, var(--cyan), var(--purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dashboard-overview-v2 > header p:not(:first-child) {
+  max-width: 760px !important;
+  color: var(--fg-2) !important;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+}
+
+/* Grade dos KPIs no padrão do protótipo:
+   3 cards principais em cima + faixa compacta abaixo */
+.dashboard-kpi-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: stretch !important;
+}
+
+/* Ordem visual: Faturamento, Recebido, Lucro no topo */
+.dashboard-kpi-grid > article:nth-child(1) {
+  order: 1;
+  grid-column: span 2;
+}
+
+.dashboard-kpi-grid > article:nth-child(2) {
+  order: 2;
+  grid-column: span 2;
+}
+
+.dashboard-kpi-grid > article:nth-child(8) {
+  order: 3;
+  grid-column: span 2;
+}
+
+/* Secundários compactos */
+.dashboard-kpi-grid > article:nth-child(3) {
+  order: 4;
+}
+
+.dashboard-kpi-grid > article:nth-child(4) {
+  order: 5;
+}
+
+.dashboard-kpi-grid > article:nth-child(5) {
+  order: 6;
+}
+
+.dashboard-kpi-grid > article:nth-child(6) {
+  order: 7;
+}
+
+.dashboard-kpi-grid > article:nth-child(7) {
+  order: 8;
+}
+
+.dashboard-kpi-grid > article:nth-child(9) {
+  order: 9;
+}
+
+/* Cards principais */
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  min-height: 168px !important;
+  padding: 28px !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(320px 150px at 100% 0%, oklch(0.82 0.13 200 / 0.09), transparent 64%),
+    linear-gradient(180deg, oklch(0.17 0.014 270 / 0.96), oklch(0.12 0.012 270 / 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(2) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(8) .dashboard-number {
+  margin-top: 22px !important;
+  font-size: clamp(34px, 3.2vw, 46px) !important;
+  letter-spacing: -0.07em !important;
+}
+
+/* Cards secundários em faixa compacta */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  grid-column: span 1;
+  min-height: 104px !important;
+  padding: 17px !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(180deg, oklch(0.155 0.014 270 / 0.94), oklch(0.118 0.012 270 / 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  margin-top: 10px !important;
+  font-size: clamp(20px, 1.7vw, 25px) !important;
+  letter-spacing: -0.055em !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+}
+
+/* Reduz ruído visual dos microtextos */
+.dashboard-kpi-grid > article p:last-child {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  opacity: 0.72;
+}
+
+/* Seções abaixo mais próximas do protótipo */
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid) {
+  border-radius: 24px !important;
+  background:
+    radial-gradient(720px 280px at 0% 0%, oklch(0.82 0.13 200 / 0.04), transparent 64%),
+    linear-gradient(180deg, oklch(0.15 0.014 270 / 0.96), oklch(0.105 0.012 270 / 0.98)) !important;
+}
+
+/* Gráfico com mais presença */
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid) svg {
+  min-height: 280px;
+}
+
+/* Tabelas mais limpas */
+.dashboard-overview-v2 table {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.dashboard-overview-v2 tbody tr {
+  transition: background 0.18s ease;
+}
+
+.dashboard-overview-v2 tbody tr:hover {
+  background: oklch(0.82 0.13 200 / 0.035);
+}
+
+/* Responsivo */
+@media (max-width: 1320px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8),
+  .dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 140px !important;
+    padding: 22px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Fidelity polish from Claude Design                             */
+/* Mantém dados reais. Ajusta apenas acabamento visual.                        */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --ff-ui: "Geist", "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ff-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  --r-card: 14px;
+  --r-chip: 8px;
+  --r-pill: 999px;
+  --side-w: 248px;
+  --top-h: 56px;
+}
+
+body,
+.dashboard-ui {
+  font-family: var(--ff-ui);
+  font-feature-settings: "ss01", "cv11", "tnum";
+}
+
+.dashboard-number,
+.dashboard-code,
+.mono,
+[class*="dashboard-number"] {
+  font-family: var(--ff-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+}
+
+.dashboard-overview-v2 {
+  --dash-card: oklch(0.155 0.014 270 / 0.92);
+  --dash-card-2: oklch(0.125 0.012 270 / 0.98);
+  --dash-line: oklch(0.27 0.018 270 / 0.72);
+  --dash-line-soft: oklch(0.22 0.015 270 / 0.72);
+  --dash-muted: oklch(0.55 0.015 270);
+  --dash-faint: oklch(0.42 0.015 270);
+}
+
+/* Deixa o dashboard com largura e densidade mais próximas do protótipo */
+.dashboard-overview-v2 {
+  max-width: none !important;
+  padding-bottom: 24px;
+}
+
+.dashboard-overview-v2 > header {
+  padding-top: 18px !important;
+  padding-bottom: 24px !important;
+}
+
+.dashboard-overview-v2 > header h1 {
+  font-size: clamp(38px, 3.35vw, 50px) !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.075em !important;
+}
+
+.dashboard-overview-v2 > header p {
+  letter-spacing: -0.012em;
+}
+
+/* Top summary strip */
+.dashboard-overview-v2 [class*="grid-cols"][class*="border-white"] {
+  border-color: var(--dash-line-soft);
+}
+
+/* KPIs principais mais parecidos com o Claude Design */
+.dashboard-kpi-grid > article {
+  border-color: var(--dash-line) !important;
+  background:
+    radial-gradient(320px 120px at 100% 0%, oklch(0.82 0.13 200 / 0.055), transparent 62%),
+    linear-gradient(180deg, var(--dash-card), var(--dash-card-2)) !important;
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.22) !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  border-top-color: oklch(0.82 0.13 200 / 0.34) !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1)::before,
+.dashboard-kpi-grid > article:nth-child(2)::before,
+.dashboard-kpi-grid > article:nth-child(8)::before {
+  height: 2px !important;
+  background: linear-gradient(90deg, var(--cyan), var(--purple), transparent) !important;
+  opacity: 0.72;
+}
+
+.dashboard-kpi-grid > article .dashboard-label {
+  font-family: var(--ff-mono);
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.18em !important;
+  color: var(--dash-faint) !important;
+}
+
+.dashboard-kpi-grid > article .dashboard-number {
+  font-weight: 600 !important;
+}
+
+.dashboard-kpi-grid > article p:last-child {
+  color: var(--dash-faint) !important;
+}
+
+/* Faixa compacta de KPIs secundários */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 96px !important;
+  border-radius: 14px !important;
+  padding: 16px !important;
+}
+
+/* Cards gerais */
+.dashboard-overview-v2 section,
+.dashboard-overview-v2 .card,
+.dashboard-overview-v2 [class*="rounded-[1.75rem]"],
+.dashboard-overview-v2 [class*="rounded-[24px]"] {
+  border-color: var(--dash-line) !important;
+}
+
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid),
+.dashboard-overview-v2 .card {
+  background:
+    radial-gradient(600px 260px at 0% 0%, oklch(0.82 0.13 200 / 0.035), transparent 62%),
+    linear-gradient(180deg, oklch(0.15 0.014 270 / 0.96), oklch(0.105 0.012 270 / 0.985)) !important;
+}
+
+/* Botões do dashboard */
+.dashboard-overview-v2 button {
+  border-color: oklch(0.27 0.018 270 / 0.84) !important;
+  background: oklch(0.16 0.014 270 / 0.78) !important;
+  color: var(--fg-1) !important;
+  border-radius: 10px !important;
+  font-weight: 560 !important;
+  letter-spacing: -0.01em;
+}
+
+.dashboard-overview-v2 button:hover {
+  background: oklch(0.19 0.016 270 / 0.86) !important;
+  color: var(--fg-0) !important;
+}
+
+/* Chart mais próximo do protótipo */
+.dashboard-overview-v2 svg text {
+  font-family: var(--ff-mono);
+}
+
+.dashboard-overview-v2 svg path[stroke],
+.dashboard-overview-v2 svg circle[stroke] {
+  filter: drop-shadow(0 0 7px oklch(0.82 0.13 200 / 0.16));
+}
+
+.dashboard-overview-v2 [class*="tooltip"],
+.dashboard-overview-v2 [class*="absolute"][class*="border-cyan"] {
+  border-color: var(--cyan-edge) !important;
+  background: oklch(0.105 0.012 270 / 0.96) !important;
+  box-shadow: 0 0 50px oklch(0.82 0.13 200 / 0.16) !important;
+}
+
+/* Tabelas: menos genéricas, mais próximas do protótipo */
+.dashboard-overview-v2 table,
+.dashboard-overview-v2 [class*="min-w-[760px]"],
+.dashboard-overview-v2 [class*="min-w-[680px]"] {
+  border-color: var(--dash-line-soft) !important;
+}
+
+.dashboard-overview-v2 th,
+.dashboard-overview-v2 [class*="uppercase"][class*="tracking"] {
+  font-family: var(--ff-mono);
+  color: var(--dash-faint) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.16em !important;
+}
+
+.dashboard-overview-v2 td,
+.dashboard-overview-v2 [class*="border-b"] {
+  border-color: oklch(0.27 0.018 270 / 0.38) !important;
+}
+
+/* Top grupos: deixa linhas mais refinadas */
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"] {
+  column-gap: 10px;
+}
+
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"] strong {
+  letter-spacing: -0.02em;
+}
+
+/* Próximos recebimentos: estilo pill mais parecido */
+.dashboard-overview-v2 [class*="Atrasado"],
+.dashboard-overview-v2 span[class*="rounded-lg"],
+.dashboard-overview-v2 span[class*="rounded-full"] {
+  font-family: var(--ff-ui);
+}
+
+/* Pipeline / produções */
+.dashboard-overview-v2 [class*="Próximas produções"] {
+  letter-spacing: -0.03em;
+}
+
+/* Reduz agressividade das cores em pequenos detalhes */
+.dashboard-overview-v2 .text-cyan-300,
+.dashboard-overview-v2 .text-emerald-300 {
+  color: oklch(0.82 0.16 165) !important;
+}
+
+.dashboard-overview-v2 .text-violet-300,
+.dashboard-overview-v2 .text-purple-300 {
+  color: oklch(0.72 0.18 295) !important;
+}
+
+/* Footer do dashboard */
+.dashboard-overview-v2 footer,
+.dashboard-overview-v2 [class*="Sincronizado"] {
+  color: var(--dash-faint) !important;
+  font-family: var(--ff-mono);
+  font-size: 10px;
+}
+
+/* Responsivo seguro */
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 > header h1 {
+    font-size: 38px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-overview-v2 > header {
+    padding-top: 8px !important;
+  }
+
+  .dashboard-overview-v2 > header h1 {
+    font-size: 32px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Container fidelity pass                                        */
+/* Ajusta proporção, bordas, fundo e densidade dos containers do Dashboard     */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 {
+  --container-bg: #0d1018;
+  --container-bg-soft: #0a0d14;
+  --container-border: rgba(255, 255, 255, 0.105);
+  --container-border-soft: rgba(255, 255, 255, 0.065);
+  --container-radius: 18px;
+  --container-radius-sm: 14px;
+}
+
+/* Base geral dos containers */
+.dashboard-overview-v2 section,
+.dashboard-overview-v2 article,
+.dashboard-overview-v2 [class*="rounded-[1.75rem]"],
+.dashboard-overview-v2 [class*="rounded-[1.5rem]"],
+.dashboard-overview-v2 [class*="rounded-2xl"] {
+  border-color: var(--container-border-soft) !important;
+}
+
+/* Cards principais estilo Claude Design */
+.dashboard-overview-v2 > section:not(.dashboard-kpi-grid),
+.dashboard-overview-v2 .dashboard-card,
+.dashboard-overview-v2 [class*="bg-[#0b101b]"] {
+  background:
+    linear-gradient(180deg, rgba(17, 20, 30, 0.96), rgba(10, 13, 20, 0.98)) !important;
+  border: 1px solid var(--container-border) !important;
+  border-radius: var(--container-radius) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 18px 50px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* KPIs principais com proporção mais parecida */
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  min-height: 150px !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  background:
+    radial-gradient(280px 110px at 100% 0%, rgba(34, 211, 238, 0.055), transparent 62%),
+    linear-gradient(180deg, rgba(17, 20, 30, 0.96), rgba(10, 13, 20, 0.99)) !important;
+}
+
+/* Linha inferior dos KPIs igual ao protótipo */
+.dashboard-kpi-grid > article:nth-child(1)::before,
+.dashboard-kpi-grid > article:nth-child(2)::before,
+.dashboard-kpi-grid > article:nth-child(8)::before {
+  bottom: 0 !important;
+  top: auto !important;
+  height: 2px !important;
+  background: linear-gradient(
+    90deg,
+    rgba(34, 211, 238, 0.75),
+    rgba(52, 211, 153, 0.68),
+    transparent
+  ) !important;
+}
+
+/* KPIs secundários em faixa mais baixa e reta */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 86px !important;
+  padding: 15px 18px !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.94), rgba(9, 12, 19, 0.98)) !important;
+  box-shadow: none !important;
+}
+
+/* Remove excesso de brilho dos cards secundários */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  opacity: 0.35 !important;
+}
+
+/* Números dos KPIs mais próximos do design */
+.dashboard-kpi-grid > article:nth-child(1) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(2) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(8) .dashboard-number {
+  font-size: clamp(32px, 2.7vw, 42px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  font-size: clamp(19px, 1.35vw, 23px) !important;
+  font-weight: 600 !important;
+}
+
+/* Chart + score bento */
+.dashboard-overview-v2 > section:has(svg) {
+  border-radius: 18px !important;
+  padding: 22px !important;
+}
+
+.dashboard-overview-v2 > section:has(svg) > div:last-child {
+  border-radius: 16px !important;
+  background: #090d15 !important;
+  border-color: rgba(255, 255, 255, 0.055) !important;
+}
+
+/* Títulos dos containers */
+.dashboard-overview-v2 h2,
+.dashboard-overview-v2 h3 {
+  font-weight: 650 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.dashboard-overview-v2 h2 {
+  font-size: 18px !important;
+}
+
+.dashboard-overview-v2 h3 {
+  font-size: 17px !important;
+}
+
+/* Próximas produções: container mais horizontal e denso */
+.dashboard-overview-v2 section:has(h2):has(button) {
+  overflow: hidden;
+}
+
+.dashboard-overview-v2 section:has(h2) [class*="grid"] > div,
+.dashboard-overview-v2 section:has(h3) [class*="grid"] > div {
+  border-color: rgba(255, 255, 255, 0.065) !important;
+}
+
+/* Cards de pipeline */
+.dashboard-overview-v2 [class*="Próximas produções"] ~ div,
+.dashboard-overview-v2 section h2 + p + div {
+  gap: 12px !important;
+}
+
+/* Top grupos e próximos recebimentos */
+.dashboard-overview-v2 section:has(h2) {
+  border-radius: 18px !important;
+}
+
+.dashboard-overview-v2 section:has(h2) > div[class*="overflow-x-auto"],
+.dashboard-overview-v2 section:has(h2) > div[class*="rounded-2xl"] {
+  border-radius: 14px !important;
+  border-color: rgba(255, 255, 255, 0.075) !important;
+  background: rgba(7, 10, 16, 0.38) !important;
+}
+
+/* Linhas das tabelas/listas mais parecidas com Claude Design */
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"],
+.dashboard-overview-v2 [class*="grid-cols-[1.6fr_1fr_1fr_1fr]"] {
+  min-height: 54px;
+}
+
+.dashboard-overview-v2 [class*="grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr]"]:not(:first-child),
+.dashboard-overview-v2 [class*="grid-cols-[1.6fr_1fr_1fr_1fr]"]:not(:first-child) {
+  border-bottom-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+/* Próximos recebimentos mais parecido com cards internos do protótipo */
+.dashboard-overview-v2 [class*="grid-cols-[1.6fr_1fr_1fr_1fr]"] {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+/* Badges */
+.dashboard-overview-v2 span[class*="bg-cyan"],
+.dashboard-overview-v2 span[class*="bg-rose"],
+.dashboard-overview-v2 span[class*="bg-emerald"] {
+  border-radius: 999px !important;
+  border: 1px solid currentColor !important;
+  background: color-mix(in oklab, currentColor 12%, transparent) !important;
+  font-weight: 650 !important;
+}
+
+/* Botões dos containers */
+.dashboard-overview-v2 section button {
+  min-height: 36px;
+  border-radius: 11px !important;
+  padding-inline: 14px !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+}
+
+.dashboard-overview-v2 section button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+}
+
+/* Espaçamento entre blocos */
+.dashboard-overview-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+}
+
+.dashboard-overview-v2 .dashboard-kpi-grid {
+  margin-top: 0 !important;
+}
+
+/* Reduz peso visual da grid de fundo dentro do conteúdo */
+.dashboard-ui > .pointer-events-none {
+  opacity: 0.86;
+}
+
+/* Ajuste fino para telas grandes */
+@media (min-width: 1500px) {
+  .dashboard-overview-v2 {
+    gap: 24px !important;
+  }
+
+  .dashboard-kpi-grid {
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-overview-v2 {
+    gap: 16px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 132px !important;
+    padding: 20px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Secondary KPI cleanup                                          */
+/* Remove ruído visual dos KPIs secundários: sem sparkline, só delta/status    */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 78px !important;
+  padding: 14px 18px !important;
+  background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(8, 11, 17, 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::before {
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  opacity: 0.22 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  margin-top: 8px !important;
+  font-size: 21px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) p:last-child {
+  display: none !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) span[class*="rounded-full"] {
+  height: 22px !important;
+  padding-inline: 9px !important;
+  font-size: 10px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) svg {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Secondary KPI cleanup                                          */
+/* Remove ruído visual dos KPIs secundários: sem sparkline, só delta/status    */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 78px !important;
+  padding: 14px 18px !important;
+  background: linear-gradient(180deg, rgba(13, 16, 24, 0.96), rgba(8, 11, 17, 0.98)) !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::before {
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8))::after {
+  opacity: 0.22 !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  margin-top: 8px !important;
+  font-size: 21px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) p:last-child {
+  display: none !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) span[class*="rounded-full"] {
+  height: 22px !important;
+  padding-inline: 9px !important;
+  font-size: 10px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) svg {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Manual pages container fidelity                                */
+/* Entradas + Saídas no mesmo padrão visual do Dashboard/Financeiro            */
+/* -------------------------------------------------------------------------- */
+
+.manual-page-v2 {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+  padding-bottom: 28px;
+}
+
+.manual-page-v2 > header {
+  position: relative;
+  padding: 20px 0 10px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.manual-page-v2 > header h1 {
+  max-width: 760px;
+  font-size: clamp(34px, 3vw, 46px) !important;
+  line-height: 1;
+  font-weight: 660 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.manual-page-v2 > header p:not(.dashboard-label) {
+  max-width: 720px;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: var(--fg-2) !important;
+}
+
+.manual-page-v2 > header .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+}
+
+/* Primeira faixa de KPIs */
+.manual-page-v2 > section:first-of-type {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.manual-page-v2 > section:first-of-type > article {
+  min-height: 94px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 20px !important;
+}
+
+.manual-page-v2 > section:first-of-type > article:last-child {
+  border-right: 0 !important;
+}
+
+.manual-page-v2 > section:first-of-type .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.manual-page-v2 > section:first-of-type .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(22px, 1.8vw, 28px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.manual-page-v2 > section:first-of-type article p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: oklch(0.82 0.16 160) !important;
+  font-weight: 650 !important;
+}
+
+/* Container do formulário */
+.manual-page-v2 > section:nth-of-type(2) {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(760px 260px at 0% 0%, rgba(34, 211, 238, 0.045), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.20) !important;
+  padding: 22px !important;
+}
+
+.manual-page-exits > section:nth-of-type(2) {
+  background:
+    radial-gradient(760px 260px at 0% 0%, rgba(251, 113, 133, 0.045), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Cabeçalho do formulário */
+.manual-page-v2 > section:nth-of-type(2) > div:first-child {
+  padding-bottom: 18px;
+  margin-bottom: 18px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.065);
+}
+
+.manual-page-v2 > section:nth-of-type(2) h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.manual-page-v2 > section:nth-of-type(2) p {
+  color: var(--fg-2) !important;
+}
+
+/* Inputs */
+.manual-page-v2 input,
+.manual-page-v2 select,
+.manual-page-v2 textarea {
+  border-radius: 12px !important;
+  border-color: rgba(255, 255, 255, 0.085) !important;
+  background: rgba(7, 10, 16, 0.72) !important;
+  color: var(--fg-0) !important;
+}
+
+.manual-page-v2 input:focus,
+.manual-page-v2 select:focus,
+.manual-page-v2 textarea:focus {
+  border-color: rgba(34, 211, 238, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+.manual-page-exits input:focus,
+.manual-page-exits select:focus,
+.manual-page-exits textarea:focus {
+  border-color: rgba(251, 113, 133, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.08) !important;
+}
+
+/* Container da tabela/lista */
+.manual-page-v2 > section:nth-of-type(3) {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(620px 240px at 0% 0%, rgba(34, 211, 238, 0.03), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.18) !important;
+  padding: 22px !important;
+}
+
+.manual-page-exits > section:nth-of-type(3) {
+  background:
+    radial-gradient(620px 240px at 0% 0%, rgba(251, 113, 133, 0.03), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.04em !important;
+}
+
+/* Tabela */
+.manual-page-v2 > section:nth-of-type(3) [class*="overflow-x-auto"] {
+  border-radius: 15px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(7, 10, 16, 0.42) !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) [class*="grid-cols"] {
+  border-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) [class*="uppercase"] {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.58) !important;
+  letter-spacing: 0.16em !important;
+}
+
+.manual-page-v2 > section:nth-of-type(3) [class*="items-center"] {
+  min-height: 58px;
+}
+
+/* Botões */
+.manual-page-v2 button {
+  border-radius: 11px !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+  font-weight: 620 !important;
+}
+
+.manual-page-v2 button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* Botão principal de Entradas */
+.manual-page-entries button[type="submit"],
+.manual-page-entries > header button:last-child {
+  border-color: rgba(34, 211, 238, 0.26) !important;
+  background: rgba(34, 211, 238, 0.11) !important;
+  color: rgb(207, 250, 254) !important;
+}
+
+/* Botão principal de Saídas */
+.manual-page-exits button[type="submit"],
+.manual-page-exits > header button:last-child {
+  border-color: rgba(251, 113, 133, 0.25) !important;
+  background: rgba(251, 113, 133, 0.105) !important;
+  color: rgb(255, 228, 230) !important;
+}
+
+/* Correções de texto visual */
+.manual-page-v2 .dashboard-label {
+  text-transform: uppercase;
+}
+
+/* Responsivo */
+@media (max-width: 1280px) {
+  .manual-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .manual-page-v2 > section:first-of-type > article:nth-child(2n) {
+    border-right: 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .manual-page-v2 > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manual-page-v2 > section:first-of-type > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .manual-page-v2 > section:first-of-type > article:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .manual-page-v2 > header h1 {
+    font-size: 32px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Manual summary strip 3 columns                                 */
+/* Entradas/Saídas: padrão correto confirmado pelo layout                      */
+/* -------------------------------------------------------------------------- */
+
+.manual-page-v2 > .manual-summary-strip {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.manual-page-v2 > .manual-summary-strip > article {
+  min-height: 94px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 20px !important;
+}
+
+.manual-page-v2 > .manual-summary-strip > article:last-child {
+  border-right: 0 !important;
+}
+
+.manual-page-v2 > .manual-summary-strip .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.manual-page-v2 > .manual-summary-strip .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(22px, 1.8vw, 28px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.manual-page-v2 > .manual-summary-strip article p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: oklch(0.82 0.16 160) !important;
+  font-weight: 650 !important;
+}
+
+@media (max-width: 900px) {
+  .manual-page-v2 > .manual-summary-strip {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Lote 6: Clientes, Produções e Grupos                           */
+/* Padronização visual sem alterar API, Prisma, banco ou regras de negócio.    */
+/* -------------------------------------------------------------------------- */
+
+.ops-page-v2 {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+  padding-bottom: 28px;
+}
+
+.ops-page-v2 > header {
+  position: relative;
+  padding: 20px 0 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.ops-page-v2 > header h1 {
+  max-width: 780px;
+  font-size: clamp(34px, 3vw, 46px) !important;
+  line-height: 1;
+  font-weight: 660 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.ops-page-v2 > header p:not(.dashboard-label) {
+  max-width: 760px;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: var(--fg-2) !important;
+}
+
+.ops-page-v2 > header .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase;
+}
+
+.ops-summary-strip {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.ops-summary-card {
+  min-height: 106px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 18px !important;
+}
+
+.ops-summary-card:last-child {
+  border-right: 0 !important;
+}
+
+.ops-summary-card::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(34, 211, 238, 0.58), rgba(167, 139, 250, 0.42), transparent);
+  opacity: 0.45;
+}
+
+.ops-summary-card .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase;
+}
+
+.ops-summary-card .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(18px, 1.25vw, 23px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.ops-summary-card p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: rgba(148, 163, 184, 0.72) !important;
+  font-weight: 600 !important;
+}
+
+.ops-stat-icon {
+  border: 1px solid rgba(255, 255, 255, 0.065) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+}
+
+.ops-card {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(620px 240px at 0% 0%, rgba(34, 211, 238, 0.03), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.18) !important;
+  padding: 22px !important;
+}
+
+.ops-page-productions .ops-card {
+  background:
+    radial-gradient(620px 240px at 0% 0%, rgba(167, 139, 250, 0.035), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+.ops-card h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ops-card p {
+  color: var(--fg-2) !important;
+}
+
+.ops-table-wrap {
+  border-radius: 15px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(7, 10, 16, 0.42) !important;
+}
+
+.ops-table-wrap [class*="grid-cols"] {
+  border-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+.ops-table-wrap [class*="uppercase"] {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.58) !important;
+  letter-spacing: 0.16em !important;
+}
+
+.ops-table-wrap [class*="items-center"] {
+  min-height: 60px;
+}
+
+.ops-page-v2 input {
+  border-radius: 12px !important;
+  border-color: rgba(255, 255, 255, 0.085) !important;
+  background: rgba(7, 10, 16, 0.72) !important;
+  color: var(--fg-0) !important;
+}
+
+.ops-page-v2 input:focus {
+  border-color: rgba(34, 211, 238, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+.ops-page-v2 button {
+  border-radius: 11px !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+  font-weight: 620 !important;
+}
+
+.ops-page-v2 button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+.ops-bento-grid > .ops-card,
+.ops-bento-grid > aside {
+  min-height: 100%;
+}
+
+.ops-bento-grid aside {
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(520px 220px at 0% 0%, rgba(167, 139, 250, 0.035), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.18) !important;
+  padding: 22px !important;
+}
+
+.ops-page-v2 [class*="rounded-lg"],
+.ops-page-v2 [class*="rounded-xl"] {
+  border-radius: 10px !important;
+}
+
+@media (max-width: 1280px) {
+  .ops-summary-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .ops-summary-card:nth-child(3n) {
+    border-right: 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .ops-summary-strip {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ops-summary-card {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ops-summary-card:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .ops-page-v2 > header h1 {
+    font-size: 32px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Lote 7: Vencimentos, Despesas e Agenda                         */
+/* Padroniza containers sem alterar dados, API ou regras de negócio            */
+/* -------------------------------------------------------------------------- */
+
+.ops-page-v2 {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+  padding-bottom: 28px;
+}
+
+/* Header */
+.ops-page-v2 > header {
+  padding: 20px 0 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.ops-page-v2 > header h1 {
+  max-width: 820px;
+  font-size: clamp(34px, 3vw, 46px) !important;
+  line-height: 1;
+  font-weight: 660 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.ops-page-v2 > header p:not(.dashboard-label) {
+  max-width: 760px;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: var(--fg-2) !important;
+}
+
+.ops-page-v2 > header .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+}
+
+/* Ações do header */
+.ops-page-v2 > header button,
+.ops-page-v2 > header div[class*="rounded-2xl"] {
+  min-height: 38px;
+  border-radius: 11px !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+  font-weight: 620 !important;
+}
+
+.ops-page-v2 > header button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* KPIs principais em faixa mais próxima do padrão 2K */
+.ops-page-v2 > section:first-of-type {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.ops-page-v2 > section:first-of-type > article {
+  min-height: 104px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 18px !important;
+}
+
+.ops-page-v2 > section:first-of-type > article:last-child {
+  border-right: 0 !important;
+}
+
+.ops-page-v2 > section:first-of-type .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.ops-page-v2 > section:first-of-type .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(20px, 1.45vw, 25px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.ops-page-v2 > section:first-of-type article p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: rgba(148, 163, 184, 0.68) !important;
+  font-weight: 600 !important;
+}
+
+.ops-page-v2 > section:first-of-type article div[class*="rounded-full"] {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+/* Containers principais abaixo dos KPIs */
+.ops-page-v2 > section:not(:first-of-type),
+.ops-page-v2 aside,
+.ops-page-v2 aside > section,
+.ops-page-v2 section > div[class*="rounded-[1.75rem]"] {
+  border-radius: 20px !important;
+  border-color: rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(34, 211, 238, 0.035), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Despesas com acento vermelho controlado */
+.ops-page-despesas > section:not(:first-of-type),
+.ops-page-despesas aside > section {
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(251, 113, 133, 0.035), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Agenda com acento ciano/violeta */
+.ops-page-agenda > section:not(:first-of-type),
+.ops-page-agenda aside > section {
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(124, 58, 237, 0.035), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Títulos internos */
+.ops-page-v2 h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.ops-page-v2 h3 {
+  font-size: 17px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.ops-page-v2 section p,
+.ops-page-v2 aside p {
+  color: var(--fg-2);
+}
+
+/* Inputs e filtros */
+.ops-page-v2 input,
+.ops-page-v2 select,
+.ops-page-v2 textarea {
+  border-radius: 12px !important;
+  border-color: rgba(255, 255, 255, 0.085) !important;
+  background: rgba(7, 10, 16, 0.72) !important;
+  color: var(--fg-0) !important;
+}
+
+.ops-page-v2 input:focus,
+.ops-page-v2 select:focus,
+.ops-page-v2 textarea:focus {
+  border-color: rgba(34, 211, 238, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+/* Botões internos e tabs */
+.ops-page-v2 button {
+  border-radius: 11px !important;
+  font-weight: 620 !important;
+}
+
+.ops-page-v2 section button {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+}
+
+.ops-page-v2 section button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* Tabelas/listas */
+.ops-page-v2 [class*="overflow-x-auto"] {
+  border-radius: 15px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(7, 10, 16, 0.42) !important;
+}
+
+.ops-page-v2 [class*="grid-cols"] {
+  border-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+.ops-page-v2 [class*="uppercase"] {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.58) !important;
+  letter-spacing: 0.16em !important;
+}
+
+.ops-page-v2 [class*="items-center"] {
+  min-height: 58px;
+}
+
+/* Badges/status */
+.ops-page-v2 span[class*="bg-cyan"],
+.ops-page-v2 span[class*="bg-emerald"],
+.ops-page-v2 span[class*="bg-rose"],
+.ops-page-v2 span[class*="bg-violet"] {
+  border-radius: 999px !important;
+  border: 1px solid currentColor !important;
+  background: color-mix(in oklab, currentColor 12%, transparent) !important;
+  font-weight: 650 !important;
+}
+
+/* Rankings laterais */
+.ops-page-v2 aside > section {
+  padding: 20px !important;
+}
+
+.ops-page-v2 aside [class*="space-y-4"] > div {
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.ops-page-v2 aside [class*="space-y-4"] > div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* Cards mensais da agenda */
+.ops-page-agenda section:last-child [class*="rounded-2xl"] {
+  border-radius: 14px !important;
+  border-color: rgba(255, 255, 255, 0.075) !important;
+  background: rgba(255, 255, 255, 0.024) !important;
+}
+
+/* Responsivo */
+@media (max-width: 1320px) {
+  .ops-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article:nth-child(3n) {
+    border-right: 0 !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article:nth-child(-n + 3) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .ops-page-v2 > header h1 {
+    font-size: 32px !important;
+  }
+
+  .ops-page-v2 > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Lote 8: Relatórios, Metas e Configurações                      */
+/* Padroniza containers finais sem alterar API, banco ou regras de negócio     */
+/* -------------------------------------------------------------------------- */
+
+.final-page-v2 {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px !important;
+  padding-bottom: 28px;
+}
+
+/* Header final */
+.final-page-v2 > header {
+  padding: 20px 0 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.final-page-v2 > header h1 {
+  max-width: 820px;
+  font-size: clamp(34px, 3vw, 46px) !important;
+  line-height: 1;
+  font-weight: 660 !important;
+  letter-spacing: -0.07em !important;
+}
+
+.final-page-v2 > header p:not(.dashboard-label) {
+  max-width: 760px;
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+  color: var(--fg-2) !important;
+}
+
+.final-page-v2 > header .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+}
+
+/* Botões do header */
+.final-page-v2 > header button,
+.final-page-v2 > header div[class*="rounded-2xl"] {
+  min-height: 38px;
+  border-radius: 11px !important;
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+  font-weight: 620 !important;
+}
+
+.final-page-v2 > header button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* KPIs finais */
+.final-page-v2 > section:first-of-type {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.085) !important;
+  border-radius: 18px !important;
+  background: linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.98)) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.final-page-v2 > section:first-of-type > article {
+  min-height: 104px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.065) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 18px 18px !important;
+}
+
+.final-page-v2 > section:first-of-type > article:last-child {
+  border-right: 0 !important;
+}
+
+.final-page-v2 > section:first-of-type .dashboard-label {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  letter-spacing: 0.18em !important;
+}
+
+.final-page-v2 > section:first-of-type .dashboard-number {
+  margin-top: 9px !important;
+  font-size: clamp(20px, 1.45vw, 25px) !important;
+  font-weight: 620 !important;
+  letter-spacing: -0.055em !important;
+}
+
+.final-page-v2 > section:first-of-type article p:last-child {
+  margin-top: 8px !important;
+  font-size: 11px !important;
+  color: rgba(148, 163, 184, 0.68) !important;
+  font-weight: 600 !important;
+}
+
+.final-page-v2 > section:first-of-type article div[class*="rounded-full"] {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 11px !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+/* Containers principais */
+.final-page-v2 > section:not(:first-of-type),
+.final-page-v2 aside,
+.final-page-v2 aside > section,
+.final-page-v2 .rounded-\[1\.75rem\] {
+  border-radius: 20px !important;
+  border-color: rgba(255, 255, 255, 0.095) !important;
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(34, 211, 238, 0.035), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 22px 70px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Metas com acento violeta/ciano */
+.final-page-goals > section:not(:first-of-type),
+.final-page-goals aside {
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(124, 58, 237, 0.04), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Configurações com acento ciano */
+.final-page-config > section,
+.final-page-config .rounded-\[1\.75rem\] {
+  background:
+    radial-gradient(720px 260px at 0% 0%, rgba(34, 211, 238, 0.04), transparent 62%),
+    linear-gradient(180deg, rgba(15, 18, 27, 0.96), rgba(8, 11, 17, 0.985)) !important;
+}
+
+/* Títulos */
+.final-page-v2 h2 {
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.final-page-v2 h3 {
+  font-size: 17px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.035em !important;
+}
+
+/* Tabelas/listas */
+.final-page-v2 [class*="overflow-x-auto"] {
+  border-radius: 15px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(7, 10, 16, 0.42) !important;
+}
+
+.final-page-v2 [class*="grid-cols"] {
+  border-color: rgba(255, 255, 255, 0.045) !important;
+}
+
+.final-page-v2 [class*="uppercase"] {
+  font-family: var(--ff-mono, monospace);
+  font-size: 10px !important;
+  color: rgba(148, 163, 184, 0.58) !important;
+  letter-spacing: 0.16em !important;
+}
+
+.final-page-v2 [class*="items-center"] {
+  min-height: 58px;
+}
+
+/* Inputs */
+.final-page-v2 input,
+.final-page-v2 select,
+.final-page-v2 textarea {
+  border-radius: 12px !important;
+  border-color: rgba(255, 255, 255, 0.085) !important;
+  background: rgba(7, 10, 16, 0.72) !important;
+  color: var(--fg-0) !important;
+}
+
+.final-page-v2 input:focus,
+.final-page-v2 select:focus,
+.final-page-v2 textarea:focus {
+  border-color: rgba(34, 211, 238, 0.42) !important;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08) !important;
+}
+
+/* Botões internos */
+.final-page-v2 button {
+  border-radius: 11px !important;
+  font-weight: 620 !important;
+}
+
+.final-page-v2 section button {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(255, 255, 255, 0.026) !important;
+  color: var(--fg-1) !important;
+}
+
+.final-page-v2 section button:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* Status / badges */
+.final-page-v2 span[class*="bg-cyan"],
+.final-page-v2 span[class*="bg-emerald"],
+.final-page-v2 span[class*="bg-rose"],
+.final-page-v2 span[class*="bg-violet"] {
+  border-radius: 999px !important;
+  border: 1px solid currentColor !important;
+  background: color-mix(in oklab, currentColor 12%, transparent) !important;
+  font-weight: 650 !important;
+}
+
+/* Barras de progresso */
+.final-page-v2 [class*="rounded-full"] > div[class*="h-full"] {
+  box-shadow: 0 0 18px currentColor;
+}
+
+/* Configurações: listas de catálogo */
+.final-page-config [class*="space-y-2"] > div {
+  min-height: 52px;
+  border-radius: 14px !important;
+  border-color: rgba(255, 255, 255, 0.075) !important;
+  background: rgba(255, 255, 255, 0.024) !important;
+}
+
+/* Responsivo */
+@media (max-width: 1320px) {
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article:nth-child(3n) {
+    border-right: 0 !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article:nth-child(-n + 3) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .final-page-v2 > header h1 {
+    font-size: 32px !important;
+  }
+
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .final-page-v2 > section:first-of-type > article:last-child {
+    border-bottom: 0 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Todas as páginas internas usam escala mais controlada */
+.dashboard-overview-v2,
+.manual-page-v2,
+.ops-page-v2,
+.final-page-v2 {
+  width: 100%;
+  max-width: 1720px;
+  margin-inline: auto;
+}
+
+/* Evita títulos gigantes quando o navegador entra em zoom maior */
+.dashboard-overview-v2 > header h1,
+.manual-page-v2 > header h1,
+.ops-page-v2 > header h1,
+.final-page-v2 > header h1 {
+  font-size: clamp(30px, 2.35vw, 44px) !important;
+  line-height: 0.98 !important;
+}
+
+/* Textos de apoio não devem crescer demais */
+.dashboard-overview-v2 > header p,
+.manual-page-v2 > header p,
+.ops-page-v2 > header p,
+.final-page-v2 > header p {
+  font-size: clamp(13px, 0.82vw, 15px) !important;
+  line-height: 1.65 !important;
+}
+
+/* Cards principais com altura mais previsível */
+.dashboard-kpi-grid > article,
+.manual-page-v2 > section:first-of-type > article,
+.ops-page-v2 > section:first-of-type > article,
+.final-page-v2 > section:first-of-type > article {
+  min-width: 0 !important;
+}
+
+/* Corrige exagero de fonte dos números em zoom */
+.dashboard-number {
+  font-size-adjust: none;
+  max-width: 100%;
+}
+
+/* Ajuste para telas que “viram menores” quando o browser está com zoom */
+@media (max-width: 1500px) {
+  .dashboard-overview-v2,
+  .manual-page-v2,
+  .ops-page-v2,
+  .final-page-v2 {
+    gap: 18px !important;
+  }
+
+  .dashboard-overview-v2 > header,
+  .manual-page-v2 > header,
+  .ops-page-v2 > header,
+  .final-page-v2 > header {
+    padding-top: 12px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: clamp(28px, 2.15vw, 38px) !important;
+  }
+
+  .dashboard-kpi-grid {
+    gap: 12px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 132px !important;
+    padding: 20px !important;
+  }
+
+  .dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+    min-height: 76px !important;
+    padding: 13px 16px !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article,
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    min-height: 88px !important;
+    padding: 15px 16px !important;
+  }
+}
+
+/* Em zoom alto, mantém o conteúdo legível sem explodir o grid */
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: 30px !important;
+    letter-spacing: -0.055em !important;
+  }
+
+  .ops-page-v2 > section:first-of-type,
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article:nth-last-child(-n + 3),
+  .final-page-v2 > section:first-of-type > article:nth-last-child(-n + 3) {
+    border-bottom: 0 !important;
+  }
+}
+
+/* Configurações: mantém os cards grandes estáveis em zoom */
+.final-page-config > section:first-of-type,
+.final-page-config .settings-grid,
+.final-page-config [class*="grid"] {
+  min-width: 0;
+}
+
+.final-page-config h1 {
+  max-width: 780px;
+}
+
+.final-page-config h2,
+.final-page-config h3 {
+  line-height: 1.1 !important;
+}
+
+/* Evita que botões e inputs estourem quando o zoom sobe */
+button,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+input,
+select,
+textarea {
+  font-size: 14px !important;
+}
+
+/* Sidebar não deve dominar a tela em zoom alto */
+@media (max-width: 1280px) {
+  aside,
+  nav {
+    font-size: 13px;
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Final zoom and typography normalization                        */
+/* Estabiliza desktop entre 90%, 100% e 110% sem bloquear zoom do navegador    */
+/* -------------------------------------------------------------------------- */
+
+html {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Base de páginas internas */
+.dashboard-overview-v2,
+.manual-page-v2,
+.ops-page-v2,
+.final-page-v2 {
+  width: 100%;
+  max-width: 1740px !important;
+  margin-inline: auto !important;
+}
+
+/* Títulos: reduz estouro em zoom alto */
+.dashboard-overview-v2 > header h1,
+.manual-page-v2 > header h1,
+.ops-page-v2 > header h1,
+.final-page-v2 > header h1 {
+  font-size: clamp(30px, 2.25vw, 42px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.06em !important;
+}
+
+/* Textos auxiliares */
+.dashboard-overview-v2 > header p,
+.manual-page-v2 > header p,
+.ops-page-v2 > header p,
+.final-page-v2 > header p {
+  font-size: clamp(13px, 0.82vw, 15px) !important;
+  line-height: 1.65 !important;
+}
+
+/* Números não devem explodir com zoom */
+.dashboard-number {
+  max-width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cards e grids mais estáveis */
+.dashboard-kpi-grid > article,
+.manual-page-v2 > section:first-of-type > article,
+.ops-page-v2 > section:first-of-type > article,
+.final-page-v2 > section:first-of-type > article {
+  min-width: 0 !important;
+}
+
+/* Dashboard: cards principais */
+@media (max-width: 1500px) {
+  .dashboard-overview-v2,
+  .manual-page-v2,
+  .ops-page-v2,
+  .final-page-v2 {
+    gap: 18px !important;
+  }
+
+  .dashboard-overview-v2 > header,
+  .manual-page-v2 > header,
+  .ops-page-v2 > header,
+  .final-page-v2 > header {
+    padding-top: 12px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: clamp(28px, 2.05vw, 38px) !important;
+  }
+
+  .dashboard-kpi-grid {
+    gap: 12px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 128px !important;
+    padding: 20px !important;
+  }
+
+  .dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+    min-height: 76px !important;
+    padding: 13px 16px !important;
+  }
+
+  .manual-page-v2 > .manual-summary-strip > article,
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    min-height: 86px !important;
+    padding: 15px 16px !important;
+  }
+}
+
+/* Zoom alto / telas menores */
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 > header h1,
+  .manual-page-v2 > header h1,
+  .ops-page-v2 > header h1,
+  .final-page-v2 > header h1 {
+    font-size: 30px !important;
+    letter-spacing: -0.052em !important;
+  }
+
+  .ops-page-v2 > section:first-of-type,
+  .final-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article,
+  .final-page-v2 > section:first-of-type > article {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .ops-page-v2 > section:first-of-type > article:nth-last-child(-n + 3),
+  .final-page-v2 > section:first-of-type > article:nth-last-child(-n + 3) {
+    border-bottom: 0 !important;
+  }
+}
+
+/* Configurações */
+.final-page-config h1,
+.final-page-config h2,
+.final-page-config h3 {
+  line-height: 1.08 !important;
+}
+
+.final-page-config > section,
+.final-page-config [class*="grid"] {
+  min-width: 0;
+}
+
+/* Inputs e botões não estouram com zoom */
+button,
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
+input,
+select,
+textarea {
+  font-size: 14px !important;
+}
+
+/* Sidebar menos dominante em zoom alto */
+@media (max-width: 1280px) {
+  aside,
+  nav {
+    font-size: 13px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard compact density pass                                 */
+/* Aproxima o dashboard do layout de referência em 100% de zoom                */
+/* -------------------------------------------------------------------------- */
+
+/* Dashboard deve usar a largura disponível, sem parecer limitado */
+.dashboard-overview-v2 {
+  max-width: none !important;
+  width: 100% !important;
+  gap: 18px !important;
+  padding-top: 0 !important;
+}
+
+/* Header mais baixo e mais próximo da referência */
+.dashboard-overview-v2 > header {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 20px !important;
+  padding-top: 18px !important;
+  padding-bottom: 12px !important;
+}
+
+.dashboard-overview-v2 > header h1 {
+  font-size: clamp(30px, 2.05vw, 40px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.06em !important;
+}
+
+.dashboard-overview-v2 > header p {
+  max-width: 720px !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+}
+
+/* Ações do topo sempre na mesma linha quando houver espaço */
+.dashboard-overview-v2 > header > div:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+.dashboard-overview-v2 > header button,
+.dashboard-overview-v2 > header > div:last-child > div,
+.dashboard-overview-v2 > header > div:last-child > span {
+  height: 38px !important;
+  min-height: 38px !important;
+  white-space: nowrap !important;
+  border-radius: 11px !important;
+  padding-inline: 14px !important;
+}
+
+/* Faixa operacional mais compacta */
+.dashboard-overview-v2 > section:first-of-type,
+.dashboard-overview-v2 .operation-strip {
+  min-height: 72px !important;
+}
+
+.dashboard-overview-v2 > section:first-of-type > article,
+.dashboard-overview-v2 .operation-strip > article {
+  min-height: 72px !important;
+  padding: 14px 18px !important;
+}
+
+/* Grid dos KPIs com menos altura */
+.dashboard-kpi-grid {
+  gap: 12px !important;
+}
+
+/* Cards principais mais baixos, como na referência */
+.dashboard-kpi-grid > article:nth-child(1),
+.dashboard-kpi-grid > article:nth-child(2),
+.dashboard-kpi-grid > article:nth-child(8) {
+  min-height: 132px !important;
+  padding: 20px 22px !important;
+  border-radius: 16px !important;
+}
+
+.dashboard-kpi-grid > article:nth-child(1) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(2) .dashboard-number,
+.dashboard-kpi-grid > article:nth-child(8) .dashboard-number {
+  font-size: clamp(30px, 2.25vw, 38px) !important;
+  line-height: 0.95 !important;
+}
+
+/* Sparkline não pode ocupar espaço demais */
+.dashboard-kpi-grid > article:nth-child(1) svg,
+.dashboard-kpi-grid > article:nth-child(2) svg,
+.dashboard-kpi-grid > article:nth-child(8) svg {
+  height: 56px !important;
+  opacity: 0.9 !important;
+}
+
+/* Cards secundários mais baixos e limpos */
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) {
+  min-height: 74px !important;
+  padding: 13px 16px !important;
+  border-radius: 13px !important;
+}
+
+.dashboard-kpi-grid > article:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(8)) .dashboard-number {
+  font-size: 20px !important;
+  line-height: 1 !important;
+  margin-top: 7px !important;
+}
+
+/* Área do gráfico mais compacta */
+.dashboard-overview-v2 section:has(svg) {
+  padding: 20px !important;
+}
+
+.dashboard-overview-v2 section:has(svg) > div:last-child {
+  min-height: 360px !important;
+}
+
+/* Score card ao lado do gráfico */
+.dashboard-overview-v2 section:has(svg) + section,
+.dashboard-overview-v2 section:has(.dashboard-score) {
+  min-height: 360px !important;
+}
+
+/* Containers inferiores sobem mais */
+.dashboard-overview-v2 section {
+  margin-top: 0 !important;
+}
+
+/* Em telas médias, evita quebrar ação do topo em duas linhas cedo demais */
+@media (max-width: 1320px) {
+  .dashboard-overview-v2 > header {
+    grid-template-columns: 1fr !important;
+    align-items: start !important;
+  }
+
+  .dashboard-overview-v2 > header > div:last-child {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+}
+
+/* Em telas grandes, fica mais parecido com a referência */
+@media (min-width: 1500px) {
+  .dashboard-overview-v2 {
+    gap: 20px !important;
+  }
+
+  .dashboard-overview-v2 > header {
+    padding-top: 18px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .dashboard-kpi-grid > article:nth-child(1),
+  .dashboard-kpi-grid > article:nth-child(2),
+  .dashboard-kpi-grid > article:nth-child(8) {
+    min-height: 138px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard fidelity pass                                        */
+/* Aplicar por último no globals.css para sobrescrever ajustes antigos          */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-ui {
+  --shell-sidebar: 248px;
+}
+
+/* Usa a largura real da viewport interna, como no protótipo */
+.dashboard-overview-v2 {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  gap: 16px !important;
+}
+
+/* Hero mais baixo: remove a sensação de página "esticada" */
+.dashboard-overview-v2 > .dashboard-hero-final {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: start !important;
+  gap: 18px !important;
+  padding: 0 0 8px !important;
+  margin: 0 !important;
+}
+
+.dashboard-overview-v2 > .dashboard-hero-final h1 {
+  font-size: clamp(32px, 2vw, 38px) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.064em !important;
+}
+
+.dashboard-overview-v2 > .dashboard-hero-final p {
+  max-width: 760px !important;
+  margin-top: 10px !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+}
+
+.dashboard-main-actions {
+  margin-top: 2px !important;
+}
+
+.dashboard-main-actions > button {
+  height: 38px !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+}
+
+/* Faixa operacional compacta */
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\],
+.dashboard-overview-v2 > div.grid.overflow-hidden.rounded-\[22px\] {
+  border-radius: 18px !important;
+}
+
+.dashboard-overview-v2 > div.grid.overflow-hidden.rounded-\[22px\] > div {
+  min-height: 70px !important;
+  padding: 13px 18px !important;
+}
+
+/* KPIs principais: mais baixos e próximos da referência */
+.dashboard-kpi-grid,
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 {
+  gap: 12px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article {
+  min-height: 126px !important;
+  padding: 18px 22px !important;
+  border-radius: 16px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article .dashboard-number {
+  margin-top: 22px !important;
+  font-size: clamp(30px, 2.05vw, 36px) !important;
+  line-height: 0.95 !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article svg {
+  height: 54px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article [class*="absolute right-4 top-4"] {
+  height: 36px !important;
+  width: 36px !important;
+}
+
+/* KPIs secundários em strip baixo */
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 {
+  border-radius: 17px !important;
+}
+
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 > div {
+  padding: 12px 15px !important;
+}
+
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 article {
+  min-height: 66px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 article .dashboard-number {
+  margin-top: 7px !important;
+  font-size: 19px !important;
+}
+
+/* Gráfico e score mais compactos */
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] {
+  gap: 14px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] > section {
+  border-radius: 18px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] > section:first-child {
+  padding: 18px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] > section:first-child > div:first-child {
+  margin-bottom: 12px !important;
+}
+
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="Gráfico anual de faturamento"] {
+  height: 300px !important;
+}
+
+/* Mantém ações do dashboard no topo direito sem quebrar cedo demais */
+@media (max-width: 1320px) {
+  .dashboard-overview-v2 > .dashboard-hero-final {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-main-actions {
+    justify-content: flex-start !important;
+  }
+}
+
+/* Em 100% com tela Full HD, a primeira dobra mostra mais conteúdo */
+@media (min-width: 1400px) {
+  .dashboard-overview-v2 {
+    gap: 14px !important;
+  }
+
+  .dashboard-overview-v2 > .dashboard-hero-final h1 {
+    font-size: 36px !important;
+  }
+
+  .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 > article {
+    min-height: 122px !important;
+  }
+
+  .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="Gráfico anual de faturamento"] {
+    height: 286px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Professional CRM compact system                                */
+/* Benchmark: enterprise CRM/data dashboards: tighter 8px rhythm, lower header */
+/* -------------------------------------------------------------------------- */
+
+:root {
+  --crm-sidebar: 240px;
+  --crm-topbar-h: 50px;
+  --crm-page-x: 24px;
+  --crm-page-y: 16px;
+  --crm-gap: 14px;
+  --crm-card: #0b101b;
+  --crm-border: rgba(255,255,255,.09);
+}
+
+.dashboard-ui { font-size: 14px; }
+.dashboard-ui header.sticky { min-height: var(--crm-topbar-h); }
+.dashboard-overview-v2.dashboard-pro-compact {
+  max-width: none !important;
+  width: 100% !important;
+  gap: var(--crm-gap) !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact > header {
+  padding: 6px 0 4px !important;
+  margin: 0 !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact > header h1 {
+  font-size: clamp(28px, 1.75vw, 34px) !important;
+  line-height: .98 !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact > header p:last-child {
+  max-width: 680px !important;
+  line-height: 1.45 !important;
+}
+
+.dashboard-overview-v2.dashboard-pro-compact .operation-strip > div {
+  min-height: 60px !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact .dashboard-kpi-grid,
+.dashboard-overview-v2.dashboard-pro-compact > .grid {
+  gap: var(--crm-gap) !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact article { min-width: 0; }
+.dashboard-overview-v2.dashboard-pro-compact .dashboard-number {
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-overview-v2.dashboard-pro-compact .dashboard-label {
+  letter-spacing: .16em !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact section,
+.dashboard-overview-v2.dashboard-pro-compact article {
+  border-color: var(--crm-border) !important;
+}
+.dashboard-overview-v2.dashboard-pro-compact .rounded-\[18px\],
+.dashboard-overview-v2.dashboard-pro-compact .rounded-\[16px\] {
+  box-shadow: 0 12px 40px rgba(0,0,0,.14) !important;
+}
+
+@media (min-width: 1440px) {
+  :root { --crm-page-x: 26px; }
+}
+
+@media (max-width: 1366px) {
+  :root {
+    --crm-sidebar: 224px;
+    --crm-page-x: 18px;
+    --crm-gap: 12px;
+  }
+  .dashboard-overview-v2.dashboard-pro-compact > header h1 {
+    font-size: 28px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard lower panels alignment                               */
+/* Remove vazio interno dos cards Top grupos / Próximos recebimentos           */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 > section:last-of-type {
+  align-items: stretch !important;
+  gap: 14px !important;
+}
+
+/* Cards inferiores */
+.dashboard-overview-v2 > section:last-of-type > div,
+.dashboard-overview-v2 > section:last-of-type > article,
+.dashboard-overview-v2 > section:last-of-type > aside {
+  min-height: auto !important;
+  height: auto !important;
+  padding: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+/* Header dos cards inferiores */
+.dashboard-overview-v2 > section:last-of-type > div > div:first-child,
+.dashboard-overview-v2 > section:last-of-type > article > div:first-child,
+.dashboard-overview-v2 > section:last-of-type > aside > div:first-child {
+  margin-bottom: 14px !important;
+  padding-bottom: 0 !important;
+}
+
+/* Remove espaçamento morto antes da tabela/lista */
+.dashboard-overview-v2 > section:last-of-type .overflow-x-auto,
+.dashboard-overview-v2 > section:last-of-type [class*="space-y"] {
+  margin-top: 0 !important;
+}
+
+/* Tabela de Top grupos mais encaixada */
+.dashboard-overview-v2 > section:last-of-type .overflow-x-auto {
+  flex: 0 0 auto !important;
+  border-radius: 14px !important;
+}
+
+/* Linhas mais compactas */
+.dashboard-overview-v2 > section:last-of-type [class*="grid-cols"] {
+  min-height: 44px !important;
+}
+
+.dashboard-overview-v2 > section:last-of-type [class*="px-5"][class*="py-4"] {
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+}
+
+/* Próximos recebimentos: lista sem espaço sobrando */
+.dashboard-overview-v2 > section:last-of-type [class*="space-y-3"],
+.dashboard-overview-v2 > section:last-of-type [class*="space-y-4"] {
+  gap: 8px !important;
+}
+
+.dashboard-overview-v2 > section:last-of-type [class*="rounded-2xl"] {
+  min-height: auto !important;
+}
+
+/* Altura visual equilibrada entre os dois cards */
+@media (min-width: 1280px) {
+  .dashboard-overview-v2 > section:last-of-type > div,
+  .dashboard-overview-v2 > section:last-of-type > article,
+  .dashboard-overview-v2 > section:last-of-type > aside {
+    max-height: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Bottom dashboard panels exact alignment                         */
+/* Alinha Top grupos por faturamento e Próximos recebimentos no topo           */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-bottom-panels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(420px, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  margin-top: 0 !important;
+}
+
+/* Os dois cards devem abraçar o conteúdo, não criar vazio interno */
+.dashboard-bottom-panels > * {
+  align-self: start !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 18px !important;
+  display: block !important;
+}
+
+/* Remove qualquer centralização/afundamento interno herdado */
+.dashboard-bottom-panels > * > * {
+  margin-top: 0 !important;
+}
+
+/* Header dos cards encostado no topo */
+.dashboard-bottom-panels > * > div:first-child {
+  margin-top: 0 !important;
+  margin-bottom: 14px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  align-items: center !important;
+}
+
+/* Tabela/lista começa logo após o header */
+.dashboard-bottom-panels .overflow-x-auto,
+.dashboard-bottom-panels [class*="space-y"] {
+  margin-top: 0 !important;
+}
+
+/* Tabela Top grupos mais compacta */
+.dashboard-bottom-panels .overflow-x-auto {
+  border-radius: 14px !important;
+}
+
+.dashboard-bottom-panels .overflow-x-auto [class*="px-5"] {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.dashboard-bottom-panels .overflow-x-auto [class*="py-4"] {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* Próximos recebimentos com linhas compactas */
+.dashboard-bottom-panels [class*="space-y-3"] > *,
+.dashboard-bottom-panels [class*="space-y-4"] > * {
+  margin-top: 0 !important;
+}
+
+.dashboard-bottom-panels [class*="space-y-3"],
+.dashboard-bottom-panels [class*="space-y-4"] {
+  gap: 8px !important;
+}
+
+/* Remove alturas mínimas antigas aplicadas nos containers inferiores */
+.dashboard-bottom-panels [class*="min-h"],
+.dashboard-bottom-panels [style*="min-height"] {
+  min-height: 0 !important;
+}
+
+/* Cards/list items */
+.dashboard-bottom-panels [class*="rounded-2xl"] {
+  min-height: 48px !important;
+}
+
+/* Responsivo */
+@media (max-width: 1280px) {
+  .dashboard-bottom-panels {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — FIX REAL: Dashboard bottom panels                              */
+/* Força alinhamento dos cards Top grupos e Próximos recebimentos              */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-bottom-panels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(420px, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  margin-top: 0 !important;
+}
+
+.dashboard-bottom-panels > div {
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+/* Header interno dos dois cards */
+.dashboard-bottom-panels > div > div:first-child {
+  margin: 0 0 14px 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  align-items: center !important;
+}
+
+/* Remove qualquer altura fantasma nos containers */
+.dashboard-bottom-panels > div,
+.dashboard-bottom-panels > div * {
+  transform: none !important;
+}
+
+/* Top grupos: tabela logo abaixo do título */
+.dashboard-bottom-panels > div:first-child .overflow-x-auto {
+  margin-top: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+/* Próximos recebimentos: lista logo abaixo do título */
+.dashboard-bottom-panels > div:last-child > div:last-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Compacta linhas da tabela */
+.dashboard-bottom-panels > div:first-child .overflow-x-auto [class*="py-4"] {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+.dashboard-bottom-panels > div:first-child .overflow-x-auto [class*="px-5"] {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* Compacta itens de recebimentos */
+.dashboard-bottom-panels > div:last-child [class*="rounded-2xl"] {
+  min-height: 48px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* Zera espaçamento vertical estranho */
+.dashboard-bottom-panels [class*="space-y"] {
+  margin-top: 0 !important;
+}
+
+.dashboard-bottom-panels [class*="space-y"] > * + * {
+  margin-top: 8px !important;
+}
+
+@media (max-width: 1280px) {
+  .dashboard-bottom-panels {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard bottom panels final alignment                        */
+/* Corrige Top grupos por faturamento e Próximos recebimentos                  */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 .dashboard-bottom-panels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(420px, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  margin-top: 0 !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div > div:first-child {
+  margin: 0 0 14px 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Remove o espaço morto entre título e tabela/lista */
+.dashboard-overview-v2 .dashboard-bottom-panels .overflow-x-auto,
+.dashboard-overview-v2 .dashboard-bottom-panels [class*="space-y-"] {
+  margin-top: 0 !important;
+}
+
+/* Tabela Top grupos */
+.dashboard-overview-v2 .dashboard-bottom-panels > div:first-child .overflow-x-auto {
+  flex: 0 0 auto !important;
+  border-radius: 14px !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:first-child [class*="py-4"] {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:first-child [class*="px-5"] {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* Próximos recebimentos */
+.dashboard-overview-v2 .dashboard-bottom-panels > div:last-child [class*="space-y-"] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:last-child [class*="space-y-"] > * {
+  margin-top: 0 !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:last-child [class*="rounded-2xl"] {
+  min-height: 48px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 .dashboard-bottom-panels {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Wide app layout pass                                           */
+/* Usa melhor a largura total das abas internas                                */
+/* -------------------------------------------------------------------------- */
+
+/* Remove sensação de página pequena/centralizada */
+.dashboard-overview-v2,
+.manual-page-v2,
+.ops-page-v2,
+.final-page-v2 {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+/* Conteúdo interno com largura total e respiro controlado */
+.dashboard-overview-v2,
+.final-page-v2 {
+  padding-right: 18px !important;
+}
+
+/* Headers não devem limitar demais o conteúdo */
+.dashboard-overview-v2 > header,
+.manual-page-v2 > header,
+.ops-page-v2 > header,
+.final-page-v2 > header {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Título e descrição continuam legíveis, mas sem comprimir a página toda */
+.final-page-v2 > header h1,
+.ops-page-v2 > header h1,
+.manual-page-v2 > header h1 {
+  max-width: 960px !important;
+}
+
+.final-page-v2 > header p,
+.ops-page-v2 > header p,
+.manual-page-v2 > header p {
+  max-width: 920px !important;
+}
+
+/* KPIs ocupam a largura útil inteira */
+.final-page-v2 > section:first-of-type,
+.ops-page-v2 > section:first-of-type {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Metas: área principal mais larga e equilibrada */
+.final-page-goals > section:nth-of-type(2) {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 2.1fr) minmax(360px, 0.9fr) !important;
+  gap: 18px !important;
+  align-items: start !important;
+}
+
+/* Metas principais ocupam melhor o espaço horizontal */
+.final-page-goals > section:nth-of-type(2) > div:first-child {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Leitura executiva sem ficar esmagada */
+.final-page-goals > section:nth-of-type(2) > aside,
+.final-page-goals > section:nth-of-type(2) > div:last-child {
+  width: 100% !important;
+  min-width: 340px !important;
+}
+
+/* Cards internos de metas mais compactos */
+.final-page-goals [class*="rounded-2xl"] {
+  min-width: 0 !important;
+}
+
+/* Relatórios e configurações também usam melhor largura */
+.final-page-reports > section,
+.final-page-config > section {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Evita que grids de cards fiquem pequenos em telas largas */
+.final-page-config > section:first-of-type {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+/* Dashboard mantém largura total */
+.dashboard-overview-v2 .dashboard-bottom-panels,
+.dashboard-overview-v2 > section,
+.dashboard-overview-v2 > div {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Responsivo */
+@media (max-width: 1280px) {
+  .final-page-goals > section:nth-of-type(2) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .final-page-goals > section:nth-of-type(2) > aside,
+  .final-page-goals > section:nth-of-type(2) > div:last-child {
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-overview-v2,
+  .manual-page-v2,
+  .ops-page-v2,
+  .final-page-v2 {
+    padding-right: 0 !important;
+  }
+
+  .final-page-config > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
 }

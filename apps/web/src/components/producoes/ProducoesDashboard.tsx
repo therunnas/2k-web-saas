@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -258,7 +258,7 @@ export function ProducoesDashboard() {
   const pipeline = data?.pipeline ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="ops-page-v2 ops-page-productions space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="dashboard-label text-[11px] text-cyan-300">
@@ -266,7 +266,7 @@ export function ProducoesDashboard() {
           </p>
 
           <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
-            Produções reais da operação.
+            Produções reais.
           </h1>
 
           <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
@@ -298,14 +298,14 @@ export function ProducoesDashboard() {
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="ops-summary-strip grid gap-0 md:grid-cols-3 xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
 
           return (
             <article
               key={card.label}
-              className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]"
+              className="ops-summary-card relative overflow-hidden border border-white/10 bg-[#0b101b] p-5"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -322,7 +322,7 @@ export function ProducoesDashboard() {
                   </p>
                 </div>
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/[0.04]">
+                <div className="ops-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-white/[0.04]">
                   <Icon size={22} className={card.tone} />
                 </div>
               </div>
@@ -331,8 +331,8 @@ export function ProducoesDashboard() {
         })}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_0.42fr]">
-        <div className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+      <section className="ops-bento-grid grid gap-5 xl:grid-cols-[1fr_0.42fr]">
+        <div className="ops-card rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
           <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <h2 className="text-xl font-semibold tracking-[-0.035em]">
@@ -380,7 +380,7 @@ export function ProducoesDashboard() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
+          <div className="ops-table-wrap overflow-x-auto rounded-2xl border border-white/10">
             <div className="min-w-[1080px]">
               <div className="grid grid-cols-[1.3fr_1.25fr_1.8fr_1fr_1fr_1fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
                 <span>Grupo</span>
@@ -453,7 +453,7 @@ export function ProducoesDashboard() {
           </div>
         </div>
 
-        <aside className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
+        <aside className="ops-card rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
           <div className="mb-5">
             <h2 className="text-xl font-semibold tracking-[-0.035em]">
               Status do pipeline
