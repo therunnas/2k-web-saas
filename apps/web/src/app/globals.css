@@ -2768,15 +2768,15 @@ textarea {
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2K STUDIOS â€” Dashboard fidelity pass                                        */
-/* Aplicar por Ãºltimo no globals.css para sobrescrever ajustes antigos          */
+/* 2K STUDIOS — Dashboard fidelity pass                                        */
+/* Aplicar por último no globals.css para sobrescrever ajustes antigos          */
 /* -------------------------------------------------------------------------- */
 
 .dashboard-ui {
   --shell-sidebar: 248px;
 }
 
-/* Usa a largura real da viewport interna, como no protÃ³tipo */
+/* Usa a largura real da viewport interna, como no protótipo */
 .dashboard-overview-v2 {
   width: 100% !important;
   max-width: none !important;
@@ -2784,7 +2784,7 @@ textarea {
   gap: 16px !important;
 }
 
-/* Hero mais baixo: remove a sensaÃ§Ã£o de pÃ¡gina "esticada" */
+/* Hero mais baixo: remove a sensação de página "esticada" */
 .dashboard-overview-v2 > .dashboard-hero-final {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
@@ -2828,7 +2828,7 @@ textarea {
   padding: 13px 18px !important;
 }
 
-/* KPIs principais: mais baixos e prÃ³ximos da referÃªncia */
+/* KPIs principais: mais baixos e próximos da referência */
 .dashboard-kpi-grid,
 .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-3 {
   gap: 12px !important;
@@ -2855,7 +2855,7 @@ textarea {
   width: 36px !important;
 }
 
-/* KPIs secundÃ¡rios em strip baixo */
+/* KPIs secundários em strip baixo */
 .dashboard-overview-v2 > .grid.overflow-hidden.rounded-\[22px\].md\:grid-cols-3.xl\:grid-cols-6 {
   border-radius: 17px !important;
 }
@@ -2877,7 +2877,7 @@ textarea {
   font-size: 19px !important;
 }
 
-/* GrÃ¡fico e score mais compactos */
+/* Gráfico e score mais compactos */
 .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] {
   gap: 14px !important;
 }
@@ -2894,11 +2894,11 @@ textarea {
   margin-bottom: 12px !important;
 }
 
-.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="GrÃ¡fico anual de faturamento"] {
+.dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="Gráfico anual de faturamento"] {
   height: 300px !important;
 }
 
-/* MantÃ©m aÃ§Ãµes do dashboard no topo direito sem quebrar cedo demais */
+/* Mantém ações do dashboard no topo direito sem quebrar cedo demais */
 @media (max-width: 1320px) {
   .dashboard-overview-v2 > .dashboard-hero-final {
     grid-template-columns: 1fr !important;
@@ -2909,7 +2909,7 @@ textarea {
   }
 }
 
-/* Em 100% com tela Full HD, a primeira dobra mostra mais conteÃºdo */
+/* Em 100% com tela Full HD, a primeira dobra mostra mais conteúdo */
 @media (min-width: 1400px) {
   .dashboard-overview-v2 {
     gap: 14px !important;
@@ -2923,13 +2923,13 @@ textarea {
     min-height: 122px !important;
   }
 
-  .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="GrÃ¡fico anual de faturamento"] {
+  .dashboard-overview-v2 > .grid.gap-4.xl\:grid-cols-\[1\.7fr_1fr\] svg[aria-label="Gráfico anual de faturamento"] {
     height: 286px !important;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* 2K STUDIOS â€” Professional CRM compact system                                */
+/* 2K STUDIOS — Professional CRM compact system                                */
 /* Benchmark: enterprise CRM/data dashboards: tighter 8px rhythm, lower header */
 /* -------------------------------------------------------------------------- */
 
@@ -2998,5 +2998,318 @@ textarea {
   }
   .dashboard-overview-v2.dashboard-pro-compact > header h1 {
     font-size: 28px !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard lower panels alignment                               */
+/* Remove vazio interno dos cards Top grupos / Próximos recebimentos           */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 > section:last-of-type {
+  align-items: stretch !important;
+  gap: 14px !important;
+}
+
+/* Cards inferiores */
+.dashboard-overview-v2 > section:last-of-type > div,
+.dashboard-overview-v2 > section:last-of-type > article,
+.dashboard-overview-v2 > section:last-of-type > aside {
+  min-height: auto !important;
+  height: auto !important;
+  padding: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+/* Header dos cards inferiores */
+.dashboard-overview-v2 > section:last-of-type > div > div:first-child,
+.dashboard-overview-v2 > section:last-of-type > article > div:first-child,
+.dashboard-overview-v2 > section:last-of-type > aside > div:first-child {
+  margin-bottom: 14px !important;
+  padding-bottom: 0 !important;
+}
+
+/* Remove espaçamento morto antes da tabela/lista */
+.dashboard-overview-v2 > section:last-of-type .overflow-x-auto,
+.dashboard-overview-v2 > section:last-of-type [class*="space-y"] {
+  margin-top: 0 !important;
+}
+
+/* Tabela de Top grupos mais encaixada */
+.dashboard-overview-v2 > section:last-of-type .overflow-x-auto {
+  flex: 0 0 auto !important;
+  border-radius: 14px !important;
+}
+
+/* Linhas mais compactas */
+.dashboard-overview-v2 > section:last-of-type [class*="grid-cols"] {
+  min-height: 44px !important;
+}
+
+.dashboard-overview-v2 > section:last-of-type [class*="px-5"][class*="py-4"] {
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+}
+
+/* Próximos recebimentos: lista sem espaço sobrando */
+.dashboard-overview-v2 > section:last-of-type [class*="space-y-3"],
+.dashboard-overview-v2 > section:last-of-type [class*="space-y-4"] {
+  gap: 8px !important;
+}
+
+.dashboard-overview-v2 > section:last-of-type [class*="rounded-2xl"] {
+  min-height: auto !important;
+}
+
+/* Altura visual equilibrada entre os dois cards */
+@media (min-width: 1280px) {
+  .dashboard-overview-v2 > section:last-of-type > div,
+  .dashboard-overview-v2 > section:last-of-type > article,
+  .dashboard-overview-v2 > section:last-of-type > aside {
+    max-height: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Bottom dashboard panels exact alignment                         */
+/* Alinha Top grupos por faturamento e Próximos recebimentos no topo           */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-bottom-panels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(420px, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  margin-top: 0 !important;
+}
+
+/* Os dois cards devem abraçar o conteúdo, não criar vazio interno */
+.dashboard-bottom-panels > * {
+  align-self: start !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 18px !important;
+  display: block !important;
+}
+
+/* Remove qualquer centralização/afundamento interno herdado */
+.dashboard-bottom-panels > * > * {
+  margin-top: 0 !important;
+}
+
+/* Header dos cards encostado no topo */
+.dashboard-bottom-panels > * > div:first-child {
+  margin-top: 0 !important;
+  margin-bottom: 14px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  align-items: center !important;
+}
+
+/* Tabela/lista começa logo após o header */
+.dashboard-bottom-panels .overflow-x-auto,
+.dashboard-bottom-panels [class*="space-y"] {
+  margin-top: 0 !important;
+}
+
+/* Tabela Top grupos mais compacta */
+.dashboard-bottom-panels .overflow-x-auto {
+  border-radius: 14px !important;
+}
+
+.dashboard-bottom-panels .overflow-x-auto [class*="px-5"] {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.dashboard-bottom-panels .overflow-x-auto [class*="py-4"] {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* Próximos recebimentos com linhas compactas */
+.dashboard-bottom-panels [class*="space-y-3"] > *,
+.dashboard-bottom-panels [class*="space-y-4"] > * {
+  margin-top: 0 !important;
+}
+
+.dashboard-bottom-panels [class*="space-y-3"],
+.dashboard-bottom-panels [class*="space-y-4"] {
+  gap: 8px !important;
+}
+
+/* Remove alturas mínimas antigas aplicadas nos containers inferiores */
+.dashboard-bottom-panels [class*="min-h"],
+.dashboard-bottom-panels [style*="min-height"] {
+  min-height: 0 !important;
+}
+
+/* Cards/list items */
+.dashboard-bottom-panels [class*="rounded-2xl"] {
+  min-height: 48px !important;
+}
+
+/* Responsivo */
+@media (max-width: 1280px) {
+  .dashboard-bottom-panels {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — FIX REAL: Dashboard bottom panels                              */
+/* Força alinhamento dos cards Top grupos e Próximos recebimentos              */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-bottom-panels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(420px, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  margin-top: 0 !important;
+}
+
+.dashboard-bottom-panels > div {
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+/* Header interno dos dois cards */
+.dashboard-bottom-panels > div > div:first-child {
+  margin: 0 0 14px 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  align-items: center !important;
+}
+
+/* Remove qualquer altura fantasma nos containers */
+.dashboard-bottom-panels > div,
+.dashboard-bottom-panels > div * {
+  transform: none !important;
+}
+
+/* Top grupos: tabela logo abaixo do título */
+.dashboard-bottom-panels > div:first-child .overflow-x-auto {
+  margin-top: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+/* Próximos recebimentos: lista logo abaixo do título */
+.dashboard-bottom-panels > div:last-child > div:last-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Compacta linhas da tabela */
+.dashboard-bottom-panels > div:first-child .overflow-x-auto [class*="py-4"] {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+.dashboard-bottom-panels > div:first-child .overflow-x-auto [class*="px-5"] {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* Compacta itens de recebimentos */
+.dashboard-bottom-panels > div:last-child [class*="rounded-2xl"] {
+  min-height: 48px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+/* Zera espaçamento vertical estranho */
+.dashboard-bottom-panels [class*="space-y"] {
+  margin-top: 0 !important;
+}
+
+.dashboard-bottom-panels [class*="space-y"] > * + * {
+  margin-top: 8px !important;
+}
+
+@media (max-width: 1280px) {
+  .dashboard-bottom-panels {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Dashboard bottom panels final alignment                        */
+/* Corrige Top grupos por faturamento e Próximos recebimentos                  */
+/* -------------------------------------------------------------------------- */
+
+.dashboard-overview-v2 .dashboard-bottom-panels {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.55fr) minmax(420px, 1fr) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  margin-top: 0 !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div > div:first-child {
+  margin: 0 0 14px 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+
+/* Remove o espaço morto entre título e tabela/lista */
+.dashboard-overview-v2 .dashboard-bottom-panels .overflow-x-auto,
+.dashboard-overview-v2 .dashboard-bottom-panels [class*="space-y-"] {
+  margin-top: 0 !important;
+}
+
+/* Tabela Top grupos */
+.dashboard-overview-v2 .dashboard-bottom-panels > div:first-child .overflow-x-auto {
+  flex: 0 0 auto !important;
+  border-radius: 14px !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:first-child [class*="py-4"] {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:first-child [class*="px-5"] {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* Próximos recebimentos */
+.dashboard-overview-v2 .dashboard-bottom-panels > div:last-child [class*="space-y-"] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:last-child [class*="space-y-"] > * {
+  margin-top: 0 !important;
+}
+
+.dashboard-overview-v2 .dashboard-bottom-panels > div:last-child [class*="rounded-2xl"] {
+  min-height: 48px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+@media (max-width: 1280px) {
+  .dashboard-overview-v2 .dashboard-bottom-panels {
+    grid-template-columns: 1fr !important;
   }
 }

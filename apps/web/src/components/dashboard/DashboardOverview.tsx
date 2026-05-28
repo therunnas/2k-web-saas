@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -611,7 +611,7 @@ const width = 1120;
                       onClick={() => setSelectedPoint(null)}
                       className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-xl text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
                     >
-                      Ã—
+                      ×
                     </button>
                   </div>
 
@@ -1515,7 +1515,7 @@ export function DashboardOverview() {
 
       <PipelineStrip entries={overview?.latestEntries ?? []} />
 
-      <section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
+      <section className="dashboard-bottom-panels grid gap-4 xl:grid-cols-[1.55fr_1fr]">
         <div className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-5">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -1687,6 +1687,9 @@ export function DashboardOverview() {
     </div>
   );
 }
+
+
+
 
 
 
