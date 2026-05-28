@@ -92,6 +92,19 @@ function formatPercent(value: number) {
   }).format(value || 0)}%`;
 }
 
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -117,16 +130,16 @@ function RankingList({
   }[tone];
 
   return (
-    <section className="k-card k-report-card">
+    <section className="k-card k-report-card k-report-ranking-card">
       <div className="k-section-head">
         <div>
-        <h2>
-          {title}
-        </h2>
+          <h2>
+            {title}
+          </h2>
 
-        <p className="k-section-sub">
-          {description}
-        </p>
+          <p className="k-section-sub">
+            {description}
+          </p>
         </div>
       </div>
 
@@ -211,42 +224,42 @@ export function RelatoriosDashboard() {
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
         helper: `${summary?.revenueEntries ?? 0} entradas`,
         icon: TrendingUp,
-        tone: "text-emerald-300",
+        tone: "positive",
       },
       {
         label: "Recebido",
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
         helper: "Entradas pagas",
         icon: ArrowUpRight,
-        tone: "text-emerald-300",
+        tone: "positive",
       },
       {
         label: "A receber",
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
         helper: "Entradas pendentes",
         icon: CalendarDays,
-        tone: "text-cyan-300",
+        tone: "warning",
       },
       {
         label: "Saídas",
         value: summary ? formatCompactCurrency(summary.totalExpenses) : "—",
         helper: `${summary?.expenseEntries ?? 0} despesas`,
         icon: ArrowDownLeft,
-        tone: "text-rose-300",
+        tone: "info",
       },
       {
         label: "Lucro",
         value: summary ? formatCompactCurrency(summary.totalProfit) : "—",
         helper: `Margem ${summary ? formatPercent(summary.margin) : "—"}`,
         icon: PieChart,
-        tone: "text-violet-300",
+        tone: "positive",
       },
       {
-        label: "Resultado de caixa real",
+        label: "Caixa real",
         value: summary ? formatCompactCurrency(summary.cashResult) : "—",
         helper: "Recebido - saídas pagas",
         icon: Wallet,
-        tone: "text-cyan-300",
+        tone: "positive",
       },
     ];
   }, [data]);
@@ -255,15 +268,15 @@ export function RelatoriosDashboard() {
   const rankings = data?.rankings;
 
   return (
-    <div className="k-page space-y-6">
-      <header className="k-page-header k-page-heading">
+    <div className="k-page k-report-page">
+      <header className="k-report-hero">
         <div>
           <p className="k-eyebrow">
-            Relatórios
+            RELATÓRIOS
           </p>
 
           <h1 className="k-title">
-            Relatórios executivos reais.
+            Relatórios executivos.
           </h1>
 
           <p className="k-subtitle">
@@ -273,7 +286,7 @@ export function RelatoriosDashboard() {
           </p>
         </div>
 
-        <div className="k-page-actions">
+        <div className="k-report-actions">
           <button
             type="button"
             onClick={loadReports}
@@ -299,7 +312,7 @@ export function RelatoriosDashboard() {
         </div>
       ) : null}
 
-      <section className="k-kpi-strip">
+      <section className="k-kpi-strip k-report-kpi-strip">
         {summaryCards.map((card) => {
           const Icon = card.icon;
 
@@ -307,24 +320,25 @@ export function RelatoriosDashboard() {
             <article
               key={card.label}
               className="k-kpi-strip-item"
+              data-tone={card.tone}
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="k-report-kpi-inner">
                 <div className="min-w-0">
                   <p className="k-kpi-label">
                     {card.label}
                   </p>
 
                   <strong className="k-kpi-value">
-                    {card.value}
+                    {renderKpiValue(card.value)}
                   </strong>
 
-                  <p className="k-kpi-helper k-kpi-helper-info">
+                  <p className="k-kpi-helper">
                     {card.helper}
                   </p>
                 </div>
 
                 <div className="k-report-icon">
-                  <Icon size={22} className={card.tone} />
+                  <Icon size={15} />
                 </div>
               </div>
             </article>
@@ -332,39 +346,42 @@ export function RelatoriosDashboard() {
         })}
       </section>
 
-      <section className="k-card k-report-card">
+      <section className="k-card k-report-card k-report-monthly-card">
         <div className="k-section-head">
           <div className="k-form-title-row">
-          <div className="k-form-icon">
-            <BarChart3 size={17} />
+            <div className="k-form-icon">
+              <BarChart3 size={15} />
+            </div>
+            <div>
+              <h2>
+                Relatório mensal
+              </h2>
+              <p className="k-section-sub">
+                Receita, recebimento, despesas, lucro e caixa por mês.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2>
-              Relatório mensal
-            </h2>
-            <p className="k-section-sub">
-              Receita, recebimento, despesas, lucro e caixa por mês.
-            </p>
-          </div>
-          </div>
+
+          <span className="k-report-period-badge">12 meses</span>
         </div>
 
         <div className="k-table-card overflow-x-auto">
-          <div className="k-table min-w-[1080px]">
+          <div className="k-table k-report-table min-w-[1080px]">
             <div data-table-head className="grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr_0.8fr] px-5 py-3">
               <span>Mês</span>
-              <span>Faturamento</span>
-              <span>Recebido</span>
-              <span>A receber</span>
-              <span>Saídas</span>
-              <span>Lucro</span>
-              <span>Margem</span>
+              <span className="text-right">Faturamento</span>
+              <span className="text-right">Recebido</span>
+              <span className="text-right">A receber</span>
+              <span className="text-right">Saídas</span>
+              <span className="text-right">Lucro</span>
+              <span className="text-right">Margem</span>
             </div>
 
             {monthly.map((item) => (
               <div
                 key={item.label}
                 className="k-table-row grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr_0.8fr] items-center border-b border-white/[0.045] px-5 last:border-b-0"
+                data-empty={item.revenue || item.received || item.receivable || item.expenses || item.profit ? undefined : "true"}
               >
                 <div>
                   <strong className="block font-semibold text-slate-100">
@@ -373,31 +390,31 @@ export function RelatoriosDashboard() {
                   <span className="k-muted text-xs">{item.label}</span>
                 </div>
 
-                <span className="k-number text-slate-200">
+                <span className="k-number text-right text-slate-200">
                   {formatCurrency(item.revenue)}
                 </span>
 
-                <span className="k-number text-emerald-200">
+                <span className="k-number text-right text-emerald-200">
                   {formatCurrency(item.received)}
                 </span>
 
-                <span className="k-number text-cyan-200">
+                <span className="k-number text-right text-cyan-200">
                   {formatCurrency(item.receivable)}
                 </span>
 
-                <span className="k-number text-rose-200">
+                <span className="k-number text-right text-rose-200">
                   {formatCurrency(item.expenses)}
                 </span>
 
                 <span
-                  className={`k-number font-semibold ${
-                    item.profit >= 0 ? "text-violet-200" : "text-rose-200"
+                  className={`k-number text-right font-semibold ${
+                    item.profit > 0 ? "text-slate-100" : item.profit < 0 ? "text-rose-200" : "text-slate-600"
                   }`}
                 >
                   {formatCurrency(item.profit)}
                 </span>
 
-                <span className="k-number text-slate-300">
+                <span className="k-number text-right text-slate-300">
                   {formatPercent(item.margin)}
                 </span>
               </div>
