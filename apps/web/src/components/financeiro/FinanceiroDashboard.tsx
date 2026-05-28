@@ -563,15 +563,15 @@ export function FinanceiroDashboard() {
     <div className="k-page financeiro-v2 flex flex-col gap-6">
       <header className="k-page-header xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="dashboard-label text-[10px] text-cyan-300">
+          <p className="k-eyebrow">
             Financeiro
           </p>
 
-          <h1 className="mt-3 text-[38px] font-semibold leading-none tracking-[-0.07em] text-white sm:text-[44px]">
+          <h1 className="k-title">
             Financeiro.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Lançamentos, recebimentos, despesas e resultado consolidados dos
             dados ativos da operação.
           </p>
@@ -606,13 +606,13 @@ export function FinanceiroDashboard() {
       </header>
 
       {errorMessage ? (
-        <div className="k-card border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
 
       {successMessage ? (
-        <div className="k-card border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-medium text-emerald-100">
+        <div className="k-toast" data-tone="success">
           {successMessage}
         </div>
       ) : null}
@@ -689,7 +689,7 @@ export function FinanceiroDashboard() {
               return (
                 <div
                   key={entry.id}
-                  className="grid min-h-[62px] grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] items-center border-b border-white/[0.045] px-5 py-3 text-sm last:border-b-0 hover:bg-white/[0.018]"
+                  className="k-table-row grid min-h-[58px] grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] items-center border-b border-white/[0.045] px-5 py-3 text-sm last:border-b-0"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="k-avatar h-8 w-8 rounded-full text-xs">
@@ -759,7 +759,7 @@ export function FinanceiroDashboard() {
                       type="button"
                       onClick={() => handleDeleteFinanceEntry(entry.id)}
                       disabled={deletingId === entry.id}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] border border-rose-400/20 bg-rose-400/10 text-rose-100 transition hover:bg-rose-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="k-icon-button h-8 min-h-8 w-8 border-rose-400/20 bg-rose-400/10 text-rose-100 hover:bg-rose-400/15 disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label="Excluir lançamento"
                     >
                       <Trash2 size={13} />
@@ -785,7 +785,7 @@ export function FinanceiroDashboard() {
 
       {editingEntry && editForm ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <section className="k-card max-h-[92vh] w-full max-w-4xl overflow-y-auto p-5 shadow-2xl">
+          <section className="k-modal max-h-[92vh] w-full max-w-4xl overflow-y-auto p-5">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <p className="dashboard-label text-[10px] text-cyan-300">
@@ -805,7 +805,7 @@ export function FinanceiroDashboard() {
               <button
                 type="button"
                 onClick={closeEdit}
-                className="rounded-[10px] border border-white/10 bg-white/[0.035] p-2 text-slate-300 transition hover:bg-white/[0.06]"
+                className="k-icon-button"
               >
                 <X size={18} />
               </button>
@@ -819,7 +819,7 @@ export function FinanceiroDashboard() {
                 <select
                   value={editForm.type}
                   onChange={(event) => updateEditField("type", event.target.value)}
-                  className="k-input mt-2 h-11 px-4 text-sm font-medium"
+                  className="k-select mt-2 h-11 px-4 text-sm font-medium"
                 >
                   {typeOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -930,7 +930,7 @@ export function FinanceiroDashboard() {
                     updateEditField("description", event.target.value)
                   }
                   rows={3}
-                  className="k-input mt-2 w-full resize-none px-4 py-3 text-sm font-medium"
+                  className="k-textarea mt-2 w-full px-4 py-3 text-sm font-medium"
                 />
               </label>
 

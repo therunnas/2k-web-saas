@@ -417,7 +417,7 @@ const width = 1120;
                   onClick={() => setSelectedPoint(null)}
                 />
 
-                <aside className="relative h-screen w-full max-w-[640px] overflow-y-auto border-l border-white/10 bg-[#070b13] p-5 shadow-[0_0_80px_rgba(0,0,0,0.55)] sm:p-6">
+                <aside className="k-drawer relative h-screen w-full max-w-[640px] overflow-y-auto border-l p-5 sm:p-6">
                   <div className="mb-6 flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
@@ -434,14 +434,14 @@ const width = 1120;
                     <button
                       type="button"
                       onClick={() => setSelectedPoint(null)}
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-xl text-slate-300 transition hover:bg-white/[0.08] hover:text-white"
+                      className="k-icon-button shrink-0 text-xl"
                     >
                       ×
                     </button>
                   </div>
 
                   <section className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                    <div className="k-card-soft p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Faturamento
                       </p>
@@ -453,7 +453,7 @@ const width = 1120;
                       </span>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                    <div className="k-card-soft p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Saídas
                       </p>
@@ -465,7 +465,7 @@ const width = 1120;
                       </span>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                    <div className="k-card-soft p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Lucro por competência
                       </p>
@@ -477,7 +477,7 @@ const width = 1120;
                       </span>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                    <div className="k-card-soft p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Margem
                       </p>
@@ -490,7 +490,7 @@ const width = 1120;
                     </div>
                   </section>
 
-                  <section className="mt-5 rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.035] p-4">
+                  <section className="k-card-soft mt-5 border-cyan-300/15 bg-cyan-300/[0.035] p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-cyan-300">
                       Maior cliente por faturamento
                     </p>
@@ -529,7 +529,7 @@ const width = 1120;
                     </div>
                   </section>
 
-                  <section className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+                  <section className="k-card-soft mt-5 p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                       Leitura executiva
                     </p>
@@ -1231,15 +1231,15 @@ export function DashboardOverview() {
     <div className="k-page dashboard-overview-v2 space-y-5 sm:space-y-6">
       <header className="k-page-header xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">
+          <p className="k-eyebrow">
             Visão geral · Ano fiscal 2026
           </p>
 
-          <h1 className="mt-2 text-[36px] font-semibold tracking-[-0.065em] text-white sm:text-[42px]">
+          <h1 className="k-title">
             Olá, Vinicius.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400 sm:text-base">
+          <p className="k-subtitle">
             Visão geral da operação financeira e audiovisual da 2K STUDIOS com
             dados reais da planilha importada.
           </p>
@@ -1266,7 +1266,7 @@ export function DashboardOverview() {
       </header>
 
       {errorMessage ? (
-        <div className="k-card border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
@@ -1331,7 +1331,7 @@ export function DashboardOverview() {
               {(overview?.topGroups ?? []).slice(0, 5).map((group) => (
                 <div
                   key={group.name}
-                  className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                  className="k-table-row grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
                 >
                   <span className="text-slate-500">{group.rank}</span>
 
@@ -1418,7 +1418,7 @@ export function DashboardOverview() {
               return (
                 <div
                   key={`${item.id}-${item.sourceRow}`}
-                  className="grid grid-cols-[1fr_auto] items-center gap-4 rounded-[16px] border border-white/[0.06] bg-white/[0.02] px-4 py-3"
+                  className="k-table-row grid grid-cols-[1fr_auto] items-center gap-4 rounded-[10px] border border-white/[0.06] bg-white/[0.02] px-4 py-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <span className="k-avatar h-8 w-8 rounded-[10px] text-xs">
@@ -1451,8 +1451,9 @@ export function DashboardOverview() {
             })}
 
             {!receivableRows.length ? (
-              <div className="rounded-[16px] border border-white/10 px-5 py-6 text-sm font-medium text-slate-500">
-                Nenhum recebimento encontrado.
+              <div className="k-empty">
+                <h4>Nenhum recebimento encontrado</h4>
+                <p>Quando houver pendências recentes em aberto, elas aparecerão aqui.</p>
               </div>
             ) : null}
           </div>
