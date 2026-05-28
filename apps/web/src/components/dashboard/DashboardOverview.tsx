@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -195,181 +195,6 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-type KpiVisualKind = "pos" | "warn" | "neg" | "neutral";
-
-type KpiVisual = {
-  delta: string;
-  kind: KpiVisualKind;
-  spark: number[];
-  accent: "cyan" | "purple" | "amber" | "rose";
-};
-
-const kpiVisuals: Record<string, KpiVisual> = {
-  Faturamento: {
-    delta: "+ 12,4%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [40, 55, 38, 70, 62, 88, 92, 100, 86, 95, 110, 124],
-  },
-  "Recebido em caixa": {
-    delta: "+ 8,1%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [22, 30, 28, 48, 55, 62, 70, 78, 82, 88, 95, 102],
-  },
-  "Lucro por competência": {
-    delta: "+ 22,1%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [10, 22, 35, 42, 55, 70, 82, 92, 102, 115, 125, 130],
-  },
-  "A receber": {
-    delta: "- 3,2%",
-    kind: "warn",
-    accent: "purple",
-    spark: [80, 72, 78, 60, 65, 55, 58, 50, 52, 48, 50, 48],
-  },
-  "Saídas pagas": {
-    delta: "+ 5,7%",
-    kind: "neg",
-    accent: "rose",
-    spark: [12, 18, 22, 30, 38, 48, 58, 68, 78, 90, 102, 114],
-  },
-  "A pagar": {
-    delta: "+R$ 2,1K",
-    kind: "warn",
-    accent: "amber",
-    spark: [8, 6, 10, 14, 12, 16, 20, 18, 22, 19, 17, 16],
-  },
-  "Resultado de caixa real": {
-    delta: "+ 18,9%",
-    kind: "pos",
-    accent: "cyan",
-    spark: [10, 18, 26, 35, 42, 52, 60, 70, 80, 86, 92, 98],
-  },
-  "Caixa comprometido": {
-    delta: "—",
-    kind: "warn",
-    accent: "purple",
-    spark: [60, 64, 70, 72, 68, 74, 78, 76, 80, 78, 82, 82],
-  },
-  "Margem por competência": {
-    delta: "+ 1,8 pp",
-    kind: "pos",
-    accent: "cyan",
-    spark: [38, 42, 41, 44, 46, 47, 49, 48, 50, 49, 50, 50],
-  },
-};
-
-function getKpiVisual(item: DashboardKpi): KpiVisual {
-  return (
-    kpiVisuals[item.label] ?? {
-      delta: item.trend,
-      kind:
-        item.trendDirection === "up"
-          ? "pos"
-          : item.trendDirection === "down"
-            ? "neg"
-            : "neutral",
-      accent: item.trendDirection === "down" ? "rose" : "cyan",
-      spark: [10, 18, 15, 24, 22, 30, 34, 32, 38, 42, 40, 46],
-    }
-  );
-}
-
-function buildSparkPath(values: number[], width = 360, height = 86) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const paddingX = 0;
-  const paddingY = 12;
-
-  return values
-    .map((value, index) => {
-      const x = paddingX + (index * (width - paddingX * 2)) / (values.length - 1);
-      const normalized = (value - min) / range;
-      const y = height - paddingY - normalized * (height - paddingY * 2);
-
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
-
-function MiniSparkline({
-  values,
-  accent = "cyan",
-}: {
-  values: number[];
-  accent?: KpiVisual["accent"];
-}) {
-  const width = 360;
-  const height = 86;
-  const path = buildSparkPath(values, width, height);
-  const areaPath = `${path} L ${width} ${height} L 0 ${height} Z`;
-
-  const color =
-    accent === "purple"
-      ? "#a78bfa"
-      : accent === "amber"
-        ? "#fbbf24"
-        : accent === "rose"
-          ? "#fb7185"
-          : "#22d3ee";
-
-  const gradientId = `spark-${accent}`;
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="pointer-events-none absolute inset-x-0 bottom-0 h-[52px] w-full opacity-90"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id={`${gradientId}-area`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.24" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.015" />
-        </linearGradient>
-      </defs>
-
-      <path d={areaPath} fill={`url(#${gradientId}-area)`} />
-      <path
-        d={path}
-        fill="none"
-        stroke={color}
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function TrendBadge({
-  label,
-  kind,
-}: {
-  label: string;
-  kind: KpiVisualKind;
-}) {
-  const className =
-    kind === "pos"
-      ? "border-emerald-300/20 bg-emerald-300/12 text-emerald-200"
-      : kind === "neg"
-        ? "border-rose-300/20 bg-rose-300/12 text-rose-200"
-        : kind === "warn"
-          ? "border-amber-300/20 bg-amber-300/12 text-amber-200"
-          : "border-cyan-300/20 bg-cyan-300/12 text-cyan-200";
-
-  return (
-    <span
-      className={`inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-bold tracking-[-0.02em] ${className}`}
-    >
-      {label}
-    </span>
-  );
-}
-
 function RevenueChart({ monthly }: { monthly: MonthlyRevenueItem[] }) {
   const [hoveredPoint, setHoveredPoint] = useState<ActiveChartPoint | null>(
     null
@@ -380,9 +205,9 @@ function RevenueChart({ monthly }: { monthly: MonthlyRevenueItem[] }) {
   );
 
 const width = 1120;
-  const height = 300;
+  const height = 340;
   const paddingX = 74;
-  const paddingY = 42;
+  const paddingY = 48;
 
   const values = monthly
     .map((item) => item.value)
@@ -463,8 +288,8 @@ const width = 1120;
   const tooltipBelow = hoveredPoint ? hoveredPoint.y < 150 : false;
 
   return (
-    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.16)]">
-      <div className="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 shadow-[0_20px_70px_rgba(0,0,0,0.22)] sm:p-5 xl:p-6">
+      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-semibold tracking-[-0.035em]">
@@ -495,7 +320,7 @@ const width = 1120;
       </div>
 
       <div
-        className="relative overflow-visible rounded-[16px] border border-white/[0.06] bg-[#080d17] p-3"
+        className="relative overflow-visible rounded-[1.5rem] border border-white/[0.06] bg-[#080d17] p-3 sm:p-4 xl:p-5"
         onMouseLeave={() => { if (!selectedPoint) setHoveredPoint(null); }}
       >
         {hoveredPoint ? (
@@ -593,7 +418,7 @@ const width = 1120;
                 />
 
                 <aside className="relative h-screen w-full max-w-[640px] overflow-y-auto border-l border-white/10 bg-[#070b13] p-5 shadow-[0_0_80px_rgba(0,0,0,0.55)] sm:p-6">
-                  <div className="mb-4 flex items-start justify-between gap-4">
+                  <div className="mb-6 flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">
                         Detalhamento mensal
@@ -620,7 +445,7 @@ const width = 1120;
                       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
                         Faturamento
                       </p>
-                      <strong className="dashboard-number mt-1.5 block text-lg text-white">
+                      <strong className="dashboard-number mt-2 block text-xl text-white">
                         {formatCurrency(selectedPoint.revenue)}
                       </strong>
                       <span className="mt-1 block text-xs text-slate-500">
@@ -747,7 +572,7 @@ const width = 1120;
         <div className="overflow-x-auto overflow-y-visible">
           <svg
             viewBox={`0 0 ${width} ${height}`}
-            className="h-[250px] min-w-[820px] w-full overflow-visible sm:h-[270px] xl:h-[292px]"
+            className="h-[300px] min-w-[860px] w-full overflow-visible sm:h-[320px] xl:h-[350px]"
             role="img"
             aria-label="Gráfico anual de faturamento"
           >
@@ -993,16 +818,16 @@ function OperationStrip({
   ];
 
   return (
-    <div className="operation-strip grid overflow-hidden rounded-[16px] border border-white/10 bg-white/[0.025] shadow-[0_12px_38px_rgba(0,0,0,0.12)] sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.025] shadow-[0_18px_60px_rgba(0,0,0,0.18)] sm:grid-cols-2 xl:grid-cols-5">
       {metrics.map((metric) => (
         <div
           key={metric.label}
-          className="border-b border-white/[0.07] px-4 py-3 last:border-b-0 sm:border-r xl:border-b-0"
+          className="border-b border-white/[0.07] px-5 py-4 last:border-b-0 sm:border-r xl:border-b-0"
         >
           <p className="dashboard-label text-[10px] text-slate-500">
             {metric.label}
           </p>
-          <strong className="dashboard-number mt-1.5 block text-lg text-white">
+          <strong className="dashboard-number mt-2 block text-xl text-white">
             {metric.value}
           </strong>
           <span className="mt-1 block text-xs font-medium text-slate-500">
@@ -1024,84 +849,40 @@ function KpiPanel({
   primary?: boolean;
 }) {
   const Icon = kpiIcons[iconIndex] ?? DollarSign;
-  const visual = getKpiVisual(item);
-
-  const accentText =
-    visual.accent === "purple"
-      ? "text-violet-300"
-      : visual.accent === "amber"
-        ? "text-amber-300"
-        : visual.accent === "rose"
-          ? "text-rose-300"
-          : "text-cyan-300";
+  const trendColor =
+    item.trendDirection === "up"
+      ? "text-emerald-300"
+      : item.trendDirection === "down"
+        ? "text-rose-300"
+        : "text-cyan-300";
 
   return (
     <article
-      className={`group relative overflow-hidden border border-white/10 bg-[#0b101b] shadow-[0_14px_46px_rgba(0,0,0,0.16)] ${
-        primary
-          ? "min-h-[118px] rounded-[15px] p-4"
-          : "min-h-[62px] rounded-[12px] p-0"
+      className={`group relative overflow-hidden rounded-[22px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.22)] ${
+        primary ? "min-h-[170px] p-7" : "min-h-[112px] p-5"
       }`}
     >
-      {primary ? (
-        <MiniSparkline values={visual.spark} accent={visual.accent} />
-      ) : null}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan-300/55 to-transparent" />
+      <div className="pointer-events-none absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-[15px] border border-cyan-300/10 bg-cyan-300/10 text-cyan-300 shadow-[0_0_34px_rgba(34,211,238,0.10)]">
+        <Icon size={primary ? 21 : 18} />
+      </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-cyan-300/70 via-emerald-300/55 to-transparent" />
+      <p className="dashboard-label pr-14 text-[10px] text-slate-500">
+        {item.label}
+      </p>
 
-      <div
-        className={`absolute right-4 top-4 flex items-center justify-center border border-current/20 bg-current/10 ${accentText} ${
-          primary ? "h-8 w-8 rounded-[10px]" : "hidden"
+      <strong
+        className={`dashboard-number mt-5 block truncate text-white ${
+          primary ? "text-[38px] leading-none" : "text-[24px] leading-none"
         }`}
       >
-        <Icon size={primary ? 15 : 0} />
-      </div>
+        {item.value}
+      </strong>
 
-      <div className="relative z-10 flex h-full flex-col">
-        <p
-          className={`dashboard-label pr-14 text-slate-500 ${
-            primary ? "text-[9px]" : "text-[9px]"
-          }`}
-        >
-          {item.label}
-        </p>
-
-        <strong
-          className={`dashboard-number mt-3 block truncate text-white ${
-            primary ? "text-[29px] leading-none" : "text-[18px] leading-none"
-          }`}
-        >
-          {item.value}
-        </strong>
-
-        <div
-          className={`mt-auto flex items-end justify-between gap-3 ${
-            primary ? "pt-3" : "pt-1"
-          }`}
-        >
-          <div className="min-w-0">
-            <p
-              className={`truncate text-xs font-semibold ${
-                visual.kind === "pos"
-                  ? "text-emerald-300"
-                  : visual.kind === "neg"
-                    ? "text-rose-300"
-                    : visual.kind === "warn"
-                      ? "text-amber-300"
-                      : "text-cyan-300"
-              }`}
-            >
-              {item.trend}
-            </p>
-
-            <p className="mt-1 truncate text-[11px] font-medium text-slate-500">
-              {item.helper}
-            </p>
-          </div>
-
-          <TrendBadge label={visual.delta} kind={visual.kind} />
-        </div>
-      </div>
+      <p className={`mt-4 text-xs font-semibold ${trendColor}`}>{item.trend}</p>
+      <p className="mt-1 text-[11px] font-medium leading-5 text-slate-500">
+        {item.helper}
+      </p>
     </article>
   );
 }
@@ -1149,8 +930,8 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
   ];
 
   return (
-    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.16)]">
-      <div className="mb-4 flex items-start justify-between gap-4">
+    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-6 shadow-[0_18px_70px_rgba(0,0,0,0.20)]">
+      <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <p className="dashboard-label text-[10px] text-cyan-300">
             Score do ciclo · AF 2026
@@ -1165,8 +946,8 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
         </span>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[132px_1fr] md:items-center xl:grid-cols-1 2xl:grid-cols-[132px_1fr]">
-        <div className="relative mx-auto flex h-[122px] w-[122px] items-center justify-center rounded-full">
+      <div className="grid gap-6 md:grid-cols-[160px_1fr] md:items-center xl:grid-cols-1 2xl:grid-cols-[160px_1fr]">
+        <div className="relative mx-auto flex h-[150px] w-[150px] items-center justify-center rounded-full">
           <div
             className="absolute inset-0 rounded-full"
             style={{
@@ -1175,7 +956,7 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
           />
           <div className="absolute inset-[10px] rounded-full bg-[#0b101b]" />
           <div className="relative text-center">
-            <strong className="dashboard-number block text-[26px] leading-none text-white">
+            <strong className="dashboard-number block text-[34px] leading-none text-white">
               {formatPercent(score)}
             </strong>
             <span className="dashboard-label mt-1 block text-[9px] text-slate-500">
@@ -1184,7 +965,7 @@ function ScoreCard({ summary }: { summary: FinanceSummary | null }) {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {rows.map((row) => (
             <div key={row.label} className="grid grid-cols-[1fr_auto] items-center gap-4">
               <div className="flex items-center gap-2">
@@ -1217,7 +998,7 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
   }
 
   return (
-    <section className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 shadow-[0_14px_48px_rgba(0,0,0,0.14)]">
+    <section className="rounded-[24px] border border-white/10 bg-[#0b101b] p-5 shadow-[0_18px_70px_rgba(0,0,0,0.18)]">
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
@@ -1447,39 +1228,40 @@ export function DashboardOverview() {
   );
 
   return (
-    <div className="dashboard-overview-v2 dashboard-pro-compact space-y-4">
-      <header className="grid gap-3 xl:grid-cols-[1fr_auto] xl:items-end">
+    <div className="dashboard-overview-v2 space-y-5 sm:space-y-6">
+      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="dashboard-label text-[10px] text-cyan-300">
+          <p className="text-sm font-medium text-slate-500">
             Visão geral · Ano fiscal 2026
           </p>
 
-          <h1 className="mt-2 text-[30px] font-semibold leading-none tracking-[-0.055em] text-white sm:text-[34px]">
+          <h1 className="mt-2 text-[36px] font-semibold tracking-[-0.065em] text-white sm:text-[42px]">
             Olá, Vinicius.
           </h1>
 
-          <p className="mt-2 max-w-2xl text-[13px] font-medium leading-5 text-slate-400 sm:text-sm">
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400 sm:text-base">
             Visão geral da operação financeira e audiovisual da 2K STUDIOS com
             dados reais da planilha importada.
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-start gap-2 xl:justify-end">
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-white/10 bg-white/[0.03] px-3.5 text-xs font-semibold text-slate-300 transition hover:bg-white/[0.06] hover:text-white"
-          >
-            <ArrowUpRight size={14} />
-            Exportar
-          </button>
-
+        <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={loadOverview}
-            className="inline-flex h-9 items-center gap-2 rounded-[11px] border border-cyan-300/20 bg-cyan-300/10 px-3.5 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/15"
+            className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
           >
-            {loading ? "Atualizando..." : "+ Nova entrada"}
+            {loading ? "Atualizando..." : "Atualizar dados"}
           </button>
+
+          <div className="flex items-center gap-2 rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+            <CalendarDays size={16} />
+            Ano fiscal 2026
+          </div>
+
+          <div className="rounded-[14px] border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+            01 Jan — 31 Dez 2026
+          </div>
         </div>
       </header>
 
@@ -1491,32 +1273,32 @@ export function DashboardOverview() {
 
       <OperationStrip overview={overview} summary={summary} />
 
-      <div className="grid gap-3 xl:grid-cols-3">
+      <div className="grid gap-4 xl:grid-cols-3">
         {primaryKpis.map(({ item, index }) => (
           <KpiPanel key={item.label} item={item} iconIndex={index} primary />
         ))}
       </div>
 
-      <div className="grid overflow-hidden rounded-[16px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.14)] md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid overflow-hidden rounded-[22px] border border-white/10 bg-[#0b101b] shadow-[0_18px_70px_rgba(0,0,0,0.18)] md:grid-cols-3 xl:grid-cols-6">
         {secondaryKpis.map(({ item, index }) => (
           <div
             key={item.label}
-            className="border-b border-white/[0.07] p-3 last:border-b-0 md:border-r xl:border-b-0"
+            className="border-b border-white/[0.07] p-4 last:border-b-0 md:border-r xl:border-b-0"
           >
             <KpiPanel item={item} iconIndex={index} />
           </div>
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.68fr_0.92fr]">
+      <div className="grid gap-5 xl:grid-cols-[1.65fr_1fr]">
         <RevenueChart monthly={monthly} />
         <ScoreCard summary={summary} />
       </div>
 
       <PipelineStrip entries={overview?.latestEntries ?? []} />
 
-      <section className="dashboard-bottom-panels grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-        <div className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-5">
+      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Users className="text-violet-300" size={21} />
@@ -1601,7 +1383,7 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="rounded-[18px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-5">
+        <div className="rounded-[24px] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CalendarDays className="text-violet-300" size={21} />
@@ -1687,9 +1469,4 @@ export function DashboardOverview() {
     </div>
   );
 }
-
-
-
-
-
 
