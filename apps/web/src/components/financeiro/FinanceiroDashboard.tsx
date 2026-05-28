@@ -5,8 +5,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  Banknote,
-  CalendarDays,
   CircleDollarSign,
   Download,
   Pencil,
@@ -15,8 +13,6 @@ import {
   Save,
   Search,
   Trash2,
-  TrendingUp,
-  Wallet,
   X,
 } from "lucide-react";
 
@@ -87,7 +83,6 @@ type SummaryCard = {
   helper: string;
   delta: string;
   tone: SummaryTone;
-  icon: typeof TrendingUp;
 };
 
 const filterOptions = [
@@ -124,6 +119,19 @@ function formatCompactCurrency(value: number) {
   })
     .format(value || 0)
     .replace(",00", "");
+}
+
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
 }
 
 function formatPercent(value: number) {
@@ -204,11 +212,11 @@ function getStatusInfo(entry: FinanceEntry) {
 
 function getDirectionIcon(entry: FinanceEntry) {
   if (entry.direction === "entrada") {
-    return <ArrowUpRight size={14} className="text-emerald-300" />;
+    return <ArrowUpRight size={14} className="text-cyan-300/75" />;
   }
 
   if (entry.direction === "saida") {
-    return <ArrowDownLeft size={14} className="text-rose-300" />;
+    return <ArrowDownLeft size={14} className="text-violet-300/65" />;
   }
 
   return <CircleDollarSign size={14} className="text-slate-500" />;
@@ -228,84 +236,29 @@ function getEntryDescription(entry: FinanceEntry) {
   return entry.project || entry.description || "Sem descrição";
 }
 
-function toneClasses(tone: SummaryTone) {
-  const map: Record<
-    SummaryTone,
-    {
-      text: string;
-      bg: string;
-      badge: string;
-      line: string;
-    }
-  > = {
-    cyan: {
-      text: "text-cyan-200",
-      bg: "bg-cyan-300/10",
-      badge: "border-cyan-300/20 bg-cyan-300/10 text-cyan-200",
-      line: "from-cyan-300/75 via-emerald-300/50 to-transparent",
-    },
-    emerald: {
-      text: "text-emerald-200",
-      bg: "bg-emerald-300/10",
-      badge: "border-emerald-300/20 bg-emerald-300/10 text-emerald-200",
-      line: "from-emerald-300/75 via-cyan-300/45 to-transparent",
-    },
-    amber: {
-      text: "text-amber-200",
-      bg: "bg-amber-300/10",
-      badge: "border-amber-300/20 bg-amber-300/10 text-amber-200",
-      line: "from-amber-300/75 via-orange-300/45 to-transparent",
-    },
-    rose: {
-      text: "text-rose-200",
-      bg: "bg-rose-300/10",
-      badge: "border-rose-300/20 bg-rose-300/10 text-rose-200",
-      line: "from-rose-300/70 via-violet-300/40 to-transparent",
-    },
-    violet: {
-      text: "text-violet-200",
-      bg: "bg-violet-300/10",
-      badge: "border-violet-300/20 bg-violet-300/10 text-violet-200",
-      line: "from-violet-300/75 via-cyan-300/40 to-transparent",
-    },
-  };
+function summaryHelperTone(card: SummaryCard) {
+  if (card.label === "A receber") return "k-kpi-helper-warning";
+  if (card.tone === "rose") return "k-kpi-helper-danger";
+  if (card.tone === "amber") return "k-kpi-helper-warning";
+  if (card.tone === "emerald") return "k-kpi-helper-positive";
+  if (card.label.includes("Lucro") && !card.delta.includes("-")) {
+    return "k-kpi-helper-positive";
+  }
+  if (card.label.includes("Caixa") && card.delta !== "Atenção") {
+    return "k-kpi-helper-positive";
+  }
 
-  return map[tone];
+  return "k-kpi-helper-info";
 }
 
 function SummaryMiniCard({ card }: { card: SummaryCard }) {
-  const Icon = card.icon;
-  const tone = toneClasses(card.tone);
-
   return (
-    <article className="k-kpi-card group min-h-[104px] p-4">
-      <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${tone.line}`} />
-
-      <div
-        className={`absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-[10px] border border-current/20 ${tone.bg} ${tone.text}`}
-      >
-        <Icon size={15} />
-      </div>
-
-      <p className="dashboard-label pr-12 text-[9px] text-slate-500">
-        {card.label}
-      </p>
-
-      <strong className="k-number mt-3 block truncate text-[23px] leading-none text-white">
-        {card.value}
-      </strong>
-
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="truncate text-[11px] font-medium text-slate-500">
-          {card.helper}
-        </p>
-
-        <span
-          className={`inline-flex h-6 shrink-0 items-center rounded-full border px-2.5 text-[10px] font-bold ${tone.badge}`}
-        >
-          {card.delta}
-        </span>
-      </div>
+    <article className="k-kpi-strip-item">
+      <span className="k-kpi-label">{card.label}</span>
+      <strong className="k-kpi-value">{renderKpiValue(card.value)}</strong>
+      <span className={`k-kpi-helper ${summaryHelperTone(card)}`}>
+        {card.delta}
+      </span>
     </article>
   );
 }
@@ -390,8 +343,7 @@ export function FinanceiroDashboard() {
         label: "Faturado",
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
         helper: "Receitas do ano",
-        delta: summary ? `${summary.entries} itens` : "—",
-        icon: TrendingUp,
+        delta: summary ? `${summary.entries} entradas` : "—",
         tone: "cyan",
       },
       {
@@ -399,7 +351,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
         helper: "Entradas pagas",
         delta: formatPercent(receivedPercent),
-        icon: Banknote,
         tone: "emerald",
       },
       {
@@ -407,7 +358,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
         helper: "Pendências abertas",
         delta: formatPercent(receivablePercent),
-        icon: CalendarDays,
         tone: receivablePercent > 20 ? "amber" : "cyan",
       },
       {
@@ -415,7 +365,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.paidExpenses) : "—",
         helper: "Despesas quitadas",
         delta: summary ? `${formatCompactCurrency(summary.totalExpenses)}` : "—",
-        icon: Wallet,
         tone: "violet",
       },
       {
@@ -423,7 +372,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.totalProfit) : "—",
         helper: "Faturado menos saídas",
         delta: formatPercent(margin),
-        icon: CircleDollarSign,
         tone: margin < 0 ? "rose" : "violet",
       },
       {
@@ -431,7 +379,6 @@ export function FinanceiroDashboard() {
         value: summary ? formatCompactCurrency(summary.cashResult) : "—",
         helper: "Recebido menos saídas pagas",
         delta: summary && summary.cashResult < 0 ? "Atenção" : "Em ritmo",
-        icon: CircleDollarSign,
         tone: summary && summary.cashResult < 0 ? "rose" : "emerald",
       },
     ] satisfies SummaryCard[];
@@ -561,7 +508,7 @@ export function FinanceiroDashboard() {
 
   return (
     <div className="k-page financeiro-v2 flex flex-col gap-6">
-      <header className="k-page-header xl:flex-row xl:items-end xl:justify-between">
+      <header className="k-page-header k-finance-header">
         <div>
           <p className="k-eyebrow">
             Financeiro
@@ -577,7 +524,7 @@ export function FinanceiroDashboard() {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-finance-actions">
           <button
             type="button"
             onClick={() => loadEntries()}
@@ -617,14 +564,14 @@ export function FinanceiroDashboard() {
         </div>
       ) : null}
 
-      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <section className="k-kpi-strip k-finance-kpi-strip">
         {summaryCards.map((card) => (
           <SummaryMiniCard key={card.label} card={card} />
         ))}
       </section>
 
-      <section className="k-card p-4 sm:p-5 xl:p-6">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="k-card k-finance-table">
+        <div className="k-section-head flex-col items-start xl:flex-row xl:items-center">
           <div>
             <h2 className="k-section-title">
               Lançamentos financeiros
@@ -648,7 +595,7 @@ export function FinanceiroDashboard() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar cliente, grupo, projeto..."
-                className="k-input h-10 pl-9 pr-4 text-sm font-medium xl:w-80"
+                className="k-input h-9 pl-9 pr-4 text-sm font-medium xl:w-80"
               />
             </form>
 
@@ -669,8 +616,11 @@ export function FinanceiroDashboard() {
         </div>
 
         <div className="k-table-card overflow-x-auto">
-          <div className="min-w-[1180px]">
-            <div className="grid grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] border-b border-white/[0.075] bg-white/[0.025] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          <div className="k-table min-w-[1180px]">
+            <div
+              data-table-head
+              className="grid grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] px-5 py-3"
+            >
               <span>Nome</span>
               <span>Projeto / descrição</span>
               <span>Competência</span>
@@ -689,26 +639,26 @@ export function FinanceiroDashboard() {
               return (
                 <div
                   key={entry.id}
-                  className="k-table-row grid min-h-[58px] grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] items-center border-b border-white/[0.045] px-5 py-3 text-sm last:border-b-0"
+                  className="k-table-row grid grid-cols-[1.1fr_1.2fr_0.85fr_0.95fr_0.8fr_0.75fr_0.55fr_0.9fr] items-center border-b border-white/[0.045] px-5 last:border-b-0"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="k-avatar h-8 w-8 rounded-full text-xs">
+                    <span className="k-avatar">
                       {getInitials(name)}
                     </span>
 
                     <div className="min-w-0">
-                      <strong className="block truncate font-semibold text-white">
+                      <strong className="block truncate font-semibold text-slate-100">
                         {name}
                       </strong>
 
-                      <span className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                      <span className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-500">
                         {getDirectionIcon(entry)}
                         {getEntryKindLabel(entry)}
                       </span>
                     </div>
                   </div>
 
-                  <span className="line-clamp-2 pr-4 text-[13px] font-medium leading-5 text-slate-400">
+                  <span className="line-clamp-2 pr-4 text-[12.5px] font-medium leading-5 text-slate-400">
                     {description}
                   </span>
 
@@ -716,12 +666,12 @@ export function FinanceiroDashboard() {
                     <span className="k-number block text-xs text-slate-300">
                       {entry.competence ?? "—"}
                     </span>
-                    <span className="mt-1 block text-[11px] text-slate-600">
+                      <span className="mt-0.5 block text-[10.5px] text-slate-600">
                       {formatDate(entry.date)}
                     </span>
                   </div>
 
-                  <span className="truncate pr-3 text-[13px] font-medium text-slate-400">
+                  <span className="truncate pr-3 text-[12.5px] font-medium text-slate-400">
                     {entry.category ?? "—"}
                   </span>
 
@@ -749,9 +699,10 @@ export function FinanceiroDashboard() {
                     <button
                       type="button"
                       onClick={() => startEdit(entry)}
-                      className="k-button-ghost h-8 min-h-8 w-8 rounded-[9px] p-0"
-                      aria-label="Editar lançamento"
-                    >
+                    className="k-button-ghost p-0"
+                    data-icon-only="true"
+                    aria-label="Editar lançamento"
+                  >
                       <Pencil size={13} />
                     </button>
 
@@ -759,7 +710,7 @@ export function FinanceiroDashboard() {
                       type="button"
                       onClick={() => handleDeleteFinanceEntry(entry.id)}
                       disabled={deletingId === entry.id}
-                      className="k-icon-button h-8 min-h-8 w-8 border-rose-400/20 bg-rose-400/10 text-rose-100 hover:bg-rose-400/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="k-icon-button k-danger-subtle disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label="Excluir lançamento"
                     >
                       <Trash2 size={13} />

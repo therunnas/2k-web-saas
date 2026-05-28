@@ -3,7 +3,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  CalendarClock,
   CheckCircle2,
   Loader2,
   Minus,
@@ -165,6 +164,19 @@ function formatCurrency(value: unknown) {
   }).format(toNumber(value));
 }
 
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
+}
+
 function formatDate(value: string | null) {
   if (!value) return "—";
 
@@ -266,24 +278,18 @@ function StatCard({
   helper: string;
   tone?: "violet" | "emerald" | "amber";
 }) {
-  const toneClass =
+  const helperClass =
     tone === "emerald"
-      ? "from-emerald-300/18 to-transparent text-emerald-200"
+      ? "k-kpi-helper-positive"
       : tone === "amber"
-        ? "from-amber-300/18 to-transparent text-amber-200"
-        : "from-violet-300/18 to-transparent text-violet-200";
+        ? "k-kpi-helper-warning"
+        : "k-kpi-helper-info";
 
   return (
-    <article className="k-kpi-card min-h-[104px] p-4">
-      <div className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r ${toneClass}`} />
-
-      <p className="dashboard-label text-[10px] text-slate-500">{label}</p>
-
-      <strong className="k-number mt-3 block text-[25px] font-semibold leading-none text-white">
-        {value}
-      </strong>
-
-      <p className="mt-2 text-xs font-medium text-slate-500">{helper}</p>
+    <article className="k-kpi-strip-item">
+      <span className="k-kpi-label">{label}</span>
+      <strong className="k-kpi-value">{renderKpiValue(value)}</strong>
+      <span className={`k-kpi-helper ${helperClass}`}>{helper}</span>
     </article>
   );
 }
@@ -524,15 +530,15 @@ export function SaidasManualDashboard() {
     <div className="k-page manual-page-v2 manual-page-exits space-y-6">
       <header className="k-page-header xl:flex-row xl:items-end xl:justify-between">
         <div>
-          <p className="dashboard-label text-[11px] text-violet-300">
+          <p className="k-eyebrow">
             Saídas
           </p>
 
-          <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
+          <h1 className="k-title">
             Lançar saída manual.
           </h1>
 
-          <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Cadastre despesas, custos, fornecedores, centro de custo, pagamento, vencimento e comprovante.
           </p>
         </div>
@@ -564,7 +570,7 @@ export function SaidasManualDashboard() {
         </div>
       </header>
 
-      <section className="manual-summary-strip grid gap-3 md:grid-cols-3">
+      <section className="k-kpi-strip" data-columns="3">
         <StatCard
           label="Saídas manuais"
           value={String(entries.length)}
@@ -606,7 +612,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.category}
               onChange={(event) => updateField("category", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione uma categoria</option>
               {uniqueOptions([...defaultCategories, ...expenseCategories]).map(
@@ -624,7 +630,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.subCategory}
               onChange={(event) => updateField("subCategory", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione uma subcategoria</option>
               {uniqueOptions(expenseSubCategories).map((item) => (
@@ -643,7 +649,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.supplierName}
               onChange={(event) => updateField("supplierName", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione um fornecedor</option>
               {uniqueOptions(suppliers).map((supplier) => (
@@ -662,7 +668,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.linkedClient}
               onChange={(event) => updateField("linkedClient", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Interno / não vinculado</option>
               {uniqueOptions(brands).map((brand) => (
@@ -698,7 +704,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.costCenter}
               onChange={(event) => updateField("costCenter", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione</option>
               {uniqueOptions([...defaultCostCenters, ...costCenters]).map((item) => (
@@ -734,7 +740,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.financialStatus}
               onChange={(event) => updateField("financialStatus", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="A_PAGAR">A pagar</option>
               <option value="PAGO">Pago</option>
@@ -747,7 +753,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.recurrence}
               onChange={(event) => updateField("recurrence", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               {uniqueOptions(["PONTUAL", "MENSAL", "ANUAL", "PARCELADO", ...recurrences]).map((item) => (
                 <option key={`recurrence-${item}`} value={item}>
@@ -762,7 +768,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.nature}
               onChange={(event) => updateField("nature", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="FIXO">Fixo</option>
               <option value="VARIAVEL">Variável</option>
@@ -774,7 +780,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.paymentMethod}
               onChange={(event) => updateField("paymentMethod", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione</option>
               {uniqueOptions([...defaultPaymentMethods, ...paymentMethods]).map((item) => (
@@ -790,7 +796,7 @@ export function SaidasManualDashboard() {
             <select
               value={form.accountName}
               onChange={(event) => updateField("accountName", event.target.value)}
-              className="k-input mt-2 h-11 px-4 text-sm font-medium"
+              className="k-select mt-2 h-11 px-4 text-sm font-medium"
             >
               <option value="">Selecione</option>
               {uniqueOptions([form.accountName, ...accountNames]).map((item) => (
@@ -841,18 +847,18 @@ export function SaidasManualDashboard() {
               onChange={(event) => updateField("notes", event.target.value)}
               rows={3}
               placeholder="Observações internas sobre pagamento, negociação, parcelamento ou vínculo com projeto."
-              className="k-input mt-2 w-full resize-none px-4 py-3 text-sm font-medium"
+              className="k-textarea mt-2 w-full resize-none px-4 py-3 text-sm font-medium"
             />
           </label>
 
           {errorMessage ? (
-            <div className="k-card border-rose-400/20 bg-rose-400/10 p-4 text-sm font-semibold text-rose-100 xl:col-span-2">
+            <div className="k-toast xl:col-span-2" data-tone="danger">
               {errorMessage}
             </div>
           ) : null}
 
           {successMessage ? (
-            <div className="k-card flex items-center gap-2 border-emerald-400/20 bg-emerald-400/10 p-4 text-sm font-semibold text-emerald-100 xl:col-span-2">
+            <div className="k-toast xl:col-span-2" data-tone="success">
               <CheckCircle2 size={17} />
               {successMessage}
             </div>
@@ -908,8 +914,11 @@ export function SaidasManualDashboard() {
         </div>
 
         <div className="k-table-card overflow-x-auto">
-          <div className="min-w-[1320px]">
-            <div className="grid grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          <div className="k-table min-w-[1320px]">
+            <div
+              data-table-head
+              className="grid grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] px-5 py-3"
+            >
               <span>Categoria</span>
               <span>Subcategoria</span>
               <span>Fornecedor</span>
@@ -921,14 +930,14 @@ export function SaidasManualDashboard() {
             </div>
 
             {loading ? (
-              <div className="px-5 py-6 text-sm font-medium text-slate-500">
+              <div className="k-empty">
                 Carregando saídas...
               </div>
             ) : filteredEntries.length ? (
               filteredEntries.map((entry) => (
                 <div
                   key={entry.id}
-                  className="grid min-h-[58px] grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] items-center border-b border-white/[0.055] px-5 py-3 text-sm last:border-b-0"
+                  className="k-table-row grid min-h-[58px] grid-cols-[1fr_1fr_1.2fr_1.4fr_0.8fr_0.8fr_0.8fr_0.8fr] items-center px-5 py-3 text-sm"
                 >
                   <span className="truncate font-semibold text-white">
                     {entry.category ?? "—"}
@@ -972,7 +981,7 @@ export function SaidasManualDashboard() {
                     <button
                       type="button"
                       onClick={() => handleDelete(entry.id)}
-                      className="inline-flex min-h-8 w-fit items-center gap-2 rounded-[10px] border border-rose-400/20 bg-rose-400/10 px-3 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/15"
+                      className="k-button-danger min-h-8 px-3 text-xs"
                     >
                       <Trash2 size={13} />
                       Excluir
@@ -981,7 +990,7 @@ export function SaidasManualDashboard() {
                 </div>
               ))
             ) : (
-              <div className="px-5 py-6 text-sm font-medium text-slate-500">
+              <div className="k-empty">
                 Nenhuma saída manual encontrada.
               </div>
             )}
