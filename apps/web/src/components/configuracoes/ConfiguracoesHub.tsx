@@ -1,6 +1,9 @@
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
+  ArrowDownLeft,
+  ArrowUpRight,
   Banknote,
   Database,
   Settings2,
@@ -13,7 +16,8 @@ const cards = [
     description: "Gerenciar grupos e marcas usados nos lançamentos de entrada.",
     href: "/configuracoes/entradas",
     icon: Database,
-    accent: "text-cyan-200",
+    tone: "cyan",
+    tags: ["7 grupos", "12 marcas"],
   },
   {
     title: "Saídas",
@@ -21,7 +25,8 @@ const cards = [
       "Gerenciar fornecedores, categorias e subcategorias de despesas.",
     href: "/configuracoes/saidas",
     icon: SlidersHorizontal,
-    accent: "text-rose-200",
+    tone: "rose",
+    tags: ["35 fornecedores", "5 categorias"],
   },
   {
     title: "Financeiro",
@@ -29,7 +34,8 @@ const cards = [
       "Preparado para contas, cartões, formas de pagamento e centros de custo.",
     href: "/configuracoes/financeiro",
     icon: Banknote,
-    accent: "text-emerald-200",
+    tone: "emerald",
+    tags: ["Em breve"],
   },
   {
     title: "Sistema",
@@ -37,81 +43,126 @@ const cards = [
       "Empresa, workspace, importação, integrações e preferências gerais.",
     href: "/configuracoes/sistema",
     icon: Settings2,
-    accent: "text-violet-200",
+    tone: "violet",
+    tags: ["Ano fiscal", "Importar planilha"],
   },
 ];
 
+function ConfigSectionCard({
+  title,
+  description,
+  href,
+  icon: Icon,
+  tone,
+  tags,
+  active = false,
+}: {
+  title: string;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  tone: string;
+  tags: string[];
+  active?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="k-config-card"
+      data-active={active ? "true" : undefined}
+      data-tone={tone}
+    >
+      <div className="k-config-card-head">
+        <span className="k-config-card-icon">
+          <Icon size={16} />
+        </span>
+
+        <span className="k-config-card-arrow">
+          <ArrowRight size={14} />
+        </span>
+      </div>
+
+      <div className="k-config-card-content">
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+
+      <div className="k-config-card-tags">
+        {tags.map((tag) => (
+          <span key={tag}>{tag}</span>
+        ))}
+      </div>
+    </Link>
+  );
+}
+
 export function ConfiguracoesHub() {
   return (
-    <div className="space-y-6">
-      <header>
-        <p className="dashboard-label text-[11px] text-cyan-300">
-          Configurações
-        </p>
-
-        <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
-          Central de configurações.
-        </h1>
-
-        <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-400">
+    <div className="k-config-page">
+      <header className="k-config-header">
+        <p>CONFIGURAÇÕES</p>
+        <h1>Central de configurações.</h1>
+        <span>
           Organize as bases do SaaS por área para não misturar grupos, marcas,
           fornecedores, categorias, contas e regras financeiras.
-        </p>
+        </span>
       </header>
 
-      <section className="grid gap-5 xl:grid-cols-2">
-        {cards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <Link
-              key={card.href}
-              href={card.href}
-              className="group rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-5 transition hover:border-cyan-300/25 hover:bg-white/[0.035] xl:p-6"
-            >
-              <div className="flex items-start justify-between gap-5">
-                <div className="flex gap-4">
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] ${card.accent}`}>
-                    <Icon size={22} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-xl font-semibold tracking-[-0.035em] text-white">
-                      {card.title}
-                    </h2>
-
-                    <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-slate-500">
-                      {card.description}
-                    </p>
-                  </div>
-                </div>
-
-                <ArrowRight
-                  size={18}
-                  className="mt-1 text-slate-600 transition group-hover:translate-x-1 group-hover:text-cyan-200"
-                />
-              </div>
-            </Link>
-          );
-        })}
+      <section className="k-config-grid">
+        {cards.map((card) => (
+          <ConfigSectionCard
+            key={card.href}
+            title={card.title}
+            description={card.description}
+            href={card.href}
+            icon={card.icon}
+            tone={card.tone}
+            tags={card.tags}
+            active={card.title === "Entradas"}
+          />
+        ))}
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-white/[0.025] p-5">
-        <p className="text-sm font-semibold text-slate-300">
-          Regra oficial de organização
-        </p>
+      <section className="k-config-rule-card">
+        <div className="k-config-rule-head">
+          <div>
+            <h2>Regra oficial de organização</h2>
+            <p>
+              Como entradas e saídas se diferenciam no painel.
+            </p>
+          </div>
 
-        <div className="mt-3 grid gap-3 text-sm font-medium leading-6 text-slate-500 xl:grid-cols-2">
-          <p>
-            <strong className="text-cyan-200">Entradas:</strong> usam Grupos e
-            Marcas. Grupo é quem emite/recebe NF. Marca é quem pediu o job.
-          </p>
+          <span className="k-config-important-badge">Importante</span>
+        </div>
 
-          <p>
-            <strong className="text-rose-200">Saídas:</strong> usam
-            Fornecedores, Categorias e Subcategorias. Não entram em Marcas ou
-            Grupos.
-          </p>
+        <div className="k-config-rule-columns">
+          <div className="k-config-rule-item" data-tone="cyan">
+            <div className="k-config-rule-title">
+              <span>
+                <ArrowUpRight size={12} />
+              </span>
+              <strong>Entradas</strong>
+            </div>
+
+            <p>
+              Usam <strong>Grupos</strong> e <strong>Marcas</strong>. Grupo é
+              quem emite/recebe NF. Marca é quem pediu o job.
+            </p>
+          </div>
+
+          <div className="k-config-rule-item" data-tone="rose">
+            <div className="k-config-rule-title">
+              <span>
+                <ArrowDownLeft size={12} />
+              </span>
+              <strong>Saídas</strong>
+            </div>
+
+            <p>
+              Usam <strong>Fornecedores</strong>, <strong>Categorias</strong> e
+              <strong> Subcategorias</strong>. Não entram em Marcas ou Grupos.
+            </p>
+          </div>
         </div>
       </section>
     </div>

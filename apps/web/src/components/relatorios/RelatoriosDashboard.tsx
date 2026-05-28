@@ -110,45 +110,47 @@ function RankingList({
   const maxValue = Math.max(...items.map((item) => item.total), 1);
 
   const colorClass = {
-    cyan: "bg-cyan-300",
-    violet: "bg-violet-300",
-    rose: "bg-rose-300",
-    emerald: "bg-emerald-300",
+    cyan: "k-report-bar-cyan",
+    violet: "k-report-bar-violet",
+    rose: "k-report-bar-rose",
+    emerald: "k-report-bar-emerald",
   }[tone];
 
   return (
-    <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-      <div className="mb-5">
-        <h2 className="text-xl font-semibold tracking-[-0.035em]">
+    <section className="k-card k-report-card">
+      <div className="k-section-head">
+        <div>
+        <h2>
           {title}
         </h2>
 
-        <p className="mt-2 text-sm font-medium text-slate-500">
+        <p className="k-section-sub">
           {description}
         </p>
+        </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="k-compact-list">
         {items.slice(0, 6).map((item) => (
-          <div key={item.name}>
-            <div className="mb-2 flex items-center justify-between gap-3">
+          <div key={item.name} className="k-report-rank-row">
+            <div className="k-report-rank-head">
               <div className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-white">
+                <span className="k-report-rank-title">
                   {item.rank}. {item.name}
                 </span>
-                <span className="text-xs font-medium text-slate-600">
+                <span className="k-muted text-xs">
                   {item.count} lançamentos
                 </span>
               </div>
 
-              <span className="dashboard-number shrink-0 text-sm font-semibold text-slate-200">
+              <span className="k-number k-report-rank-value">
                 {formatCompactCurrency(item.total)}
               </span>
             </div>
 
-            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <div className="k-progress-line">
               <div
-                className={`h-full rounded-full ${colorClass}`}
+                className={colorClass}
                 style={{
                   width: `${clamp((item.total / maxValue) * 100, 4, 100)}%`,
                 }}
@@ -158,7 +160,7 @@ function RankingList({
         ))}
 
         {!items.length ? (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm font-medium text-slate-500">
+          <div className="k-empty">
             Nenhum dado encontrado.
           </div>
         ) : null}
@@ -253,29 +255,29 @@ export function RelatoriosDashboard() {
   const rankings = data?.rankings;
 
   return (
-    <div className="ops-page-v2 final-page-v2 final-page-reports space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page space-y-6">
+      <header className="k-page-header k-page-heading">
         <div>
-          <p className="dashboard-label text-[11px] text-cyan-300">
+          <p className="k-eyebrow">
             Relatórios
           </p>
 
-          <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
+          <h1 className="k-title">
             Relatórios executivos reais.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Consolidação anual de faturamento, caixa, despesas, margem,
             clientes, produções e rankings calculados com base na planilha
             importada.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-page-actions">
           <button
             type="button"
             onClick={loadReports}
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="k-button-ghost"
           >
             <RefreshCw size={16} />
             {loading ? "Atualizando..." : "Atualizar"}
@@ -283,7 +285,7 @@ export function RelatoriosDashboard() {
 
           <button
             type="button"
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="k-button-secondary"
           >
             <Download size={16} />
             Exportar
@@ -292,36 +294,36 @@ export function RelatoriosDashboard() {
       </header>
 
       {errorMessage ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="k-kpi-strip">
         {summaryCards.map((card) => {
           const Icon = card.icon;
 
           return (
             <article
               key={card.label}
-              className="rounded-[1.5rem] border border-white/10 bg-[#0b101b] p-5 shadow-[0_12px_40px_rgba(0,0,0,0.18)]"
+              className="k-kpi-strip-item"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="dashboard-label text-[11px] text-slate-500">
+                  <p className="k-kpi-label">
                     {card.label}
                   </p>
 
-                  <strong className="dashboard-number mt-3 block truncate text-[25px] font-semibold text-white">
+                  <strong className="k-kpi-value">
                     {card.value}
                   </strong>
 
-                  <p className="mt-2 text-xs font-medium text-slate-500">
+                  <p className="k-kpi-helper k-kpi-helper-info">
                     {card.helper}
                   </p>
                 </div>
 
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/[0.04]">
+                <div className="k-report-icon">
                   <Icon size={22} className={card.tone} />
                 </div>
               </div>
@@ -330,22 +332,26 @@ export function RelatoriosDashboard() {
         })}
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-        <div className="mb-5 flex items-center gap-3">
-          <BarChart3 size={21} className="text-cyan-300" />
+      <section className="k-card k-report-card">
+        <div className="k-section-head">
+          <div className="k-form-title-row">
+          <div className="k-form-icon">
+            <BarChart3 size={17} />
+          </div>
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
+            <h2>
               Relatório mensal
             </h2>
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="k-section-sub">
               Receita, recebimento, despesas, lucro e caixa por mês.
             </p>
           </div>
+          </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-white/10">
-          <div className="min-w-[1080px]">
-            <div className="grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr_0.8fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        <div className="k-table-card overflow-x-auto">
+          <div className="k-table min-w-[1080px]">
+            <div data-table-head className="grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr_0.8fr] px-5 py-3">
               <span>Mês</span>
               <span>Faturamento</span>
               <span>Recebido</span>
@@ -358,40 +364,40 @@ export function RelatoriosDashboard() {
             {monthly.map((item) => (
               <div
                 key={item.label}
-                className="grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr_0.8fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                className="k-table-row grid grid-cols-[0.8fr_1fr_1fr_1fr_1fr_1fr_0.8fr] items-center border-b border-white/[0.045] px-5 last:border-b-0"
               >
                 <div>
-                  <strong className="block font-semibold text-white">
+                  <strong className="block font-semibold text-slate-100">
                     {item.month}
                   </strong>
-                  <span className="text-xs text-slate-600">{item.label}</span>
+                  <span className="k-muted text-xs">{item.label}</span>
                 </div>
 
-                <span className="dashboard-number text-slate-200">
+                <span className="k-number text-slate-200">
                   {formatCurrency(item.revenue)}
                 </span>
 
-                <span className="dashboard-number text-emerald-200">
+                <span className="k-number text-emerald-200">
                   {formatCurrency(item.received)}
                 </span>
 
-                <span className="dashboard-number text-cyan-200">
+                <span className="k-number text-cyan-200">
                   {formatCurrency(item.receivable)}
                 </span>
 
-                <span className="dashboard-number text-rose-200">
+                <span className="k-number text-rose-200">
                   {formatCurrency(item.expenses)}
                 </span>
 
                 <span
-                  className={`dashboard-number font-semibold ${
+                  className={`k-number font-semibold ${
                     item.profit >= 0 ? "text-violet-200" : "text-rose-200"
                   }`}
                 >
                   {formatCurrency(item.profit)}
                 </span>
 
-                <span className="dashboard-number text-slate-300">
+                <span className="k-number text-slate-300">
                   {formatPercent(item.margin)}
                 </span>
               </div>
@@ -430,18 +436,18 @@ export function RelatoriosDashboard() {
         />
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-5 xl:p-6">
+      <section className="k-card k-report-card">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-500/15 text-violet-200">
+          <div className="k-report-icon text-violet-200">
             <FileText size={22} />
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
+            <h2 className="k-section-title">
               Próxima evolução dos relatórios
             </h2>
 
-            <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-slate-400">
+            <p className="k-muted mt-3 max-w-3xl text-sm font-medium leading-6">
               O módulo já consolida os dados reais. Depois podemos adicionar
               exportação CSV, relatório PDF executivo, filtro por mês, filtro
               por cliente/grupo e comparação entre competência e caixa.
