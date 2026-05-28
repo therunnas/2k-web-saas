@@ -3313,3 +3313,126 @@ textarea {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Wide app layout pass                                           */
+/* Usa melhor a largura total das abas internas                                */
+/* -------------------------------------------------------------------------- */
+
+/* Remove sensação de página pequena/centralizada */
+.dashboard-overview-v2,
+.manual-page-v2,
+.ops-page-v2,
+.final-page-v2 {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+}
+
+/* Conteúdo interno com largura total e respiro controlado */
+.dashboard-overview-v2,
+.final-page-v2 {
+  padding-right: 18px !important;
+}
+
+/* Headers não devem limitar demais o conteúdo */
+.dashboard-overview-v2 > header,
+.manual-page-v2 > header,
+.ops-page-v2 > header,
+.final-page-v2 > header {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Título e descrição continuam legíveis, mas sem comprimir a página toda */
+.final-page-v2 > header h1,
+.ops-page-v2 > header h1,
+.manual-page-v2 > header h1 {
+  max-width: 960px !important;
+}
+
+.final-page-v2 > header p,
+.ops-page-v2 > header p,
+.manual-page-v2 > header p {
+  max-width: 920px !important;
+}
+
+/* KPIs ocupam a largura útil inteira */
+.final-page-v2 > section:first-of-type,
+.ops-page-v2 > section:first-of-type {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Metas: área principal mais larga e equilibrada */
+.final-page-goals > section:nth-of-type(2) {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 2.1fr) minmax(360px, 0.9fr) !important;
+  gap: 18px !important;
+  align-items: start !important;
+}
+
+/* Metas principais ocupam melhor o espaço horizontal */
+.final-page-goals > section:nth-of-type(2) > div:first-child {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Leitura executiva sem ficar esmagada */
+.final-page-goals > section:nth-of-type(2) > aside,
+.final-page-goals > section:nth-of-type(2) > div:last-child {
+  width: 100% !important;
+  min-width: 340px !important;
+}
+
+/* Cards internos de metas mais compactos */
+.final-page-goals [class*="rounded-2xl"] {
+  min-width: 0 !important;
+}
+
+/* Relatórios e configurações também usam melhor largura */
+.final-page-reports > section,
+.final-page-config > section {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Evita que grids de cards fiquem pequenos em telas largas */
+.final-page-config > section:first-of-type {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+/* Dashboard mantém largura total */
+.dashboard-overview-v2 .dashboard-bottom-panels,
+.dashboard-overview-v2 > section,
+.dashboard-overview-v2 > div {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Responsivo */
+@media (max-width: 1280px) {
+  .final-page-goals > section:nth-of-type(2) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .final-page-goals > section:nth-of-type(2) > aside,
+  .final-page-goals > section:nth-of-type(2) > div:last-child {
+    min-width: 0 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-overview-v2,
+  .manual-page-v2,
+  .ops-page-v2,
+  .final-page-v2 {
+    padding-right: 0 !important;
+  }
+
+  .final-page-config > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+}
