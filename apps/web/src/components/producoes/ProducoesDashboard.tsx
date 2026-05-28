@@ -91,6 +91,19 @@ function formatCompactCurrency(value: number) {
   }).format(value || 0);
 }
 
+function renderKpiValue(value: string) {
+  const currencyMatch = value.match(/^R\$\s?(.+)$/);
+
+  if (!currencyMatch) return value;
+
+  return (
+    <>
+      <span className="k-kpi-prefix">R$</span>
+      {currencyMatch[1]}
+    </>
+  );
+}
+
 function formatDate(value: string | null) {
   if (!value) return "—";
 
@@ -115,30 +128,30 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-function getStatusClass(item: ProductionItem) {
+function getStatusTone(item: ProductionItem) {
   if (item.type === "REVENUE") {
-    return "bg-emerald-400/10 text-emerald-200";
+    return "success";
   }
 
   if (item.type === "RECEIVABLE") {
-    return "bg-cyan-400/10 text-cyan-200";
+    return "info";
   }
 
-  return "bg-white/10 text-slate-300";
+  return "neutral";
 }
 
-function getPipelineClass(stage: string) {
+function getPipelineTone(stage: string) {
   const normalized = stage.toLowerCase();
 
   if (normalized.includes("finalizado")) {
-    return "bg-emerald-400/10 text-emerald-200";
+    return "success";
   }
 
   if (normalized.includes("pendente")) {
-    return "bg-cyan-400/10 text-cyan-200";
+    return "attention";
   }
 
-  return "bg-violet-400/10 text-violet-200";
+  return "info";
 }
 
 export function ProducoesDashboard() {
@@ -209,22 +222,19 @@ export function ProducoesDashboard() {
         label: "Produções",
         value: summary ? String(summary.totalProductions) : "—",
         helper: "Projetos identificados na planilha",
-        icon: Clapperboard,
-        tone: "text-cyan-300",
+        tone: "k-kpi-helper-info",
       },
       {
         label: "Faturamento",
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
         helper: "Valor total dos projetos",
-        icon: Wallet,
-        tone: "text-emerald-300",
+        tone: "k-kpi-helper-positive",
       },
       {
         label: "Recebidas",
         value: summary ? String(summary.finishedCount) : "—",
         helper: summary ? formatCompactCurrency(summary.receivedTotal) : "Pagas",
-        icon: CheckCircle2,
-        tone: "text-emerald-300",
+        tone: "k-kpi-helper-positive",
       },
       {
         label: "Pendentes",
@@ -232,15 +242,13 @@ export function ProducoesDashboard() {
         helper: summary
           ? formatCompactCurrency(summary.receivableTotal)
           : "Aguardando pagamento",
-        icon: Clock3,
-        tone: "text-cyan-300",
+        tone: "k-kpi-helper-warning",
       },
       {
         label: "Grupos",
         value: summary ? String(summary.groupsCount) : "—",
         helper: "Grupos com produções",
-        icon: Users,
-        tone: "text-violet-300",
+        tone: "k-kpi-helper-info",
       },
       {
         label: "Top grupo",
@@ -248,8 +256,7 @@ export function ProducoesDashboard() {
         helper: summary?.topGroup
           ? formatCompactCurrency(summary.topGroup.value)
           : "Sem dados",
-        icon: ArrowUpRight,
-        tone: "text-violet-300",
+        tone: "k-kpi-helper-info",
       },
     ];
   }, [data]);
@@ -258,34 +265,34 @@ export function ProducoesDashboard() {
   const pipeline = data?.pipeline ?? [];
 
   return (
-    <div className="ops-page-v2 ops-page-productions space-y-6">
-      <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+    <div className="k-page space-y-6">
+      <header className="k-page-header k-page-heading">
         <div>
-          <p className="dashboard-label text-[11px] text-cyan-300">
+          <p className="k-eyebrow">
             Produções
           </p>
 
-          <h1 className="mt-3 text-[34px] font-semibold tracking-[-0.055em] text-white">
+          <h1 className="k-title">
             Produções reais.
           </h1>
 
-          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-400">
+          <p className="k-subtitle">
             Jobs, projetos, marcas, grupos, valores e status financeiro
             calculados diretamente das entradas da planilha.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="k-page-actions">
           <button
             type="button"
             onClick={() => loadProducoes()}
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/[0.06]"
+            className="k-button-ghost"
           >
             <RefreshCw size={16} />
             {loading ? "Atualizando..." : "Atualizar"}
           </button>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-medium text-slate-300">
+          <div className="k-button-secondary">
             <CalendarDays size={16} />
             Ano fiscal 2026
           </div>
@@ -293,53 +300,30 @@ export function ProducoesDashboard() {
       </header>
 
       {errorMessage ? (
-        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 p-4 text-sm font-medium text-rose-100">
+        <div className="k-toast" data-tone="danger">
           {errorMessage}
         </div>
       ) : null}
 
-      <section className="ops-summary-strip grid gap-0 md:grid-cols-3 xl:grid-cols-6">
-        {summaryCards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <article
-              key={card.label}
-              className="ops-summary-card relative overflow-hidden border border-white/10 bg-[#0b101b] p-5"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="dashboard-label text-[11px] text-slate-500">
-                    {card.label}
-                  </p>
-
-                  <strong className="dashboard-number mt-3 block truncate text-[25px] font-semibold text-white">
-                    {card.value}
-                  </strong>
-
-                  <p className="mt-2 text-xs font-medium text-slate-500">
-                    {card.helper}
-                  </p>
-                </div>
-
-                <div className="ops-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-white/[0.04]">
-                  <Icon size={22} className={card.tone} />
-                </div>
-              </div>
-            </article>
-          );
-        })}
+      <section className="k-kpi-strip">
+        {summaryCards.map((card) => (
+          <article key={card.label} className="k-kpi-strip-item">
+            <span className="k-kpi-label">{card.label}</span>
+            <strong className="k-kpi-value">{renderKpiValue(card.value)}</strong>
+            <span className={`k-kpi-helper ${card.tone}`}>{card.helper}</span>
+          </article>
+        ))}
       </section>
 
       <section className="ops-bento-grid grid gap-5 xl:grid-cols-[1fr_0.42fr]">
-        <div className="ops-card rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-          <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="k-card k-entry-table">
+          <div className="k-section-head flex-col items-start xl:flex-row xl:items-center">
             <div>
-              <h2 className="text-xl font-semibold tracking-[-0.035em]">
+              <h2>
                 Pipeline de produções
               </h2>
 
-              <p className="mt-2 text-sm font-medium text-slate-500">
+              <p className="k-section-sub">
                 {data
                   ? `${data.summary.filteredProductions} produções encontradas de ${data.summary.totalProductions}.`
                   : "Carregando produções."}
@@ -357,7 +341,7 @@ export function ProducoesDashboard() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Buscar grupo, marca ou projeto..."
-                  className="h-11 w-full rounded-2xl border border-white/10 bg-white/[0.035] pl-10 pr-4 text-sm font-medium text-slate-200 outline-none transition placeholder:text-slate-600 focus:border-cyan-300/40 lg:w-80"
+                  className="k-input h-9 pl-10 pr-4 text-sm font-medium lg:w-80"
                 />
               </form>
 
@@ -367,11 +351,8 @@ export function ProducoesDashboard() {
                     key={option.value}
                     type="button"
                     onClick={() => setActiveFilter(option.value)}
-                    className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
-                      activeFilter === option.value
-                        ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100"
-                        : "border-white/10 bg-white/[0.025] text-slate-400 hover:bg-white/[0.05] hover:text-slate-200"
-                    }`}
+                    className="k-filter-chip"
+                    aria-pressed={activeFilter === option.value}
                   >
                     {option.label}
                   </button>
@@ -380,9 +361,9 @@ export function ProducoesDashboard() {
             </div>
           </div>
 
-          <div className="ops-table-wrap overflow-x-auto rounded-2xl border border-white/10">
-            <div className="min-w-[1080px]">
-              <div className="grid grid-cols-[1.3fr_1.25fr_1.8fr_1fr_1fr_1fr] border-b border-white/10 bg-white/[0.025] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+          <div className="k-table-card overflow-x-auto">
+            <div className="k-table min-w-[1080px]">
+              <div data-table-head className="grid grid-cols-[1.3fr_1.25fr_1.8fr_1fr_1fr_1fr] px-5 py-3">
                 <span>Grupo</span>
                 <span>Marca</span>
                 <span>Projeto</span>
@@ -394,14 +375,14 @@ export function ProducoesDashboard() {
               {productions.map((item) => (
                 <div
                   key={item.id}
-                  className="grid grid-cols-[1.3fr_1.25fr_1.8fr_1fr_1fr_1fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                  className="k-table-row k-production-row grid grid-cols-[1.3fr_1.25fr_1.8fr_1fr_1fr_1fr] items-center border-b border-white/[0.045] px-5 last:border-b-0"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/25 text-xs font-semibold text-violet-200">
+                    <span className="k-avatar k-avatar-brand">
                       {getInitials(item.group)}
                     </span>
 
-                    <strong className="block truncate font-semibold text-white">
+                    <strong className="block truncate font-semibold text-slate-100">
                       {item.group}
                     </strong>
                   </div>
@@ -415,13 +396,13 @@ export function ProducoesDashboard() {
                       {item.project}
                     </span>
 
-                    <span className={`mt-2 inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ${getPipelineClass(item.pipelineStage)}`}>
+                    <span className="k-badge mt-2" data-tone={getPipelineTone(item.pipelineStage)}>
                       {item.pipelineStage}
                     </span>
                   </div>
 
                   <div>
-                    <span className="dashboard-number block text-slate-300">
+                    <span className="k-number block text-slate-300">
                       {item.competence ?? "—"}
                     </span>
 
@@ -430,22 +411,18 @@ export function ProducoesDashboard() {
                     </span>
                   </div>
 
-                  <span className="dashboard-number font-semibold text-emerald-200">
+                  <span className="k-number font-semibold text-emerald-200">
                     {formatCurrency(item.value)}
                   </span>
 
-                  <span
-                    className={`w-fit rounded-lg px-3 py-1 text-xs font-semibold ${getStatusClass(
-                      item
-                    )}`}
-                  >
+                  <span className="k-badge" data-tone={getStatusTone(item)}>
                     {item.status}
                   </span>
                 </div>
               ))}
 
               {!productions.length ? (
-                <div className="px-5 py-8 text-sm font-medium text-slate-500">
+                <div className="k-empty">
                   Nenhuma produção encontrada para o filtro atual.
                 </div>
               ) : null}
@@ -453,29 +430,31 @@ export function ProducoesDashboard() {
           </div>
         </div>
 
-        <aside className="ops-card rounded-[1.75rem] border border-white/10 bg-[#0b101b] p-4 sm:p-5 xl:p-6">
-          <div className="mb-5">
-            <h2 className="text-xl font-semibold tracking-[-0.035em]">
+        <aside className="k-card k-recent-list">
+          <div className="k-section-head">
+            <div>
+            <h2>
               Status do pipeline
             </h2>
 
-            <p className="mt-2 text-sm font-medium text-slate-500">
+            <p className="k-section-sub">
               Distribuição operacional dos projetos.
             </p>
+            </div>
           </div>
 
           <div className="space-y-3">
             {pipeline.map((stage) => (
               <div
                 key={stage.name}
-                className="rounded-2xl border border-white/10 bg-white/[0.025] p-4"
+                className="k-card-soft p-4"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className={`rounded-lg px-3 py-1 text-xs font-semibold ${getPipelineClass(stage.name)}`}>
+                  <span className="k-badge" data-tone={getPipelineTone(stage.name)}>
                     {stage.name}
                   </span>
 
-                  <strong className="dashboard-number text-lg font-semibold text-white">
+                  <strong className="k-number text-lg font-semibold text-white">
                     {stage.count}
                   </strong>
                 </div>
@@ -487,7 +466,7 @@ export function ProducoesDashboard() {
             ))}
 
             {!pipeline.length ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm font-medium text-slate-500">
+              <div className="k-empty">
                 Nenhum status de produção encontrado.
               </div>
             ) : null}

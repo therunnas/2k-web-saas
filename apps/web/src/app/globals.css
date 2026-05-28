@@ -1352,6 +1352,153 @@ a {
   color: var(--crit);
 }
 
+.k-agenda-type-cell {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding-right: 8px;
+}
+
+.k-agenda-type-badge,
+.k-agenda-priority-badge,
+.k-pipeline-status-badge {
+  min-height: 19px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-pill);
+  background: var(--bg-1);
+  color: var(--fg-2);
+  padding: 1px 7px;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.k-agenda-type-badge::before,
+.k-pipeline-status-badge::before {
+  content: "";
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.k-agenda-priority-badge {
+  min-height: 18px;
+  padding-inline: 6px;
+  font-size: 9px;
+  color: var(--fg-3);
+}
+
+.k-badge-production {
+  border-color: var(--cyan-edge);
+  background: var(--cyan-soft);
+  color: var(--cyan);
+}
+
+.k-badge-job {
+  border-color: var(--purple-edge);
+  background: var(--purple-soft);
+  color: var(--purple);
+}
+
+.k-badge-delivery {
+  border-color: oklch(0.82 0.16 160 / 0.22);
+  background: var(--pos-soft);
+  color: var(--pos);
+}
+
+.k-badge-priority-medium {
+  border-color: var(--line);
+  background: oklch(0.19 0.014 230 / 0.72);
+  color: var(--fg-2);
+}
+
+.k-badge-priority-high {
+  border-color: oklch(0.74 0.18 25 / 0.24);
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+
+.k-badge-priority-normal {
+  border-color: var(--line-soft);
+  background: var(--bg-2);
+  color: var(--fg-3);
+}
+
+.k-pipeline-status-card {
+  padding: 18px;
+}
+
+.k-pipeline-status-card .k-section-head {
+  margin-bottom: 14px;
+}
+
+.k-pipeline-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.k-pipeline-status-item {
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: oklch(0.17 0.012 270 / 0.78);
+  padding: 10px 11px;
+}
+
+.k-pipeline-status-badge {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.k-pipeline-status-badge[data-tone="success"] {
+  border-color: oklch(0.82 0.16 160 / 0.22);
+  background: var(--pos-soft);
+  color: var(--pos);
+}
+
+.k-pipeline-status-badge[data-tone="attention"] {
+  border-color: oklch(0.82 0.14 75 / 0.26);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.k-pipeline-status-badge[data-tone="danger"] {
+  border-color: oklch(0.74 0.18 25 / 0.24);
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+
+.k-pipeline-status-badge[data-tone="info"] {
+  border-color: var(--cyan-edge);
+  background: var(--cyan-soft);
+  color: var(--cyan);
+}
+
+.k-pipeline-status-value {
+  color: var(--fg-0);
+  font-family: var(--font-mono-dashboard);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.k-pipeline-status-helper {
+  margin: 7px 0 0;
+  color: var(--fg-3);
+  font-size: 11px;
+  font-weight: 500;
+}
+
 @media (max-width: 1280px) {
   .k-kpi-primary-grid {
     grid-template-columns: 1fr;
