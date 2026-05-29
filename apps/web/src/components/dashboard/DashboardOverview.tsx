@@ -61,6 +61,9 @@ type LatestEntry = {
   revenue: number;
   sourceSheet: string | null;
   sourceRow: number | null;
+  sourceType?: string | null;
+  createdAt?: string | null;
+  isNew?: boolean;
 };
 
 type FinanceSummary = {
@@ -98,6 +101,7 @@ type FinanceOverview = {
   monthly: MonthlyRevenueItem[];
   topGroups: TopGroup[];
   latestEntries: LatestEntry[];
+  upcomingProductions?: LatestEntry[];
 };
 
 type ChartPoint = MonthlyRevenueItem & {
@@ -1034,6 +1038,17 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
             entry.groupName?.slice(0, 2).toUpperCase() ||
             "2K";
 
+          const originLabel =
+            entry.sourceType === "MANUAL"
+              ? "Manual"
+              : entry.sourceType === "SPREADSHEET"
+                ? "Planilha"
+                : null;
+
+          const originDetail = [entry.sourceSheet, entry.sourceRow ? `#${entry.sourceRow}` : null]
+            .filter(Boolean)
+            .join(" ");
+
           return (
             <article
               key={`${entry.id}-${entry.sourceRow}-${index}`}
@@ -1044,14 +1059,35 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
                   {code} · {dateLabel}
                 </span>
 
-                <span
-                  data-overdue={entry.overdue ? "true" : "false"}
-                  className="shrink-0 rounded-full px-2 py-[2px] text-[8px] font-semibold tracking-[0.04em] text-emerald-200 data-[overdue=true]:bg-rose-500/10 data-[overdue=true]:text-rose-200 data-[overdue=false]:bg-emerald-500/10"
-                  title={status}
-                >
-                  {status}
-                </span>
+                <div className="flex shrink-0 items-center gap-1">
+                  {entry.isNew ? (
+                    <span
+                      className="rounded-full bg-violet-500/15 px-1.5 py-[2px] text-[8px] font-semibold tracking-[0.04em] text-violet-200"
+                      title="Importada ou criada recentemente"
+                    >
+                      Novo
+                    </span>
+                  ) : null}
+
+                  <span
+                    data-overdue={entry.overdue ? "true" : "false"}
+                    className="rounded-full px-2 py-[2px] text-[8px] font-semibold tracking-[0.04em] text-emerald-200 data-[overdue=true]:bg-rose-500/10 data-[overdue=true]:text-rose-200 data-[overdue=false]:bg-emerald-500/10"
+                    title={status}
+                  >
+                    {status}
+                  </span>
+                </div>
               </div>
+
+              {originLabel ? (
+                <span
+                  className="mt-1 truncate font-mono text-[7.5px] font-medium tracking-[0.08em] text-slate-600"
+                  title={originDetail || originLabel}
+                >
+                  {originLabel}
+                  {originDetail ? ` · ${originDetail}` : ""}
+                </span>
+              ) : null}
 
               <h3
                 className="mt-2 overflow-hidden text-[10px] font-medium leading-[17px] tracking-[-0.01em] text-slate-100"
@@ -1382,7 +1418,9 @@ const monthly = overview?.monthly?.length ? overview.monthly : emptyMonths;
         <ScoreCard summary={summary} />
       </div>
 
-      <PipelineStrip entries={overview?.latestEntries ?? []} />
+      <PipelineStrip
+        entries={overview?.upcomingProductions ?? overview?.latestEntries ?? []}
+      />
 
       <section className="grid items-stretch gap-5 xl:grid-cols-[1.55fr_1fr]">
         <div className="relative min-h-[326px] overflow-hidden rounded-[16px] border border-white/[0.055] bg-[#080a0f] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.34)]">

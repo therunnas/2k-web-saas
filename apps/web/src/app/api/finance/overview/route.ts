@@ -19,7 +19,11 @@ type FinanceEntry = FinanceEntryLike & {
   description: string | null;
   sourceSheet: string | null;
   sourceRow: number | null;
+  sourceType: string | null;
+  createdAt: Date | null;
 };
+
+const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 const MONTH_KEYS = [
   "Jan",
@@ -234,6 +238,62 @@ export async function GET(request: Request) {
         sourceRow: entry.sourceRow,
       }));
 
+    // Próximas produções: abertas (a receber) OU com data futura — não só RECEIVABLE.
+    const upcomingProductions = yearEntries
+      .filter((entry) => {
+        if (!isRevenue(entry) || revenueAmount(entry) <= 0) return false;
+        if (entry.type === "RECEIVABLE") return true;
+
+        const dv =
+          entry.dueAt instanceof Date
+            ? entry.dueAt
+            : entry.date instanceof Date
+              ? entry.date
+              : null;
+
+        return dv ? dv.getTime() > now.getTime() : false;
+      })
+      .sort((a, b) => {
+        const da =
+          a.dueAt instanceof Date
+            ? a.dueAt.getTime()
+            : a.date instanceof Date
+              ? a.date.getTime()
+              : Infinity;
+        const db =
+          b.dueAt instanceof Date
+            ? b.dueAt.getTime()
+            : b.date instanceof Date
+              ? b.date.getTime()
+              : Infinity;
+        if (da !== db) return da - db;
+        return (a.sourceRow ?? 0) - (b.sourceRow ?? 0);
+      })
+      .slice(0, 8)
+      .map((entry) => ({
+        id: entry.id,
+        type: entry.type,
+        date: entry.date,
+        dueAt: entry.dueAt ?? null,
+        competence: entry.competence,
+        client: entry.client ?? null,
+        groupName: entry.groupName ?? null,
+        project: entry.project ?? null,
+        description: entry.description,
+        category: entry.category ?? null,
+        status: entry.status ?? null,
+        overdue:
+          entry.dueAt instanceof Date && entry.dueAt.getTime() < now.getTime(),
+        revenue: revenueAmount(entry),
+        sourceSheet: entry.sourceSheet,
+        sourceRow: entry.sourceRow,
+        sourceType: entry.sourceType ?? null,
+        createdAt: entry.createdAt ?? null,
+        isNew:
+          entry.createdAt instanceof Date &&
+          now.getTime() - entry.createdAt.getTime() <= NEW_WINDOW_MS,
+      }));
+
     const topGroupByRevenue = topGroups[0] ?? null;
 
     return NextResponse.json({
@@ -252,6 +312,7 @@ export async function GET(request: Request) {
       monthly,
       topGroups,
       latestEntries,
+      upcomingProductions,
     });
   } catch (error) {
     return apiError("finance.overview", error, {

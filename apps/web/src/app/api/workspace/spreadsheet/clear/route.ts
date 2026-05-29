@@ -33,9 +33,19 @@ export async function POST(request: Request) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      // Remove APENAS os lançamentos importados da planilha.
       const deletedEntries = await tx.financialEntry.deleteMany({
         where: {
           workspaceId: session.workspaceId,
+          sourceType: "SPREADSHEET",
+        },
+      });
+
+      // Conta os lançamentos manuais que permanecem intactos (auditoria/feedback).
+      const preservedManual = await tx.financialEntry.count({
+        where: {
+          workspaceId: session.workspaceId,
+          sourceType: "MANUAL",
         },
       });
 
@@ -57,13 +67,19 @@ export async function POST(request: Request) {
       return {
         entries: deletedEntries.count,
         imports: deletedImports.count,
+        preservedManual,
       };
     });
 
     return NextResponse.json({
       status: "ok",
-      message: "Dados financeiros limpos com sucesso.",
-      deleted: result,
+      message:
+        "Dados importados da planilha removidos. Lançamentos manuais e catálogos preservados.",
+      deleted: {
+        entries: result.entries,
+        imports: result.imports,
+      },
+      preservedManualRecords: result.preservedManual,
     });
   } catch (error) {
     return NextResponse.json(

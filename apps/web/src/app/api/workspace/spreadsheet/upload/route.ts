@@ -120,6 +120,22 @@ export async function POST(request: Request) {
       );
     }
 
+    // Parse ANTES de tocar no banco: se a planilha nova não gerar nenhuma linha
+    // válida, abortamos sem apagar o lote anterior (importação não-destrutiva).
+    const parsedEntradas = parseEntradas(entradasSheet.matrix);
+    const parsedSaidas = parseSaidas(saidasSheet.matrix);
+
+    if (parsedEntradas.length + parsedSaidas.length === 0) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message:
+            "Nenhuma linha válida encontrada na planilha. Os dados anteriores foram preservados. Verifique se as abas 💰 ENTRADAS e 💸 SAÍDAS têm cabeçalho com a coluna 'Valor', valores maiores que zero e datas válidas (Mês Ref. ou Data).",
+        },
+        { status: 422 },
+      );
+    }
+
     const importRecord = await prisma.import.create({
       data: {
         workspaceId: session.workspaceId,
@@ -137,12 +153,12 @@ export async function POST(request: Request) {
       importId: importRecord.id,
     };
 
-    const entradaEntries = withMeta(parseEntradas(entradasSheet.matrix), {
+    const entradaEntries = withMeta(parsedEntradas, {
       ...meta,
       sourceSheet: entradasSheet.sheetName,
     });
 
-    const saidaEntries = withMeta(parseSaidas(saidasSheet.matrix), {
+    const saidaEntries = withMeta(parsedSaidas, {
       ...meta,
       sourceSheet: saidasSheet.sheetName,
     });
@@ -150,7 +166,8 @@ export async function POST(request: Request) {
     const financialEntries = [...entradaEntries, ...saidaEntries];
 
     // Idempotência: remove o lote anterior da planilha antes de regravar,
-    // evitando duplicidade ao reimportar o mesmo arquivo.
+    // evitando duplicidade ao reimportar. Só roda após confirmar que há
+    // linhas novas válidas para gravar.
     await prisma.financialEntry.deleteMany({
       where: {
         workspaceId: session.workspaceId,
@@ -158,14 +175,12 @@ export async function POST(request: Request) {
       },
     });
 
-    if (financialEntries.length > 0) {
-      // Cast pontual e localizado: o cliente Prisma tipa Decimal como
-      // `Decimal | DecimalJsLike | string | number`, e aqui usamos strings
-      // (`decimal()` retorna `"0.00"`). O Prisma converte na inserção.
-      await prisma.financialEntry.createMany({
-        data: financialEntries as unknown as NonNullable<Parameters<typeof prisma.financialEntry.createMany>[0]>["data"],
-      });
-    }
+    // Cast pontual e localizado: o cliente Prisma tipa Decimal como
+    // `Decimal | DecimalJsLike | string | number`, e aqui usamos strings
+    // (`decimal()` retorna `"0.00"`). O Prisma converte na inserção.
+    await prisma.financialEntry.createMany({
+      data: financialEntries as unknown as NonNullable<Parameters<typeof prisma.financialEntry.createMany>[0]>["data"],
+    });
 
     const groupsCount = new Set(
       entradaEntries

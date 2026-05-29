@@ -34,8 +34,11 @@ type FinanceEntry = {
   value: number;
   revenue: number;
   expense: number;
+  sourceType: string | null;
   sourceSheet: string | null;
   sourceRow: number | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 };
 
 type FinanceEntriesResponse = {
@@ -44,6 +47,7 @@ type FinanceEntriesResponse = {
   filters: {
     type: string;
     search: string;
+    sort: string;
   };
   summary: {
     entries: number;
@@ -92,6 +96,16 @@ const filterOptions = [
   { label: "Recebido", value: "recebido" },
   { label: "A receber", value: "a-receber" },
   { label: "Despesas", value: "despesas" },
+];
+
+const sortOptions = [
+  { label: "Mais recentes", value: "recent" },
+  { label: "Mais antigos", value: "oldest" },
+  { label: "Data mais recente", value: "date-desc" },
+  { label: "Data mais antiga", value: "date-asc" },
+  { label: "Maior valor", value: "value-desc" },
+  { label: "Menor valor", value: "value-asc" },
+  { label: "Atualizados recentemente", value: "updated-desc" },
 ];
 
 const typeOptions = [
@@ -160,6 +174,33 @@ function formatDate(value: string | null) {
     month: "2-digit",
     year: "numeric",
   }).format(date);
+}
+
+function formatDateTime(value: string | null) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+function getOriginInfo(entry: FinanceEntry) {
+  const isManual = entry.sourceType === "MANUAL";
+  const origin = isManual ? "MANUAL" : "SPREADSHEET";
+
+  const detail = isManual
+    ? "sem linha"
+    : `${entry.sourceSheet ?? "planilha"}${
+        entry.sourceRow != null ? ` #${entry.sourceRow}` : ""
+      }`;
+
+  return { origin, detail, isManual };
 }
 
 function toDateInputValue(value: string | null) {
@@ -337,6 +378,7 @@ function SummaryMiniCard({
 export function FinanceiroDashboard() {
   const [data, setData] = useState<FinanceEntriesResponse | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [editingEntry, setEditingEntry] = useState<FinanceEntry | null>(null);
@@ -347,9 +389,14 @@ export function FinanceiroDashboard() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function loadEntries(params?: { type?: string; search?: string }) {
+  async function loadEntries(params?: {
+    type?: string;
+    search?: string;
+    sort?: string;
+  }) {
     const type = params?.type ?? activeFilter;
     const query = params?.search ?? appliedSearch;
+    const sort = params?.sort ?? sortBy;
 
     setLoading(true);
     setErrorMessage(null);
@@ -358,6 +405,7 @@ export function FinanceiroDashboard() {
       const searchParams = new URLSearchParams({
         year: "2026",
         type,
+        sort,
       });
 
       if (query.trim()) {
@@ -390,9 +438,10 @@ export function FinanceiroDashboard() {
     loadEntries({
       type: activeFilter,
       search: appliedSearch,
+      sort: sortBy,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFilter, appliedSearch]);
+  }, [activeFilter, appliedSearch, sortBy]);
 
   const summaryCards = useMemo(() => {
     const summary = data?.summary;
@@ -691,6 +740,24 @@ export function FinanceiroDashboard() {
               />
             </form>
 
+            <label className="flex items-center gap-2">
+              <span className="k-form-label whitespace-nowrap text-slate-500">
+                Ordenar por
+              </span>
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                className="k-select h-9 px-3 text-sm font-medium"
+                aria-label="Ordenar lançamentos"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <div className="flex flex-wrap gap-2">
               {filterOptions.map((option) => (
                 <button
@@ -719,7 +786,7 @@ export function FinanceiroDashboard() {
               <span>Categoria</span>
               <span className="text-left">Valor</span>
               <span>Status</span>
-              <span>Linha</span>
+              <span>Origem</span>
               <span className="text-left">Ações</span>
             </div>
 
@@ -783,9 +850,31 @@ export function FinanceiroDashboard() {
                     {status.label}
                   </span>
 
-                  <span className="k-number text-xs text-slate-500">
-                    {entry.sourceSheet ?? "—"} #{entry.sourceRow ?? "—"}
-                  </span>
+                  <div className="min-w-0">
+                    {(() => {
+                      const origin = getOriginInfo(entry);
+                      const createdAt = formatDateTime(entry.createdAt);
+
+                      return (
+                        <>
+                          <span
+                            className="k-badge"
+                            data-tone={origin.isManual ? "info" : "neutral"}
+                          >
+                            {origin.origin}
+                          </span>
+                          <span className="mt-1 block truncate text-[10.5px] text-slate-500">
+                            {origin.detail}
+                          </span>
+                          {createdAt ? (
+                            <span className="mt-0.5 block text-[10px] text-slate-600">
+                              Criado em {createdAt}
+                            </span>
+                          ) : null}
+                        </>
+                      );
+                    })()}
+                  </div>
 
                   <div className="flex justify-start gap-2">
                     <button
