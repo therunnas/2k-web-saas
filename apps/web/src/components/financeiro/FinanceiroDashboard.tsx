@@ -141,6 +141,13 @@ function formatPercent(value: number) {
   }).format(Number.isFinite(value) ? value : 0)}%`;
 }
 
+function formatSignedPercent(value: number) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const sign = safeValue > 0 ? "+" : "";
+
+  return `${sign}${formatPercent(safeValue)}`;
+}
+
 function formatDate(value: string | null) {
   if (!value) return "—";
 
@@ -251,12 +258,76 @@ function summaryHelperTone(card: SummaryCard) {
   return "k-kpi-helper-info";
 }
 
-function SummaryMiniCard({ card }: { card: SummaryCard }) {
+function summaryHelperColor(card: SummaryCard) {
+  const tone = summaryHelperTone(card);
+
+  if (tone === "k-kpi-helper-warning") return "rgb(251, 191, 36)";
+  if (tone === "k-kpi-helper-danger") return "rgb(248, 113, 113)";
+
+  return "rgb(45, 212, 191)";
+}
+
+function SummaryMiniCard({
+  card,
+  isLast = false,
+}: {
+  card: SummaryCard;
+  isLast?: boolean;
+}) {
   return (
-    <article className="k-kpi-strip-item">
-      <span className="k-kpi-label">{card.label}</span>
-      <strong className="k-kpi-value">{renderKpiValue(card.value)}</strong>
-      <span className={`k-kpi-helper ${summaryHelperTone(card)}`}>
+    <article
+      className="k-kpi-strip-item"
+      style={{
+        background: "transparent",
+        border: 0,
+        borderRadius: 0,
+        borderRight: isLast ? 0 : "1px solid rgba(148, 163, 184, 0.12)",
+        gap: "8px",
+        justifyContent: "center",
+        minHeight: "70px",
+        padding: "14px 18px",
+      }}
+    >
+      <span
+        className="k-kpi-label"
+        style={{
+          color: "rgba(148, 163, 184, 0.58)",
+          fontFamily: "var(--font-mono-dashboard)",
+          fontSize: "9px",
+          fontWeight: 700,
+          letterSpacing: "0.18em",
+          lineHeight: 1.15,
+        }}
+      >
+        {card.label}
+      </span>
+
+      <strong
+        className="k-kpi-value"
+        style={{
+          color: "rgba(226, 232, 240, 0.94)",
+          fontFamily: "var(--font-mono-dashboard)",
+          fontSize: "16px",
+          fontWeight: 800,
+          letterSpacing: 0,
+          lineHeight: 1,
+          margin: 0,
+        }}
+      >
+        {renderKpiValue(card.value)}
+      </strong>
+
+      <span
+        className={`k-kpi-helper ${summaryHelperTone(card)}`}
+        style={{
+          color: summaryHelperColor(card),
+          fontFamily: "var(--font-mono-dashboard)",
+          fontSize: "9.5px",
+          fontWeight: 750,
+          lineHeight: 1.2,
+          minHeight: 0,
+        }}
+      >
         {card.delta}
       </span>
     </article>
@@ -337,6 +408,14 @@ export function FinanceiroDashboard() {
       summary && summary.totalRevenue > 0
         ? (summary.totalProfit / summary.totalRevenue) * 100
         : 0;
+    const cashPercent =
+      summary && summary.totalRevenue > 0
+        ? (summary.cashResult / summary.totalRevenue) * 100
+        : 0;
+    const receivableCount =
+      data?.entries.filter((entry) => entry.type === "RECEIVABLE").length ?? 0;
+    const paidExpensesCount =
+      data?.entries.filter((entry) => entry.type === "EXPENSE").length ?? 0;
 
     return [
       {
@@ -350,35 +429,35 @@ export function FinanceiroDashboard() {
         label: "Recebido em caixa",
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
         helper: "Entradas pagas",
-        delta: formatPercent(receivedPercent),
+        delta: `${formatPercent(receivedPercent)} do total`,
         tone: "emerald",
       },
       {
         label: "A receber",
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
         helper: "Pendências abertas",
-        delta: formatPercent(receivablePercent),
+        delta: `${receivableCount} pendências`,
         tone: receivablePercent > 20 ? "amber" : "cyan",
       },
       {
         label: "Saídas pagas",
         value: summary ? formatCompactCurrency(summary.paidExpenses) : "—",
         helper: "Despesas quitadas",
-        delta: summary ? `${formatCompactCurrency(summary.totalExpenses)}` : "—",
-        tone: "violet",
+        delta: summary ? `${paidExpensesCount} itens` : "—",
+        tone: "emerald",
       },
       {
         label: "Lucro por competência",
         value: summary ? formatCompactCurrency(summary.totalProfit) : "—",
         helper: "Faturado menos saídas",
-        delta: formatPercent(margin),
-        tone: margin < 0 ? "rose" : "violet",
+        delta: formatSignedPercent(margin),
+        tone: margin < 0 ? "rose" : "emerald",
       },
       {
         label: "Caixa real",
         value: summary ? formatCompactCurrency(summary.cashResult) : "—",
         helper: "Recebido menos saídas pagas",
-        delta: summary && summary.cashResult < 0 ? "Atenção" : "Em ritmo",
+        delta: summary && summary.cashResult < 0 ? "Atenção" : formatSignedPercent(cashPercent),
         tone: summary && summary.cashResult < 0 ? "rose" : "emerald",
       },
     ] satisfies SummaryCard[];
@@ -560,9 +639,26 @@ export function FinanceiroDashboard() {
         </div>
       ) : null}
 
-      <section className="k-kpi-strip k-finance-kpi-strip items-start text-left justify-start items-start text-left justify-start">
-        {summaryCards.map((card) => (
-          <SummaryMiniCard key={card.label} card={card} />
+      <section
+        className="k-kpi-strip k-finance-kpi-strip items-start text-left justify-start"
+        style={{
+          background: "rgba(10, 14, 22, 0.92)",
+          border: "1px solid rgba(148, 163, 184, 0.15)",
+          borderRadius: "14px",
+          boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.018)",
+          display: "grid",
+          gap: 0,
+          gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+          minHeight: 0,
+          overflow: "hidden",
+        }}
+      >
+        {summaryCards.map((card, index) => (
+          <SummaryMiniCard
+            key={card.label}
+            card={card}
+            isLast={index === summaryCards.length - 1}
+          />
         ))}
       </section>
 
