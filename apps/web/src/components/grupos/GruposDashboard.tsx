@@ -3,15 +3,9 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowUpRight,
-  Building2,
-  CalendarDays,
-  CircleDollarSign,
-  Network,
-  RefreshCw,
+  Download,
+  Plus,
   Search,
-  Tags,
-  Users,
 } from "lucide-react";
 
 type GroupItem = {
@@ -176,32 +170,32 @@ export function GruposDashboard() {
       {
         label: "Grupos ativos",
         value: summary ? String(summary.totalGroups) : "—",
-        helper: "Grupos com faturamento no ano",
+        helper: "com faturamento",
+        tone: "k-kpi-helper-info",
+      },
+      {
+        label: "Marcas vinculadas",
+        value: summary ? String(summary.totalBrands) : "—",
+        helper: "aos grupos",
         tone: "k-kpi-helper-info",
       },
       {
         label: "Faturamento",
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
-        helper: "Valor consolidado por grupo",
+        helper: "consolidado",
         tone: "k-kpi-helper-positive",
       },
       {
         label: "Recebido",
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
-        helper: "Entradas pagas",
+        helper: "entradas pagas",
         tone: "k-kpi-helper-positive",
       },
       {
         label: "A receber",
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
-        helper: "Entradas pendentes",
-        tone: "k-kpi-helper-info",
-      },
-      {
-        label: "Marcas",
-        value: summary ? String(summary.totalBrands) : "—",
-        helper: "Marcas vinculadas aos grupos",
-        tone: "k-kpi-helper-info",
+        helper: "pendentes",
+        tone: "k-kpi-helper-warning",
       },
       {
         label: "Top grupo",
@@ -218,37 +212,38 @@ export function GruposDashboard() {
   const maxRevenue = Math.max(...groups.map((group) => group.revenue), 1);
 
   return (
-    <div className="k-page space-y-6">
+    <div className="k-page groups-page-v2 space-y-6">
       <header className="k-page-header k-page-heading">
         <div>
-          <p className="k-eyebrow">
-            Grupos
-          </p>
-
           <h1 className="k-title">
             Grupos e marcas.
           </h1>
 
           <p className="k-subtitle">
-            Agrupamento real de clientes, marcas, projetos, faturamento,
-            recebido e pendências com base nas entradas da planilha.
+            Agrupamento real de clientes, marcas, projetos e pendências consolidadas das entradas.
           </p>
         </div>
 
         <div className="k-page-actions">
           <button
             type="button"
-            onClick={() => loadGroups()}
+            aria-disabled="true"
+            title="Exportação de grupos ainda não implementada."
             className="k-button-ghost"
           >
-            <RefreshCw size={16} />
-            {loading ? "Atualizando..." : "Atualizar"}
+            <Download size={16} />
+            Exportar
           </button>
 
-          <div className="k-button-secondary">
-            <CalendarDays size={16} />
-            Ano fiscal 2026
-          </div>
+          <button
+            type="button"
+            aria-disabled="true"
+            title="Cadastro manual de grupo ainda não disponível."
+            className="k-button-primary"
+          >
+            <Plus size={16} />
+            Novo grupo
+          </button>
         </div>
       </header>
 

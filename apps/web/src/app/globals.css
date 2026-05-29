@@ -7019,3 +7019,229 @@ textarea {
     border-bottom: 0 !important;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* 2K STUDIOS — Grupos overview polish                                         */
+/* -------------------------------------------------------------------------- */
+
+.groups-page-v2 {
+  gap: 20px !important;
+  padding-top: 24px !important;
+}
+
+.groups-page-v2 > header.k-page-heading {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+  padding: 4px 0 0 !important;
+}
+
+.groups-page-v2 > header.k-page-heading > :first-child {
+  max-width: 760px !important;
+}
+
+.groups-page-v2 > header .k-title {
+  margin: 0 0 12px !important;
+  max-width: 760px !important;
+  font-size: clamp(28px, 2.15vw, 34px) !important;
+  line-height: 1.05 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+.groups-page-v2 > header .k-subtitle {
+  max-width: 650px !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  color: rgba(148, 163, 184, 0.88) !important;
+}
+
+.groups-page-v2 > header .k-page-actions {
+  flex: 0 0 auto !important;
+  align-items: flex-start !important;
+  justify-content: flex-end !important;
+  padding-top: 32px !important;
+}
+
+.groups-page-v2 > header .k-button-ghost,
+.groups-page-v2 > header .k-button-primary {
+  min-height: 34px !important;
+  border-radius: 10px !important;
+  padding-inline: 14px !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+.groups-page-v2 > header .k-button-ghost {
+  border-color: rgba(148, 163, 184, 0.22) !important;
+  background: rgba(15, 23, 42, 0.34) !important;
+  color: rgba(226, 232, 240, 0.9) !important;
+}
+
+.groups-page-v2 > header .k-button-primary {
+  border-color: rgba(34, 211, 238, 0.28) !important;
+  background: rgba(34, 211, 238, 0.13) !important;
+  color: rgb(207, 250, 254) !important;
+}
+
+.groups-page-v2 > header .k-button-ghost svg,
+.groups-page-v2 > header .k-button-primary svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.groups-page-v2 > section:first-of-type {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+  border-radius: 14px !important;
+  background: rgba(10, 14, 22, 0.92) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.018) !important;
+}
+
+.groups-page-v2 > section:first-of-type > article {
+  min-height: 70px !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 14px 18px !important;
+  border: 0 !important;
+  border-right: 1px solid rgba(148, 163, 184, 0.12) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+.groups-page-v2 > section:first-of-type > article:last-child {
+  border-right: 0 !important;
+}
+
+.groups-page-v2 > section:first-of-type .k-kpi-label {
+  color: rgba(148, 163, 184, 0.58) !important;
+  font-family: var(--font-mono-dashboard) !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  line-height: 1.15 !important;
+}
+
+.groups-page-v2 > section:first-of-type .k-kpi-value {
+  margin: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: rgba(226, 232, 240, 0.94) !important;
+  font-family: var(--font-mono-dashboard) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-overflow: ellipsis !important;
+}
+
+.groups-page-v2 > section:first-of-type .k-kpi-prefix {
+  color: rgba(148, 163, 184, 0.74) !important;
+  font-size: 10px !important;
+}
+
+.groups-page-v2 > section:first-of-type .k-kpi-helper {
+  min-height: 0 !important;
+  font-family: var(--font-mono-dashboard) !important;
+  font-size: 9.5px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+}
+
+.groups-page-v2 > section:first-of-type .k-kpi-helper-positive,
+.groups-page-v2 > section:first-of-type .k-kpi-helper-info {
+  color: rgb(45, 212, 191) !important;
+}
+
+.groups-page-v2 > section:first-of-type .k-kpi-helper-warning {
+  color: rgb(251, 191, 36) !important;
+}
+
+.groups-page-v2 .k-ranking-table {
+  border-radius: 14px !important;
+  border-color: rgba(148, 163, 184, 0.15) !important;
+  background: rgba(10, 14, 22, 0.92) !important;
+  box-shadow: none !important;
+}
+
+.groups-page-v2 .k-ranking-table .k-section-head {
+  padding-bottom: 18px !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1) !important;
+}
+
+.groups-page-v2 .k-ranking-table h2 {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+.groups-page-v2 .k-ranking-table .k-section-sub {
+  color: rgba(148, 163, 184, 0.76) !important;
+}
+
+.groups-page-v2 .k-ranking-table .k-table-card {
+  border-radius: 12px !important;
+  border-color: rgba(148, 163, 184, 0.12) !important;
+  background: rgba(7, 10, 16, 0.28) !important;
+}
+
+.groups-page-v2 .k-ranking-table [data-table-head] {
+  border-bottom-color: rgba(148, 163, 184, 0.1) !important;
+  background: transparent !important;
+  color: rgba(148, 163, 184, 0.62) !important;
+  font-family: var(--font-mono-dashboard) !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+}
+
+.groups-page-v2 .k-group-row {
+  min-height: 64px !important;
+  border-bottom-color: rgba(148, 163, 184, 0.075) !important;
+}
+
+.groups-page-v2 .k-group-row:hover {
+  background: rgba(15, 23, 42, 0.28) !important;
+}
+
+@media (max-width: 1280px) {
+  .groups-page-v2 > section:first-of-type {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .groups-page-v2 > section:first-of-type > article:nth-child(3n) {
+    border-right: 0 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .groups-page-v2 > header.k-page-heading {
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  .groups-page-v2 > header .k-page-actions {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    padding-top: 0 !important;
+  }
+
+  .groups-page-v2 > section:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+
+  .groups-page-v2 > section:first-of-type > article {
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+  }
+
+  .groups-page-v2 > section:first-of-type > article:last-child {
+    border-bottom: 0 !important;
+  }
+}
