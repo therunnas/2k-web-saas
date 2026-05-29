@@ -20,8 +20,25 @@ type FinanceEntry = {
   costAmount: unknown;
   sourceSheet: string | null;
   sourceRow: number | null;
+  sourceType: string | null;
   createdAt: Date;
+  updatedAt: Date | null;
+  dueAt: Date | null;
 };
+
+const NEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+function getEntryDateValue(entry: FinanceEntry) {
+  if (entry.dueAt instanceof Date && !Number.isNaN(entry.dueAt.getTime())) {
+    return entry.dueAt;
+  }
+
+  if (entry.date instanceof Date && !Number.isNaN(entry.date.getTime())) {
+    return entry.date;
+  }
+
+  return null;
+}
 
 function toNumber(value: unknown) {
   if (value === null || value === undefined) return 0;
@@ -139,6 +156,7 @@ export async function GET(request: Request) {
     const year = Number(url.searchParams.get("year") ?? "2026");
     const search = (url.searchParams.get("search") ?? "").trim().toLowerCase();
     const statusFilter = url.searchParams.get("status") ?? "all";
+    const now = new Date();
 
     const entries = (await prisma.financialEntry.findMany({
       where: {
@@ -171,6 +189,20 @@ export async function GET(request: Request) {
         const project = getProject(entry);
         const productionStatus = getProductionStatus(entry);
         const pipelineStage = getPipelineStage(entry);
+        const dateValue = getEntryDateValue(entry);
+
+        const reviewReasons: string[] = [];
+        if (!entry.date && !entry.competence) reviewReasons.push("Sem data");
+        if (!entry.project) reviewReasons.push("Sem projeto");
+        if (!entry.groupName && !entry.client) reviewReasons.push("Sem grupo");
+
+        const isNew =
+          entry.createdAt instanceof Date &&
+          now.getTime() - entry.createdAt.getTime() <= NEW_WINDOW_MS;
+
+        const isUpcoming =
+          entry.type === "RECEIVABLE" ||
+          (dateValue ? dateValue.getTime() > now.getTime() : false);
 
         return {
           id: entry.id,
@@ -186,10 +218,18 @@ export async function GET(request: Request) {
           received: entry.type === "REVENUE" ? roundMoney(value) : 0,
           receivable: entry.type === "RECEIVABLE" ? roundMoney(value) : 0,
           date: entry.date,
+          dueAt: entry.dueAt,
           month: getMonth(entry),
           competence: entry.competence,
           sourceSheet: entry.sourceSheet,
           sourceRow: entry.sourceRow,
+          sourceType: entry.sourceType,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+          isNew,
+          isUpcoming,
+          reviewReasons,
+          needsReview: reviewReasons.length > 0,
         };
       })
       .filter((item) => {
@@ -215,6 +255,49 @@ export async function GET(request: Request) {
 
         return haystack.includes(search);
       });
+
+    function dateSortValue(item: (typeof productions)[number]) {
+      const dv =
+        item.dueAt instanceof Date
+          ? item.dueAt
+          : item.date instanceof Date
+            ? item.date
+            : null;
+
+      return dv ? dv.getTime() : Infinity;
+    }
+
+    function createdSortValue(item: (typeof productions)[number]) {
+      return item.createdAt instanceof Date ? item.createdAt.getTime() : 0;
+    }
+
+    const upcomingProductions = productions
+      .filter((item) => item.isUpcoming)
+      .sort((a, b) => {
+        const da = dateSortValue(a);
+        const db = dateSortValue(b);
+        if (da !== db) return da - db;
+        return (a.sourceRow ?? 0) - (b.sourceRow ?? 0);
+      });
+
+    const recentProductions = [...productions].sort(
+      (a, b) => createdSortValue(b) - createdSortValue(a),
+    );
+
+    const reviewNeededProductions = productions.filter(
+      (item) => item.needsReview,
+    );
+
+    const stats = {
+      newCount: productions.filter((item) => item.isNew).length,
+      manualCount: productions.filter((item) => item.sourceType === "MANUAL")
+        .length,
+      spreadsheetCount: productions.filter(
+        (item) => item.sourceType === "SPREADSHEET",
+      ).length,
+      upcomingCount: upcomingProductions.length,
+      reviewCount: reviewNeededProductions.length,
+    };
 
     const totalRevenue = roundMoney(
       productionsBase.reduce((sum, entry) => sum + revenueAmount(entry), 0),
@@ -297,7 +380,11 @@ export async function GET(request: Request) {
         topBrand,
       },
       pipeline,
+      stats,
       productions,
+      upcomingProductions,
+      recentProductions,
+      reviewNeededProductions,
     });
   } catch (error) {
     return apiError("producoes.overview", error, {

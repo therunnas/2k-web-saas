@@ -22,10 +22,18 @@ type ProductionItem = {
   received: number;
   receivable: number;
   date: string | null;
+  dueAt: string | null;
   month: number | null;
   competence: string | null;
   sourceSheet: string | null;
   sourceRow: number | null;
+  sourceType: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  isNew: boolean;
+  isUpcoming: boolean;
+  reviewReasons: string[];
+  needsReview: boolean;
 };
 
 type ProducoesOverviewResponse = {
@@ -58,9 +66,26 @@ type ProducoesOverviewResponse = {
     name: string;
     count: number;
   }>;
+  stats?: {
+    newCount: number;
+    manualCount: number;
+    spreadsheetCount: number;
+    upcomingCount: number;
+    reviewCount: number;
+  };
   productions: ProductionItem[];
+  upcomingProductions?: ProductionItem[];
+  recentProductions?: ProductionItem[];
+  reviewNeededProductions?: ProductionItem[];
   message?: string;
 };
+
+const sortOptions = [
+  { label: "Mais recentes", value: "recent" },
+  { label: "Próximas datas", value: "date" },
+  { label: "Maior valor", value: "value" },
+  { label: "Pendentes", value: "pending" },
+];
 
 const filterOptions = [
   { label: "Todas", value: "all" },
@@ -118,6 +143,21 @@ function formatDate(value: string | null) {
     month: "2-digit",
     year: "numeric",
   }).format(date);
+}
+
+function getOriginInfo(item: ProductionItem) {
+  const label =
+    item.sourceType === "MANUAL"
+      ? "Manual"
+      : item.sourceType === "SPREADSHEET"
+        ? "Planilha"
+        : null;
+
+  const detail = [item.sourceSheet, item.sourceRow ? `#${item.sourceRow}` : null]
+    .filter(Boolean)
+    .join(" ");
+
+  return { label, detail };
 }
 
 function getInitials(name: string) {
@@ -227,6 +267,7 @@ function getProductionStatusStyle(item: ProductionItem) {
 export function ProducoesDashboard() {
   const [data, setData] = useState<ProducoesOverviewResponse | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -331,7 +372,43 @@ export function ProducoesDashboard() {
     ];
   }, [data]);
 
-  const productions = data?.productions ?? [];
+  const productions = useMemo(() => data?.productions ?? [], [data]);
+  const reviewProductions = data?.reviewNeededProductions ?? [];
+
+  const sortedProductions = useMemo(() => {
+    const list = [...productions];
+
+    function dateValue(item: ProductionItem) {
+      const raw = item.dueAt ?? item.date;
+      const time = raw ? new Date(raw).getTime() : NaN;
+      return Number.isNaN(time) ? Infinity : time;
+    }
+
+    function createdValue(item: ProductionItem) {
+      const time = item.createdAt ? new Date(item.createdAt).getTime() : NaN;
+      return Number.isNaN(time) ? 0 : time;
+    }
+
+    if (sortBy === "date") {
+      return list.sort((a, b) => dateValue(a) - dateValue(b));
+    }
+
+    if (sortBy === "value") {
+      return list.sort((a, b) => b.value - a.value);
+    }
+
+    if (sortBy === "pending") {
+      return list.sort((a, b) => {
+        const ap = a.type === "RECEIVABLE" ? 0 : 1;
+        const bp = b.type === "RECEIVABLE" ? 0 : 1;
+        if (ap !== bp) return ap - bp;
+        return b.value - a.value;
+      });
+    }
+
+    return list.sort((a, b) => createdValue(b) - createdValue(a));
+  }, [productions, sortBy]);
+
   const pipeline = data?.pipeline ?? [];
   const pipelineMaxCount = Math.max(...pipeline.map((stage) => stage.count), 1);
   const pipelineTotals = useMemo(() => {
@@ -579,6 +656,28 @@ export function ProducoesDashboard() {
                 />
               </form>
 
+              <select
+                value={sortBy}
+                onChange={(event) => setSortBy(event.target.value)}
+                aria-label="Ordenar por"
+                className="k-input"
+                style={{
+                  background: "rgba(7, 10, 16, 0.48)",
+                  borderColor: "rgba(148, 163, 184, 0.16)",
+                  borderRadius: "9px",
+                  color: "rgba(226, 232, 240, 0.86)",
+                  fontSize: "11px",
+                  height: "30px",
+                  paddingInline: "10px",
+                }}
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+
               <div
                 className="flex flex-wrap"
                 style={{
@@ -632,7 +731,10 @@ export function ProducoesDashboard() {
                 <span>Status</span>
               </div>
 
-              {productions.map((item) => (
+              {sortedProductions.map((item) => {
+                const origin = getOriginInfo(item);
+
+                return (
                 <div
                   key={item.id}
                   className="k-table-row k-production-row grid grid-cols-[1.35fr_1.75fr_0.9fr_0.75fr_0.75fr] items-center border-b border-white/[0.045] last:border-b-0"
@@ -655,9 +757,40 @@ export function ProducoesDashboard() {
                   </div>
 
                   <div className="min-w-0 pr-4">
-                    <span className="block truncate font-medium text-slate-300" style={{ fontSize: "11px" }}>
-                      {item.project}
-                    </span>
+                    <div className="flex min-w-0 items-center" style={{ gap: "6px" }}>
+                      <span className="truncate font-medium text-slate-300" style={{ fontSize: "11px" }}>
+                        {item.project}
+                      </span>
+
+                      {item.isNew ? (
+                        <span
+                          title="Importada ou criada recentemente"
+                          style={{
+                            background: "rgba(168, 85, 247, 0.14)",
+                            borderRadius: "999px",
+                            color: "rgb(216, 180, 254)",
+                            flexShrink: 0,
+                            fontSize: "8.5px",
+                            fontWeight: 700,
+                            letterSpacing: "0.04em",
+                            padding: "1px 6px",
+                          }}
+                        >
+                          Novo
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {origin.label ? (
+                      <span
+                        className="mt-1 block truncate text-slate-600"
+                        title={origin.detail || origin.label}
+                        style={{ fontSize: "9px", letterSpacing: "0.06em" }}
+                      >
+                        {origin.label}
+                        {origin.detail ? ` · ${origin.detail}` : ""}
+                      </span>
+                    ) : null}
                   </div>
 
                   <div>
@@ -688,7 +821,8 @@ export function ProducoesDashboard() {
                     {item.status}
                   </span>
                 </div>
-              ))}
+                );
+              })}
 
               {!productions.length ? (
                 <div className="k-empty">
@@ -839,6 +973,79 @@ export function ProducoesDashboard() {
           </div>
         </aside>
       </section>
+
+      {reviewProductions.length ? (
+        <section
+          className="k-card"
+          style={{
+            background: "rgba(10, 14, 22, 0.92)",
+            borderColor: "rgba(251, 191, 36, 0.22)",
+            borderRadius: "14px",
+            boxShadow: "none",
+            padding: "18px",
+          }}
+        >
+          <div className="k-section-head" style={{ marginBottom: "14px", paddingBottom: 0 }}>
+            <div>
+              <h2 style={{ fontSize: "14px", fontWeight: 750, lineHeight: 1.1, margin: 0 }}>
+                Produções para revisar
+              </h2>
+
+              <p className="k-section-sub" style={{ fontSize: "11px", marginTop: "8px" }}>
+                {reviewProductions.length} sem data, sem projeto ou com dados incompletos.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col" style={{ gap: "8px" }}>
+            {reviewProductions.map((item) => {
+              const origin = getOriginInfo(item);
+
+              return (
+                <div
+                  key={item.id}
+                  className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.045] last:border-b-0"
+                  style={{ minHeight: "40px", paddingBottom: "8px" }}
+                >
+                  <div className="min-w-0">
+                    <strong className="block truncate text-slate-100" style={{ fontSize: "11px", fontWeight: 700 }}>
+                      {item.group} · {item.brand}
+                    </strong>
+
+                    <span className="mt-1 block truncate text-slate-500" style={{ fontSize: "10px" }}>
+                      {item.project}
+                      {origin.label ? ` · ${origin.label}${origin.detail ? ` ${origin.detail}` : ""}` : ""}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center" style={{ gap: "6px" }}>
+                    {item.reviewReasons.map((reason) => (
+                      <span
+                        key={reason}
+                        style={{
+                          background: "rgba(251, 191, 36, 0.1)",
+                          borderRadius: "999px",
+                          color: "rgb(251, 191, 36)",
+                          fontSize: "9px",
+                          fontWeight: 700,
+                          letterSpacing: "0.04em",
+                          padding: "2px 8px",
+                        }}
+                      >
+                        {reason}
+                      </span>
+                    ))}
+
+                    <span className="k-number font-semibold" style={{ color: "rgb(34, 211, 238)", fontSize: "11px" }}>
+                      {formatCurrency(item.value)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
