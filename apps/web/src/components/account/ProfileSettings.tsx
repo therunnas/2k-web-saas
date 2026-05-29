@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Loader2, X } from "lucide-react";
+import { Camera, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -119,6 +119,20 @@ export function ProfileSettings() {
   function closeProfile() {
     router.push("/dashboard");
   }
+
+  useEffect(() => {
+    function handleProfileEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeProfile();
+      }
+    }
+
+    window.addEventListener("keydown", handleProfileEscape);
+
+    return () => {
+      window.removeEventListener("keydown", handleProfileEscape);
+    };
+  }, []);
 
   async function loadProfile() {
     setLoading(true);
@@ -259,15 +273,7 @@ export function ProfileSettings() {
           <h1 className="text-[20px] font-semibold tracking-[-0.03em] text-white">
             Editar perfil
           </h1>
-
-          <button
-            type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-white/[0.06] text-slate-300 transition hover:bg-white/[0.10] hover:text-white"
-            aria-label="Fechar perfil"
-          >
-            <X size={18} />
-          </button>
-        </div>
+</div>
 
         {loading ? (
           <div className="flex min-h-[420px] items-center justify-center">
