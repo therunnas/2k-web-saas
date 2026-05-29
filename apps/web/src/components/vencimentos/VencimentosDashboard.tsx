@@ -5,7 +5,6 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   CalendarClock,
-  CalendarDays,
   CheckCircle2,
   CircleDollarSign,
   RefreshCw,
@@ -227,37 +226,48 @@ export function VencimentosDashboard() {
   const recentDoneItems = data?.recentDoneItems ?? [];
 
   return (
-    <div className="k-page space-y-6">
-      <header className="k-page-header k-page-heading">
-        <div>
-          <p className="k-eyebrow">
-            Vencimentos
-          </p>
-
+    <div className="k-page space-y-6" style={{ gap: "20px", paddingTop: "24px" }}>
+      <header
+        className="k-page-header k-page-heading"
+        style={{
+          alignItems: "flex-start",
+          display: "flex",
+          flexDirection: "row",
+          gap: "24px",
+          justifyContent: "space-between",
+          padding: "4px 0 0",
+        }}
+      >
+        <div style={{ maxWidth: "760px" }}>
           <h1 className="k-title">
             Vencimentos financeiros.
           </h1>
 
           <p className="k-subtitle">
             Próximos recebimentos, pagamentos pendentes e movimentos recentes
-            calculados diretamente da planilha importada.
+            calculados das entradas e saídas.
           </p>
         </div>
 
-        <div className="k-page-actions">
+        <div className="k-page-actions" style={{ alignItems: "flex-start", paddingTop: "32px" }}>
           <button
             type="button"
             onClick={loadVencimentos}
             className="k-button-ghost"
+            style={{
+              background: "rgba(15, 23, 42, 0.34)",
+              borderColor: "rgba(148, 163, 184, 0.22)",
+              borderRadius: "10px",
+              color: "rgba(226, 232, 240, 0.9)",
+              fontSize: "12px",
+              fontWeight: 650,
+              minHeight: "34px",
+              paddingInline: "14px",
+            }}
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={14} />
             {loading ? "Atualizando..." : "Atualizar"}
           </button>
-
-          <div className="k-button-secondary">
-            <CalendarDays size={16} />
-            Ano fiscal 2026
-          </div>
         </div>
       </header>
 
@@ -267,9 +277,33 @@ export function VencimentosDashboard() {
         </div>
       ) : null}
 
-      <section className="k-kpi-strip">
+      <section
+        className="k-kpi-strip"
+        style={{
+          background: "rgba(10, 14, 22, 0.92)",
+          border: "1px solid rgba(148, 163, 184, 0.15)",
+          borderRadius: "14px",
+          boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.018)",
+          gap: 0,
+          gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+          overflow: "hidden",
+        }}
+      >
         {summaryCards.map((card) => (
-          <article key={card.label} className="k-kpi-strip-item">
+          <article
+            key={card.label}
+            className="k-kpi-strip-item"
+            style={{
+              background: "transparent",
+              border: 0,
+              borderRight: card.label === "Despesas pagas" ? 0 : "1px solid rgba(148, 163, 184, 0.12)",
+              borderRadius: 0,
+              gap: "8px",
+              justifyContent: "center",
+              minHeight: "70px",
+              padding: "14px 18px",
+            }}
+          >
             <span className="k-kpi-label">{card.label}</span>
             <strong className="k-kpi-value">{renderKpiValue(card.value)}</strong>
             <span className={`k-kpi-helper ${card.tone}`}>{card.helper}</span>
@@ -278,7 +312,15 @@ export function VencimentosDashboard() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1fr_0.8fr]">
-        <div className="k-card k-entry-table k-due-table">
+        <div
+          className="k-card k-entry-table k-due-table"
+          style={{
+            background: "rgba(10, 14, 22, 0.92)",
+            borderColor: "rgba(148, 163, 184, 0.15)",
+            borderRadius: "14px",
+            boxShadow: "none",
+          }}
+        >
           <div className="k-section-head">
             <div>
             <h2>
@@ -291,7 +333,14 @@ export function VencimentosDashboard() {
             </div>
           </div>
 
-          <div className="k-table-card overflow-x-auto">
+          <div
+            className="k-table-card overflow-x-auto"
+            style={{
+              background: "rgba(7, 10, 16, 0.28)",
+              borderColor: "rgba(148, 163, 184, 0.12)",
+              borderRadius: "12px",
+            }}
+          >
             <div className="k-table min-w-[860px]">
               <div data-table-head className="grid grid-cols-[1.4fr_1.5fr_1fr_1fr_1fr] px-5 py-3">
                 <span>Cliente / fornecedor</span>
@@ -361,7 +410,15 @@ export function VencimentosDashboard() {
           </div>
         </div>
 
-        <aside className="k-card k-recent-list">
+        <aside
+          className="k-card k-recent-list"
+          style={{
+            background: "rgba(10, 14, 22, 0.92)",
+            borderColor: "rgba(148, 163, 184, 0.15)",
+            borderRadius: "14px",
+            boxShadow: "none",
+          }}
+        >
           <div className="k-section-head">
             <div>
             <h2>
