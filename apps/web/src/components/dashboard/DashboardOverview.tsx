@@ -964,25 +964,54 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
     return null;
   }
 
+  const fallbackStatusLabels = ["REC", "Pós", "Pré-prod", "Briefing", "Roteiro"];
+
+  function getCompactStatus(entry: LatestEntry, index: number) {
+    if (entry.overdue) return "Atraso";
+
+    const raw = String(entry.status || "").trim().toLowerCase();
+
+    if (!raw) return fallbackStatusLabels[index] || "Roteiro";
+    if (raw.includes("pag")) return "Aguardando";
+    if (raw.includes("brief")) return "Briefing";
+    if (raw.includes("rote")) return "Roteiro";
+    if (raw.includes("pré") || raw.includes("pre")) return "Pré-prod";
+    if (raw.includes("pós") || raw.includes("pos")) return "Pós";
+    if (raw.includes("rec")) return "REC";
+
+    return fallbackStatusLabels[index] || "Roteiro";
+  }
+
   return (
-    <section className="k-pipeline-card">
-      <div className="k-section-head">
+    <section
+      className="relative overflow-hidden rounded-[16px] border border-white/[0.055] bg-[#080a0f] px-4 py-4 shadow-[0_18px_52px_rgba(0,0,0,0.34)]"
+      style={{
+        height: 264,
+        minHeight: 264,
+        maxHeight: 264,
+      }}
+    >
+      <div className="mb-3 flex items-start justify-between gap-4">
         <div>
-          <h2>
+          <h2 className="text-[14px] font-semibold tracking-[-0.02em] text-slate-100">
             Próximas produções
           </h2>
-          <div className="k-section-sub">
-            {pipeline.length} captações em andamento ou pré-produção
-          </div>
+
+          <p className="mt-1 text-[10.5px] font-medium text-slate-500">
+            {pipeline.length} captações em andamento ou em pré-produção
+          </p>
         </div>
 
-        <button className="k-button-ghost min-h-9">
+        <button
+          type="button"
+          className="inline-flex h-8 items-center gap-2 rounded-[9px] border border-white/[0.06] bg-white/[0.018] px-3.5 text-[11px] font-medium text-slate-300 transition hover:bg-white/[0.045] hover:text-white"
+        >
           Ver todas
           <ArrowUpRight size={12} />
         </button>
       </div>
 
-      <div className="k-pipeline-grid">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         {pipeline.map((entry, index) => {
           const title =
             entry.project ||
@@ -991,7 +1020,7 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
             entry.client ||
             "Produção sem título";
 
-          const label = entry.dueAt
+          const dateLabel = entry.dueAt
             ? new Date(entry.dueAt).toLocaleDateString("pt-BR", {
                 day: "2-digit",
                 month: "2-digit",
@@ -999,36 +1028,65 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
             : entry.competence || "—";
 
           const percent = clamp(28 + index * 12, 18, 88);
+          const status = getCompactStatus(entry, index);
+
+          const code =
+            entry.client?.slice(0, 2).toUpperCase() ||
+            entry.groupName?.slice(0, 2).toUpperCase() ||
+            "2K";
 
           return (
             <article
               key={`${entry.id}-${entry.sourceRow}-${index}`}
-              className="k-production-card"
+              className="relative flex h-[184px] min-h-0 flex-col overflow-hidden rounded-[10px] border border-white/[0.055] bg-[#0b0d13] px-3 py-2.5 transition hover:border-white/[0.10] hover:bg-[#0e1118]"
             >
-              <div className="k-production-top">
-                <span className="k-production-code">
-                  {label}
+              <div className="flex items-center justify-between gap-3">
+                <span className="truncate font-mono text-[8px] font-semibold tracking-[0.10em] text-slate-500">
+                  {code} · {dateLabel}
                 </span>
 
-                <span className="k-production-status">
-                  {entry.overdue ? "Atraso" : entry.status || "Roteiro"}
+                <span
+                  data-overdue={entry.overdue ? "true" : "false"}
+                  className="shrink-0 rounded-full px-2 py-[2px] text-[8px] font-semibold tracking-[0.04em] text-emerald-200 data-[overdue=true]:bg-rose-500/10 data-[overdue=true]:text-rose-200 data-[overdue=false]:bg-emerald-500/10"
+                  title={status}
+                >
+                  {status}
                 </span>
               </div>
 
-              <h3 className="k-production-title">
+              <h3
+                className="mt-2 overflow-hidden text-[10px] font-medium leading-[17px] tracking-[-0.01em] text-slate-100"
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 4,
+                  WebkitBoxOrient: "vertical",
+                  minHeight: "68px",
+                  maxHeight: "68px",
+                  fontFamily: "var(--font-dashboard)",
+                  fontWeight: 500,
+                }}
+                title={title}
+              >
                 {title}
               </h3>
 
-              <div className="k-production-meta">
-                <strong className="k-number text-sm text-emerald-300">
-                  {formatCompactCurrency(entry.revenue)}
-                </strong>
+              <div className="mt-auto pt-2">
+                <div className="flex items-end justify-between gap-3">
+                  <strong className="font-mono text-[10.5px] font-semibold tracking-[0.03em] text-emerald-200">
+                    {formatCompactCurrency(entry.revenue)}
+                  </strong>
 
-                <span className="text-xs text-slate-500">{percent}%</span>
-              </div>
+                  <span className="font-mono text-[8px] text-slate-500">
+                    {percent}%
+                  </span>
+                </div>
 
-              <div className="k-progress-line">
-                <div style={{ width: `${percent}%` }} />
+                <div className="mt-1.5 h-[2.5px] overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className="h-full rounded-full bg-[linear-gradient(90deg,rgb(45,212,191),rgb(168,85,247))]"
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
               </div>
             </article>
           );
@@ -1281,78 +1339,79 @@ export function DashboardOverview() {
 
       <PipelineStrip entries={overview?.latestEntries ?? []} />
 
-      <section className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <div className="k-list-card">
-          <div className="k-section-head">
-            <div className="flex items-center gap-3">
-              <Users className="text-violet-300" size={18} />
-              <div>
-                <h2>
-                  Top grupos por faturamento
-                </h2>
-                <div className="k-section-sub">
-                  5 de {overview?.topGroups?.length ?? 0} grupos · participação
-                  no ano fiscal 2026
-                </div>
-              </div>
+      <section className="grid items-stretch gap-5 xl:grid-cols-[1.55fr_1fr]">
+        <div className="relative min-h-[326px] overflow-hidden rounded-[16px] border border-white/[0.055] bg-[#080a0f] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.34)]">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-[15px] font-semibold tracking-[-0.025em] text-slate-100">
+                Top grupos por faturamento
+              </h2>
+
+              <p className="mt-1 text-[11.5px] font-medium text-slate-500">
+                5 de {overview?.topGroups?.length ?? 0} grupos · participação no ano fiscal 2026
+              </p>
             </div>
 
-            <button className="k-button-ghost min-h-9">
+            <button
+              type="button"
+              className="inline-flex h-8 items-center gap-2 rounded-[9px] border border-white/[0.06] bg-white/[0.018] px-3.5 text-[11.5px] font-medium text-slate-300 transition hover:bg-white/[0.045] hover:text-white"
+            >
               Ver todos
               <ArrowUpRight size={12} />
             </button>
           </div>
 
-          <div className="k-table-card overflow-x-auto">
-            <div className="k-table min-w-[760px]">
-              <div
-                data-table-head
-                className="grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] px-5 py-3"
-              >
+          <div className="overflow-x-auto">
+            <div className="min-w-[720px]">
+              <div className="grid grid-cols-[44px_2.25fr_1.1fr_1.1fr_1.2fr] px-2 pb-3 text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-500">
                 <span>#</span>
                 <span>Grupo</span>
-                <span>Faturamento</span>
-                <span>Recebido</span>
-                <span>Participação</span>
+                <span className="text-right">Faturamento</span>
+                <span className="text-right">Recebido</span>
+                <span className="text-right">Participação</span>
               </div>
 
               {(overview?.topGroups ?? []).slice(0, 5).map((group) => (
                 <div
                   key={group.name}
-                  className="k-table-row grid grid-cols-[0.4fr_2fr_1fr_1fr_1.4fr] items-center border-b border-white/[0.06] px-5 py-4 text-sm last:border-b-0"
+                  className="grid grid-cols-[44px_2.25fr_1.1fr_1.1fr_1.2fr] items-center border-t border-white/[0.045] px-2 py-[11px]"
                 >
-                  <span className="text-slate-500">{group.rank}</span>
+                  <span className="font-mono text-[10.5px] text-slate-500">
+                    {String(group.rank).padStart(2, "0")}
+                  </span>
 
-                  <div className="k-row-avatar">
-                    <span className="k-avatar h-8 w-8 rounded-[10px] text-xs">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-[#1a1d25] text-[10px] font-semibold text-slate-200 ring-1 ring-white/[0.08]">
                       {getInitials(group.name)}
                     </span>
+
                     <div className="min-w-0">
-                      <strong className="k-row-name block truncate">
+                      <strong className="block truncate text-[11.5px] font-semibold uppercase tracking-[-0.01em] text-slate-100">
                         {group.name}
                       </strong>
-                      <span className="k-row-meta">
-                        {group.projectsCount} proj. · ticket{" "}
-                        {formatCompactCurrency(group.ticketMedio)}
+
+                      <span className="block truncate text-[10px] font-medium text-slate-500">
+                        {group.projectsCount} projetos · ticket {formatCompactCurrency(group.ticketMedio)}
                       </span>
                     </div>
                   </div>
 
-                  <span className="k-number text-slate-300">
+                  <span className="text-right font-mono text-[11.5px] font-semibold tracking-[0.03em] text-slate-100">
                     {formatCompactCurrency(group.revenue)}
                   </span>
 
-                  <span className="k-number font-semibold text-emerald-300">
+                  <span className="text-right font-mono text-[11.5px] font-semibold tracking-[0.03em] text-emerald-200">
                     {formatCompactCurrency(group.received)}
                   </span>
 
-                  <div className="flex items-center gap-3">
-                    <span className="k-number w-12 text-slate-300">
+                  <div className="flex items-center justify-end gap-3">
+                    <span className="w-12 text-right font-mono text-[10.5px] text-slate-300">
                       {formatPercent(group.participationPercent)}
                     </span>
-                    <div className="k-bar-track flex-1">
+
+                    <div className="h-[3px] w-[82px] overflow-hidden rounded-full bg-white/[0.06]">
                       <div
-                        className="k-bar-fill"
+                        className="h-full rounded-full bg-emerald-300/80"
                         style={{
                           width: `${clamp(group.participationPercent, 0, 100)}%`,
                         }}
@@ -1363,7 +1422,7 @@ export function DashboardOverview() {
               ))}
 
               {!overview?.topGroups?.length ? (
-                <div className="px-5 py-6 text-sm font-medium text-slate-500">
+                <div className="border-t border-white/[0.045] px-2 py-6 text-sm font-medium text-slate-500">
                   Nenhum grupo financeiro encontrado.
                 </div>
               ) : null}
@@ -1371,28 +1430,29 @@ export function DashboardOverview() {
           </div>
         </div>
 
-        <div className="k-list-card">
-          <div className="k-section-head">
-            <div className="flex items-center gap-3">
-              <CalendarDays className="text-violet-300" size={18} />
-              <div>
-                <h2>
-                  Próximos recebimentos
-                </h2>
-                <div className="k-section-sub">
-                  {receivableRows.length} pendências recentes em aberto
-                </div>
-              </div>
+        <div className="relative min-h-[326px] overflow-hidden rounded-[16px] border border-white/[0.055] bg-[#080a0f] p-5 shadow-[0_18px_52px_rgba(0,0,0,0.34)]">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-[15px] font-semibold tracking-[-0.025em] text-slate-100">
+                Próximos recebimentos
+              </h2>
+
+              <p className="mt-1 text-[11.5px] font-medium text-slate-500">
+                {receivableRows.length} pendências · {formatCurrency(summary?.receivableTotal ?? 0)} em aberto
+              </p>
             </div>
 
-            <button className="k-button-ghost min-h-9">
+            <button
+              type="button"
+              className="inline-flex h-8 items-center gap-2 rounded-[9px] border border-white/[0.06] bg-white/[0.018] px-3.5 text-[11.5px] font-medium text-slate-300 transition hover:bg-white/[0.045] hover:text-white"
+            >
               Vencimentos
               <ArrowUpRight size={12} />
             </button>
           </div>
 
-          <div className="space-y-2">
-            {receivableRows.map((item) => {
+          <div className="space-y-[11px]">
+            {receivableRows.slice(0, 6).map((item) => {
               const clientName =
                 item.groupName ||
                 item.client ||
@@ -1404,45 +1464,51 @@ export function DashboardOverview() {
                 ? new Date(item.dueAt).toLocaleDateString("pt-BR")
                 : (item.competence ?? "—");
 
+              const statusLabel = item.overdue ? "Atrasado" : item.status || "Aguardando";
+
               return (
                 <div
                   key={`${item.id}-${item.sourceRow}`}
-                  className="k-table-row grid grid-cols-[1fr_auto] items-center gap-4 rounded-[10px] border border-white/[0.06] bg-white/[0.02] px-4 py-3"
+                  className="grid grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-white/[0.035] pb-[11px] last:border-b-0 last:pb-0"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="k-avatar h-8 w-8 rounded-[10px] text-xs">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-[#1a1d25] text-[10px] font-semibold text-slate-200 ring-1 ring-white/[0.08]">
                       {getInitials(clientName)}
                     </span>
 
                     <div className="min-w-0">
-                      <strong className="block truncate font-semibold">
+                      <strong className="block truncate text-[11.5px] font-semibold uppercase tracking-[-0.01em] text-slate-100">
                         {clientName}
                       </strong>
-                      <span className="text-[11px] font-medium text-slate-500">
+
+                      <span className="block truncate text-[10px] font-medium text-slate-500">
                         {dueLabel} · {item.overdue ? "em atraso" : "em aberto"}
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <strong className="k-number block text-sm text-slate-200">
-                      {formatCompactCurrency(item.revenue)}
-                    </strong>
-                    <span
-                      className="k-badge mt-1"
-                      data-tone={item.overdue ? "danger" : "attention"}
-                    >
-                      {item.overdue ? "Atrasado" : item.status || "Aguardando"}
-                    </span>
-                  </div>
+                  <strong className="whitespace-nowrap text-right font-mono text-[11.5px] font-semibold tracking-[0.03em] text-slate-100">
+                    {formatCompactCurrency(item.revenue)}
+                  </strong>
+
+                  <span
+                    data-overdue={item.overdue ? "true" : "false"}
+                    className="inline-flex h-6 min-w-[82px] items-center justify-center rounded-full border px-2.5 text-[10px] font-semibold data-[overdue=false]:border-emerald-300/14 data-[overdue=false]:bg-emerald-400/[0.07] data-[overdue=false]:text-emerald-200 data-[overdue=true]:border-rose-300/16 data-[overdue=true]:bg-rose-400/[0.075] data-[overdue=true]:text-rose-200"
+                  >
+                    • {statusLabel}
+                  </span>
                 </div>
               );
             })}
 
             {!receivableRows.length ? (
-              <div className="k-empty">
-                <h4>Nenhum recebimento encontrado</h4>
-                <p>Quando houver pendências recentes em aberto, elas aparecerão aqui.</p>
+              <div className="rounded-[12px] border border-white/[0.055] bg-white/[0.025] px-4 py-6">
+                <h4 className="text-sm font-semibold text-slate-200">
+                  Nenhum recebimento encontrado
+                </h4>
+                <p className="mt-1 text-sm text-slate-500">
+                  Quando houver pendências recentes em aberto, elas aparecerão aqui.
+                </p>
               </div>
             ) : null}
           </div>
