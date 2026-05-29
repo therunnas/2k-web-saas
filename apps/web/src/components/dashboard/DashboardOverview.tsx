@@ -188,8 +188,7 @@ function renderKpiValue(value: string) {
   const currencyMatch = value.match(/^R\$\s?(.+)$/);
 
   if (!currencyMatch) return value;
-
-  return (
+return (
     <>
       <span className="k-kpi-prefix">R$</span>
       {currencyMatch[1]}
@@ -1098,10 +1097,61 @@ function PipelineStrip({ entries }: { entries: LatestEntry[] }) {
 
 
 export function DashboardOverview() {
-  const [overview, setOverview] = useState<FinanceOverview | null>(null);
+  const [dashboardDisplayName, setDashboardDisplayName] = useState("Administrador");
+
+  function normalizeDashboardDisplayName(value?: string | null) {
+    const name = value?.trim();
+
+    return name || "Administrador";
+  }
+
+  async function loadDashboardProfile() {
+    try {
+      const response = await fetch("/api/account/profile", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+
+      const json = (await response.json().catch(() => null)) as {
+        status?: string;
+        user?: {
+          name?: string | null;
+        };
+      } | null;
+
+      if (response.ok && json?.status === "ok") {
+        setDashboardDisplayName(normalizeDashboardDisplayName(json.user?.name));
+      }
+    } catch {
+      setDashboardDisplayName("Administrador");
+    }
+  }
+
+  useEffect(() => {
+    loadOverview();
+    loadDashboardProfile();
+
+    function handleDashboardProfileUpdated(event: Event) {
+      const profileEvent = event as CustomEvent<{
+        name?: string | null;
+      }>;
+
+      setDashboardDisplayName(
+        normalizeDashboardDisplayName(profileEvent.detail?.name),
+      );
+    }
+
+    window.addEventListener("profile-updated", handleDashboardProfileUpdated);
+
+    return () => {
+      window.removeEventListener("profile-updated", handleDashboardProfileUpdated);
+    };
+  }, []);
+
+
+const [overview, setOverview] = useState<FinanceOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   async function loadOverview() {
     setLoading(true);
     setErrorMessage(null);
@@ -1127,12 +1177,7 @@ export function DashboardOverview() {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    loadOverview();
-  }, []);
-
-  const monthly = overview?.monthly?.length ? overview.monthly : emptyMonths;
+const monthly = overview?.monthly?.length ? overview.monthly : emptyMonths;
   const summary = overview?.summary ?? null;
   const revenueSpark = monthly.map((item) => item.revenue || item.value || 0);
   const receivedSpark = monthly.map((item) => item.received || 0);
@@ -1266,7 +1311,7 @@ export function DashboardOverview() {
           </p>
 
           <h1 className="k-title">
-            Olá, Vinicius.
+            Olá, {dashboardDisplayName}.
           </h1>
 
           <p className="k-subtitle">
