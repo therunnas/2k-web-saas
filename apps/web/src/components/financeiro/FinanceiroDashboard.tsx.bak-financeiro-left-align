@@ -509,7 +509,7 @@ export function FinanceiroDashboard() {
   return (
     <div className="k-page financeiro-v2 flex flex-col gap-6">
       <header className="k-page-header k-finance-header">
-        <div className="mr-auto text-left lg:col-start-1 xl:col-start-1 mr-auto text-left lg:col-start-1 xl:col-start-1">
+        <div className="mr-auto text-left lg:col-start-1 xl:col-start-1">
 <h1 className="text-[28px] font-semibold tracking-[-0.045em] text-slate-100">
             Financeiro.
           </h1>
@@ -560,7 +560,7 @@ export function FinanceiroDashboard() {
         </div>
       ) : null}
 
-      <section className="k-kpi-strip k-finance-kpi-strip items-start text-left justify-start items-start text-left justify-start">
+      <section className="k-kpi-strip k-finance-kpi-strip items-start text-left justify-start">
         {summaryCards.map((card) => (
           <SummaryMiniCard key={card.label} card={card} />
         ))}
