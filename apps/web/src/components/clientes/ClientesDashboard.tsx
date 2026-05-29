@@ -2,14 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  ArrowUpRight,
-  Building2,
-  CalendarDays,
-  CircleDollarSign,
-  RefreshCw,
+  Download,
+  Plus,
   Search,
-  TrendingUp,
-  Users,
 } from "lucide-react";
 
 type ClientItem = {
@@ -172,31 +167,31 @@ export function ClientesDashboard() {
       {
         label: "Grupos ativos",
         value: summary ? String(summary.totalGroups) : "—",
-        helper: "Grupos com entrada no ano",
+        helper: "com entrada no ano",
         tone: "k-kpi-helper-info",
       },
       {
         label: "Faturamento",
         value: summary ? formatCompactCurrency(summary.totalRevenue) : "—",
-        helper: "Total por grupos/clientes",
+        helper: "total por grupos/clientes",
         tone: "k-kpi-helper-positive",
       },
       {
         label: "Recebido",
         value: summary ? formatCompactCurrency(summary.receivedTotal) : "—",
-        helper: "Entradas pagas",
+        helper: "entradas pagas",
         tone: "k-kpi-helper-positive",
       },
       {
         label: "A receber",
         value: summary ? formatCompactCurrency(summary.receivableTotal) : "—",
-        helper: "Entradas pendentes",
-        tone: "k-kpi-helper-info",
+        helper: "entradas pendentes",
+        tone: "k-kpi-helper-warning",
       },
       {
         label: "Projetos",
         value: summary ? String(summary.totalProjects) : "—",
-        helper: "Projetos identificados",
+        helper: "identificados",
         tone: "k-kpi-helper-info",
       },
       {
@@ -213,37 +208,38 @@ export function ClientesDashboard() {
   const clients = data?.clients ?? [];
 
   return (
-    <div className="k-page space-y-6">
+    <div className="k-page clients-page-v2 space-y-6">
       <header className="k-page-header k-page-heading">
         <div>
-          <p className="k-eyebrow">
-            Clientes
-          </p>
-
           <h1 className="k-title">
             Clientes e grupos.
           </h1>
 
           <p className="k-subtitle">
-            Ranking de grupos, marcas, projetos, valores recebidos e pendências
-            calculados diretamente das entradas da planilha.
+            Ranking real de grupos, marcas, projetos, valores recebidos e pendências consolidadas das entradas.
           </p>
         </div>
 
         <div className="k-page-actions">
           <button
             type="button"
-            onClick={() => loadClients()}
+            aria-disabled="true"
+            title="Exportação de clientes ainda não implementada."
             className="k-button-ghost"
           >
-            <RefreshCw size={16} />
-            {loading ? "Atualizando..." : "Atualizar"}
+            <Download size={16} />
+            Exportar
           </button>
 
-          <div className="k-button-secondary">
-            <CalendarDays size={16} />
-            Ano fiscal 2026
-          </div>
+          <button
+            type="button"
+            aria-disabled="true"
+            title="Cadastro manual de cliente ainda não disponível."
+            className="k-button-primary"
+          >
+            <Plus size={16} />
+            Novo cliente
+          </button>
         </div>
       </header>
 

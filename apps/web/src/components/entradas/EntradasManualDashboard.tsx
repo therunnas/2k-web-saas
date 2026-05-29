@@ -432,16 +432,12 @@ export function EntradasManualDashboard() {
     <div className="k-page manual-page-v2 manual-page-entries space-y-6">
       <header className="k-page-header k-page-heading">
         <div>
-          <p className="k-eyebrow">
-            Entradas
-          </p>
-
           <h1 className="k-title">
             Lançar entrada manual.
           </h1>
 
           <p className="k-subtitle">
-            Cadastre uma entrada diretamente pelo painel. O registro alimenta financeiro, vencimentos e produções.
+            Cadastre uma entrada direto pelo painel. O registro alimenta financeiro, vencimentos e produções.
           </p>
         </div>
 
@@ -456,18 +452,6 @@ export function EntradasManualDashboard() {
           >
             <RefreshCw size={16} />
             Atualizar
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              resetForm();
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className="k-button-primary"
-          >
-            <Plus size={16} />
-            Nova entrada
           </button>
         </div>
       </header>

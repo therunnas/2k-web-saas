@@ -530,10 +530,6 @@ export function SaidasManualDashboard() {
     <div className="k-page manual-page-v2 manual-page-exits space-y-6">
       <header className="k-page-header k-page-heading">
         <div>
-          <p className="k-eyebrow">
-            Saídas
-          </p>
-
           <h1 className="k-title">
             Lançar saída manual.
           </h1>
@@ -554,18 +550,6 @@ export function SaidasManualDashboard() {
           >
             <RefreshCw size={16} />
             Atualizar
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              resetForm();
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className="k-button-primary"
-          >
-            <Minus size={16} />
-            Nova saída
           </button>
         </div>
       </header>
