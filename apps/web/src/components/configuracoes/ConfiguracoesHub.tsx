@@ -1,25 +1,26 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import type { ChangeEvent, ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Bell,
   CheckCircle2,
   ChevronDown,
-  ChevronRight,
   Database,
-  Grid3X3,
   Keyboard,
+  Loader2,
   Palette,
-  Settings2,
-  ShieldCheck,
+  Plug,
+  Shield,
+  SlidersHorizontal,
+  Trash2,
+  UploadCloud,
   UserRound,
   X,
 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
-type ConfigSectionId =
+type SettingsTab =
   | "geral"
   | "notificacoes"
   | "personalizacao"
@@ -29,308 +30,488 @@ type ConfigSectionId =
   | "conta"
   | "teclado";
 
-type ConfigSection = {
-  id: ConfigSectionId;
+type FeedbackState = {
+  tone: "success" | "error" | "info";
+  message: string;
+} | null;
+
+const settingsTabs: Array<{
+  id: SettingsTab;
   label: string;
-  icon: LucideIcon;
-};
-
-type ConfigRow = {
-  title: string;
-  description?: string;
-  value?: string;
-  actionLabel?: string;
-  href?: string;
-  enabled?: boolean;
-};
-
-const sections: ConfigSection[] = [
-  { id: "geral", label: "Geral", icon: Settings2 },
-  { id: "notificacoes", label: "Notificações", icon: Bell },
-  { id: "personalizacao", label: "Personalização", icon: Palette },
-  { id: "aplicativos", label: "Aplicativos", icon: Grid3X3 },
-  { id: "controle-dados", label: "Controle de dados", icon: Database },
-  { id: "seguranca", label: "Segurança", icon: ShieldCheck },
-  { id: "conta", label: "Conta", icon: UserRound },
-  { id: "teclado", label: "Teclado", icon: Keyboard },
+  icon: ReactNode;
+}> = [
+  { id: "geral", label: "Geral", icon: <SlidersHorizontal size={15} /> },
+  { id: "notificacoes", label: "Notificações", icon: <Bell size={15} /> },
+  { id: "personalizacao", label: "Personalização", icon: <Palette size={15} /> },
+  { id: "aplicativos", label: "Aplicativos", icon: <Plug size={15} /> },
+  { id: "controle-dados", label: "Controle de dados", icon: <Database size={15} /> },
+  { id: "seguranca", label: "Segurança", icon: <Shield size={15} /> },
+  { id: "conta", label: "Conta", icon: <UserRound size={15} /> },
+  { id: "teclado", label: "Teclado", icon: <Keyboard size={15} /> },
 ];
 
-const rowsBySection: Record<ConfigSectionId, ConfigRow[]> = {
-  geral: [
-    {
-      title: "Aparência",
-      description: "Visual padrão do painel administrativo.",
-      value: "Escuro",
-    },
-    {
-      title: "Workspace",
-      description: "Ambiente privado usado pela operação da 2K Studios.",
-      value: "2K Studios",
-    },
-    {
-      title: "Ano fiscal",
-      description: "Período usado nos dashboards e relatórios.",
-      value: "2026",
-    },
-  ],
-  notificacoes: [
-    {
-      title: "Alertas financeiros",
-      description: "Avisos de vencimentos, recebíveis e pendências.",
-      value: "Ativo",
-      enabled: true,
-    },
-    {
-      title: "Resumo operacional",
-      description: "Indicadores rápidos da operação.",
-      value: "Ativo",
-      enabled: true,
-    },
-    {
-      title: "Notificações externas",
-      description: "Integrações futuras com e-mail, Discord ou webhooks.",
-      value: "Em breve",
-    },
-  ],
-  personalizacao: [
-    {
-      title: "Cor de destaque",
-      description: "Destaque visual usado em botões, gráficos e estados ativos.",
-      value: "Ciano",
-    },
-    {
-      title: "Contraste",
-      description: "Intensidade visual dos componentes.",
-      value: "Aumentado",
-    },
-    {
-      title: "Densidade",
-      description: "Espaçamento dos componentes administrativos.",
-      value: "Compacta",
-    },
-  ],
-  aplicativos: [
-    {
-      title: "Vercel",
-      description: "Hospedagem atual do painel.",
-      value: "Conectado",
-      enabled: true,
-    },
-    {
-      title: "PostgreSQL / Neon",
-      description: "Banco de dados usado pelo SaaS.",
-      value: "Conectado",
-      enabled: true,
-    },
-    {
-      title: "Integrações externas",
-      description: "APIs futuras de cobrança, automação e comunicação.",
-      value: "Não configurado",
-    },
-  ],
-  "controle-dados": [
-    {
-      title: "Importação de planilha",
-      description: "Entrada principal de dados financeiros.",
-      value: "Ativa",
-      enabled: true,
-    },
-    {
-      title: "Limpeza de planilha",
-      description: "Permite limpar bases importadas quando necessário.",
-      value: "Disponível",
-    },
-    {
-      title: "RLS no banco",
-      description: "Groundwork documentado. Ainda não ativado diretamente no PostgreSQL.",
-      value: "Preparado",
-    },
-  ],
-  seguranca: [
-    {
-      title: "CORS restrito",
-      description: "Bloqueia origens não autorizadas chamando as APIs.",
-      value: "Ativo",
-      enabled: true,
-    },
-    {
-      title: "Security Headers",
-      description: "Headers de proteção aplicados em produção.",
-      value: "Ativo",
-      enabled: true,
-    },
-    {
-      title: "Endpoints dev",
-      description: "Rotas de desenvolvimento bloqueadas em produção.",
-      value: "Bloqueado",
-      enabled: true,
-    },
-  ],
-  conta: [
-    {
-      title: "Perfil do administrador",
-      description: "Edite nome de exibição e dados da conta.",
-      actionLabel: "Abrir perfil",
-      href: "/conta/perfil",
-    },
-    {
-      title: "E-mail da conta",
-      description: "Identificador principal usado no login.",
-      value: "Bloqueado",
-    },
-    {
-      title: "Sessão",
-      description: "Cookie HTTP-only assinado para manter autenticação.",
-      value: "Protegida",
-      enabled: true,
-    },
-  ],
-  teclado: [
-    {
-      title: "Busca rápida",
-      description: "Atalho reservado para busca global futura.",
-      value: "⌘K",
-    },
-    {
-      title: "Navegação",
-      description: "Atalhos rápidos entre módulos do painel.",
-      value: "Em breve",
-    },
-    {
-      title: "Acessibilidade",
-      description: "Melhorias de foco e navegação por teclado.",
-      value: "Planejado",
-    },
-  ],
-};
-
-function StatusPill({ enabled }: { enabled?: boolean }) {
-  if (enabled === undefined) return null;
-
+function StatusBadge({
+  tone = "neutral",
+  children,
+}: {
+  tone?: "success" | "warning" | "danger" | "neutral";
+  children: ReactNode;
+}) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">
-      <CheckCircle2 size={12} />
-      Ativo
+    <span
+      data-tone={tone}
+      className="inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-medium data-[tone=danger]:border-rose-300/15 data-[tone=danger]:bg-rose-400/[0.07] data-[tone=danger]:text-rose-200 data-[tone=neutral]:border-white/[0.06] data-[tone=neutral]:bg-white/[0.025] data-[tone=neutral]:text-slate-400 data-[tone=success]:border-emerald-300/15 data-[tone=success]:bg-emerald-400/[0.07] data-[tone=success]:text-emerald-200 data-[tone=warning]:border-amber-300/15 data-[tone=warning]:bg-amber-400/[0.07] data-[tone=warning]:text-amber-200"
+    >
+      {tone === "success" ? <CheckCircle2 size={12} /> : null}
+      {children}
     </span>
   );
 }
 
-function ConfigRowItem({ row }: { row: ConfigRow }) {
-  const content = (
-    <>
-      <div className="min-w-0">
-        <h3 className="text-[14px] font-semibold text-white">{row.title}</h3>
-        {row.description ? (
-          <p className="mt-1 max-w-[620px] text-[13px] leading-relaxed text-slate-400/80">
-            {row.description}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="flex shrink-0 items-center gap-3">
-        <StatusPill enabled={row.enabled} />
-
-        {row.value ? (
-          <span className="flex items-center gap-2 text-right text-[13px] font-semibold text-slate-100">
-            {row.value}
-            <ChevronDown size={14} className="text-slate-500" />
-          </span>
-        ) : null}
-
-        {row.actionLabel ? (
-          <span className="inline-flex min-h-9 items-center gap-2 rounded-[10px] border border-white/[0.08] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition group-hover:border-cyan-300/30 group-hover:bg-cyan-300/10">
-            {row.actionLabel}
-            <ChevronRight size={14} />
-          </span>
-        ) : null}
-      </div>
-    </>
-  );
-
-  if (row.href) {
-    return (
-      <Link
-        href={row.href}
-        className="group flex items-center justify-between gap-5 border-b border-white/[0.07] px-1 py-5 last:border-b-0"
-      >
-        {content}
-      </Link>
-    );
-  }
-
+function SettingRow({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description: string;
+  action: ReactNode;
+}) {
   return (
-    <div className="flex items-center justify-between gap-5 border-b border-white/[0.07] px-1 py-5 last:border-b-0">
-      {content}
+    <div className="grid gap-4 border-b border-white/[0.055] py-5 last:border-b-0 sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="min-w-0">
+        <h3 className="text-[13px] font-medium tracking-[-0.01em] text-slate-100">
+          {title}
+        </h3>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-slate-500">
+          {description}
+        </p>
+      </div>
+
+      <div className="flex shrink-0 items-center justify-start gap-2 sm:justify-end">
+        {action}
+      </div>
     </div>
+  );
+}
+
+function ActionButton({
+  children,
+  onClick,
+  disabled,
+  tone = "default",
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  tone?: "default" | "danger";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      data-tone={tone}
+      className="inline-flex h-9 items-center gap-2 rounded-[10px] border px-3.5 text-[12px] font-medium transition disabled:cursor-not-allowed disabled:opacity-60 data-[tone=default]:border-white/[0.07] data-[tone=default]:bg-white/[0.025] data-[tone=default]:text-slate-200 data-[tone=default]:hover:bg-white/[0.045] data-[tone=danger]:border-rose-300/15 data-[tone=danger]:bg-rose-400/[0.07] data-[tone=danger]:text-rose-100 data-[tone=danger]:hover:bg-rose-400/[0.12]"
+    >
+      {children}
+    </button>
   );
 }
 
 export function ConfiguracoesHub() {
   const router = useRouter();
-  const [activeSectionId, setActiveSectionId] = useState<ConfigSectionId>("geral");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const activeSection =
-    sections.find((section) => section.id === activeSectionId) ?? sections[0];
+  const [activeTab, setActiveTab] = useState<SettingsTab>("geral");
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const [uploading, setUploading] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
-  const rows = rowsBySection[activeSection.id];
+  const busy = uploading || clearing;
+
+  function closeModal() {
+    router.push("/dashboard");
+  }
+
+  useEffect(() => {
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, []);
+
+  async function handleSpreadsheetChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    const validFile = /\.(xlsx|xls)$/i.test(file.name);
+
+    if (!validFile) {
+      setFeedback({
+        tone: "error",
+        message: "Envie uma planilha válida no formato .xlsx ou .xls.",
+      });
+      return;
+    }
+
+    setUploading(true);
+    setFeedback({
+      tone: "info",
+      message: "Importando planilha financeira...",
+    });
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/workspace/spreadsheet/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "same-origin",
+      });
+
+      const json = (await response.json().catch(() => null)) as {
+        status?: string;
+        message?: string;
+        imported?: {
+          entries?: number;
+        };
+      } | null;
+
+      if (!response.ok || json?.status === "error") {
+        throw new Error(json?.message ?? "Não foi possível importar a planilha.");
+      }
+
+      setFeedback({
+        tone: "success",
+        message:
+          json?.imported?.entries && json.imported.entries > 0
+            ? `Planilha importada com sucesso. ${json.imported.entries} lançamentos processados.`
+            : "Planilha importada com sucesso.",
+      });
+
+      router.refresh();
+    } catch (error) {
+      setFeedback({
+        tone: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao importar planilha.",
+      });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleClearSpreadsheetData() {
+    const confirmed = window.confirm(
+      "Isso vai limpar todos os lançamentos financeiros importados e o histórico de importação deste workspace. Perfil, usuário e configurações serão mantidos. Deseja continuar?",
+    );
+
+    if (!confirmed) return;
+
+    setClearing(true);
+    setFeedback({
+      tone: "info",
+      message: "Limpando dados financeiros...",
+    });
+
+    try {
+      const response = await fetch("/api/workspace/spreadsheet/clear", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          confirm: "LIMPAR",
+        }),
+      });
+
+      const json = (await response.json().catch(() => null)) as {
+        status?: string;
+        message?: string;
+        deleted?: {
+          entries?: number;
+          imports?: number;
+        };
+      } | null;
+
+      if (!response.ok || json?.status === "error") {
+        throw new Error(json?.message ?? "Não foi possível limpar os dados.");
+      }
+
+      const entries = json?.deleted?.entries ?? 0;
+      const imports = json?.deleted?.imports ?? 0;
+
+      setFeedback({
+        tone: "success",
+        message: `Dados limpos com sucesso. ${entries} lançamentos e ${imports} importações removidos.`,
+      });
+
+      router.refresh();
+    } catch (error) {
+      setFeedback({
+        tone: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao limpar dados.",
+      });
+    } finally {
+      setClearing(false);
+    }
+  }
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-[7px]">
-      <div
-        className="absolute inset-0"
-        aria-hidden="true"
-        onClick={() => router.push("/dashboard")}
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/78 px-4 py-6 backdrop-blur-[5px]"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          closeModal();
+        }
+      }}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        className="hidden"
+        onChange={handleSpreadsheetChange}
       />
 
-      <section className="relative z-[81] grid max-h-[82vh] w-full max-w-[860px] grid-cols-[210px_1fr] overflow-hidden rounded-[18px] border border-white/[0.10] bg-[#202124]/95 shadow-[0_30px_120px_rgba(0,0,0,0.75)] ring-1 ring-white/[0.04]">
-        <aside className="border-r border-white/[0.07] bg-white/[0.025] p-3">
+      <div
+        className="grid h-[min(760px,92vh)] w-full max-w-[1180px] overflow-hidden rounded-[24px] border border-white/[0.06] bg-[#111318] text-slate-100 shadow-[0_24px_120px_rgba(0,0,0,0.55)] md:grid-cols-[220px_1fr]"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <aside className="border-b border-white/[0.06] bg-[#0f1116] p-3 md:border-b-0 md:border-r md:border-white/[0.06]">
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
-            className="mb-4 flex h-10 w-10 items-center justify-center rounded-[10px] bg-white/[0.06] text-slate-300 transition hover:bg-white/[0.10] hover:text-white"
+            onClick={closeModal}
+            className="mb-4 flex h-10 w-10 items-center justify-center rounded-[10px] bg-white/[0.045] text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
             aria-label="Fechar configurações"
           >
             <X size={18} />
           </button>
 
           <nav className="space-y-1">
-            {sections.map((section) => {
-              const Icon = section.icon;
-              const active = section.id === activeSectionId;
-
-              return (
-                <button
-                  key={section.id}
-                  type="button"
-                  onClick={() => setActiveSectionId(section.id)}
-                  className={
-                    active
-                      ? "flex w-full items-center gap-3 rounded-[10px] bg-white/[0.08] px-3 py-2.5 text-left text-sm font-semibold text-white"
-                      : "flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left text-sm font-medium text-slate-300 transition hover:bg-white/[0.05] hover:text-white"
-                  }
-                >
-                  <Icon size={17} className={active ? "text-cyan-200" : "text-slate-400"} />
-                  <span>{section.label}</span>
-                </button>
-              );
-            })}
+            {settingsTabs.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setFeedback(null);
+                }}
+                data-active={activeTab === item.id ? "true" : "false"}
+                className="flex h-10 w-full items-center gap-3 rounded-[10px] px-3 text-left text-[13px] font-medium text-slate-300 transition hover:bg-white/[0.045] hover:text-white data-[active=true]:bg-white/[0.06] data-[active=true]:text-white"
+              >
+                <span className="text-slate-400">{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
           </nav>
         </aside>
 
-        <article className="min-h-[560px] overflow-y-auto px-7 py-5">
-          <header className="sticky top-0 z-10 border-b border-white/[0.09] bg-[#202124]/95 pb-5 backdrop-blur">
-            <h1 className="text-[20px] font-semibold tracking-[-0.03em] text-white">
-              {activeSection.label}
+        <main className="min-w-0 overflow-y-auto bg-[#111318] px-6 py-5 md:px-8">
+          <header className="border-b border-white/[0.06] pb-4">
+            <h1 className="text-[18px] font-semibold tracking-[-0.035em] text-white">
+              {settingsTabs.find((item) => item.id === activeTab)?.label ?? "Configurações"}
             </h1>
           </header>
 
-          <div>
-            {rows.map((row) => (
-              <ConfigRowItem key={row.title} row={row} />
-            ))}
-          </div>
-        </article>
-      </section>
+          {feedback ? (
+            <div
+              data-tone={feedback.tone}
+              className="mt-4 rounded-[12px] border px-4 py-3 text-[13px] font-medium data-[tone=error]:border-rose-300/15 data-[tone=error]:bg-rose-400/[0.07] data-[tone=error]:text-rose-100 data-[tone=info]:border-white/[0.07] data-[tone=info]:bg-white/[0.035] data-[tone=info]:text-slate-300 data-[tone=success]:border-emerald-300/15 data-[tone=success]:bg-emerald-400/[0.07] data-[tone=success]:text-emerald-100"
+            >
+              {feedback.message}
+            </div>
+          ) : null}
+
+          <section className="mt-1">
+            {activeTab === "geral" ? (
+              <>
+                <SettingRow
+                  title="Aparência"
+                  description="Visual padrão do painel administrativo."
+                  action={
+                    <>
+                      <span className="text-[12px] font-medium text-slate-200">Escuro</span>
+                      <ChevronDown size={14} className="text-slate-500" />
+                    </>
+                  }
+                />
+
+                <SettingRow
+                  title="Workspace"
+                  description="Ambiente privado usado pela operação da 2K Studios."
+                  action={
+                    <>
+                      <span className="text-[12px] font-medium text-slate-200">2K Studios</span>
+                      <ChevronDown size={14} className="text-slate-500" />
+                    </>
+                  }
+                />
+
+                <SettingRow
+                  title="Ano fiscal"
+                  description="Período usado nos dashboards e relatórios."
+                  action={
+                    <>
+                      <span className="text-[12px] font-medium text-slate-200">2026</span>
+                      <ChevronDown size={14} className="text-slate-500" />
+                    </>
+                  }
+                />
+              </>
+            ) : null}
+
+            {activeTab === "controle-dados" ? (
+              <>
+                <SettingRow
+                  title="Importação de planilha"
+                  description="Entrada principal de dados financeiros. Use a planilha oficial em .xlsx ou .xls."
+                  action={
+                    <>
+                      <StatusBadge tone="success">Ativa</StatusBadge>
+                      <ActionButton
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={busy}
+                      >
+                        {uploading ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <UploadCloud size={14} />
+                        )}
+                        {uploading ? "Importando" : "Importar"}
+                      </ActionButton>
+                    </>
+                  }
+                />
+
+                <SettingRow
+                  title="Limpeza de planilha"
+                  description="Zera lançamentos financeiros e histórico de importação do workspace."
+                  action={
+                    <ActionButton
+                      tone="danger"
+                      onClick={handleClearSpreadsheetData}
+                      disabled={busy}
+                    >
+                      {clearing ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                      {clearing ? "Limpando" : "Limpar dados"}
+                    </ActionButton>
+                  }
+                />
+
+                <SettingRow
+                  title="RLS no banco"
+                  description="Groundwork documentado. Ainda não ativado diretamente no PostgreSQL."
+                  action={
+                    <>
+                      <StatusBadge tone="neutral">Preparado</StatusBadge>
+                      <ChevronDown size={14} className="text-slate-500" />
+                    </>
+                  }
+                />
+              </>
+            ) : null}
+
+            {activeTab === "notificacoes" ? (
+              <>
+                <SettingRow
+                  title="Alertas financeiros"
+                  description="Notificações de vencimentos, atrasos e dados importados."
+                  action={<StatusBadge tone="success">Ativo</StatusBadge>}
+                />
+                <SettingRow
+                  title="Resumo operacional"
+                  description="Preparado para alertas futuros no painel."
+                  action={<StatusBadge tone="neutral">Preparado</StatusBadge>}
+                />
+              </>
+            ) : null}
+
+            {activeTab === "personalizacao" ? (
+              <>
+                <SettingRow
+                  title="Tema visual"
+                  description="Interface escura, clean e institucional."
+                  action={<StatusBadge tone="success">Escuro</StatusBadge>}
+                />
+                <SettingRow
+                  title="Tipografia"
+                  description="Geist Sans para interface e Geist Mono para números."
+                  action={<StatusBadge tone="success">Aplicada</StatusBadge>}
+                />
+              </>
+            ) : null}
+
+            {activeTab === "aplicativos" ? (
+              <SettingRow
+                title="Integrações"
+                description="Área preparada para conexões futuras."
+                action={<StatusBadge tone="neutral">Preparado</StatusBadge>}
+              />
+            ) : null}
+
+            {activeTab === "seguranca" ? (
+              <>
+                <SettingRow
+                  title="Sessão autenticada"
+                  description="Acesso protegido por sessão real e cookie HTTP-only."
+                  action={<StatusBadge tone="success">Ativo</StatusBadge>}
+                />
+                <SettingRow
+                  title="Permissões"
+                  description="Controles internos por workspace e usuário."
+                  action={<StatusBadge tone="neutral">Preparado</StatusBadge>}
+                />
+              </>
+            ) : null}
+
+            {activeTab === "conta" ? (
+              <SettingRow
+                title="Perfil"
+                description="Editar nome, usuário e avatar da conta."
+                action={
+                  <ActionButton onClick={() => router.push("/conta/perfil")}>
+                    Abrir perfil
+                  </ActionButton>
+                }
+              />
+            ) : null}
+
+            {activeTab === "teclado" ? (
+              <>
+                <SettingRow
+                  title="ESC"
+                  description="Fecha modais e áreas sobrepostas quando disponível."
+                  action={<StatusBadge tone="success">Ativo</StatusBadge>}
+                />
+                <SettingRow
+                  title="Ctrl + K"
+                  description="Reservado para command palette futura."
+                  action={<StatusBadge tone="neutral">Em breve</StatusBadge>}
+                />
+              </>
+            ) : null}
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
