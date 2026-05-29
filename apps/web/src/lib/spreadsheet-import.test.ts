@@ -161,6 +161,68 @@ test("parseSaidas importa TITO (Freela, PAGO) com natureza e subcategoria", () =
   assert.equal(aPagar.paidAt, null);
 });
 
+test("parseEntradas detecta cabeçalho deslocado (linha extra no topo)", () => {
+  const matrix: SheetMatrix = [
+    ["RELATÓRIO 2K STUDIOS"], // 0 linha extra
+    ["💰 ENTRADAS 2026"], // 1 título
+    ["instrução"], // 2
+    ["RESUMO:", null, 99999], // 3
+    ["Mês Ref.", "Grupo (NF)", "Marca", "Projeto", "Valor (R$)"], // 4 cabeçalho deslocado
+    [
+      D(2026, 3, 1),
+      "GRUPO X",
+      "Marca Y",
+      "Projeto Z",
+      1200,
+      "10",
+      "PAGO",
+      D(2026, 3, 5),
+      D(2026, 3, 10),
+      null,
+      "Sim",
+      null,
+      "ENT-010",
+    ], // 5 dados
+  ];
+
+  const rows = parseEntradas(matrix);
+
+  assert.equal(rows.length, 1, "deve importar mesmo com cabeçalho deslocado");
+  assert.equal(rows[0].grossAmount, "1200.00");
+  assert.equal(rows[0].documentNumber, "10");
+  assert.equal(rows[0].competence, "03/2026");
+});
+
+test("parseSaidas aceita datas em texto pt-BR (dd/mm/yyyy)", () => {
+  const matrix: SheetMatrix = [
+    ["💸 SAÍDAS 2026"],
+    [
+      "Mês Ref.",
+      "Data",
+      "Categoria Principal",
+      "Fornecedor/Nome",
+      "Descrição",
+      "Valor (R$)",
+    ], // cabeçalho na linha 2 (índice 1)
+    [
+      "13/05/2026",
+      "20/05/2026",
+      "Freelas",
+      "FULANO",
+      "Serviço",
+      750,
+      "PAGO",
+    ],
+  ];
+
+  const rows = parseSaidas(matrix);
+
+  assert.equal(rows.length, 1, "deve importar linha com datas em texto");
+  assert.equal(rows[0].costAmount, "750.00");
+  assert.equal(rows[0].competence, "05/2026", "13/05 deve virar maio, não inválido");
+  assert.equal(rows[0].type, "EXPENSE");
+});
+
 test("parse é determinístico (sem duplicar ao reprocessar)", () => {
   const matrix: SheetMatrix = [
     [],

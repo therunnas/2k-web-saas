@@ -37,7 +37,10 @@ type SpreadsheetStatus = {
 type ApiResponse = {
   status: string;
   message?: string;
-  deleted?: number;
+  deleted?: {
+    entries?: number;
+    imports?: number;
+  };
   preservedManualRecords?: number;
   summary?: {
     rows: number;
@@ -189,7 +192,12 @@ export function SistemaImportDashboard() {
 
     try {
       const response = await fetch("/api/workspace/spreadsheet/clear", {
-        method: "DELETE",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ confirm: "LIMPAR" }),
       });
 
       const json = (await response.json()) as ApiResponse;
@@ -201,7 +209,7 @@ export function SistemaImportDashboard() {
 
       setSuccessMessage(
         `Dados importados limpos. Registros removidos: ${
-          json.deleted ?? 0
+          json.deleted?.entries ?? 0
         }. Manuais preservados: ${json.preservedManualRecords ?? 0}.`
       );
 

@@ -110,7 +110,25 @@ export function excelDate(value: unknown): Date | null {
     return new Date(utc.getUTCFullYear(), utc.getUTCMonth(), utc.getUTCDate());
   }
 
-  const parsed = new Date(String(value));
+  const str = String(value).trim();
+  if (!str) return null;
+
+  // Datas em texto pt-BR: dd/mm/yyyy, dd-mm-yyyy, dd.mm.yyyy (e ano com 2 dígitos).
+  // O construtor nativo de Date interpreta "13/05/2026" como mês 13 (inválido),
+  // então tratamos esse formato explicitamente antes do fallback.
+  const br = str.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})$/);
+  if (br) {
+    const day = Number(br[1]);
+    const month = Number(br[2]);
+    let year = Number(br[3]);
+    if (year < 100) year += 2000;
+    if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+      const dt = new Date(year, month - 1, day);
+      if (!Number.isNaN(dt.getTime())) return dt;
+    }
+  }
+
+  const parsed = new Date(str);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
@@ -130,26 +148,112 @@ export function matchSheetName(
   );
 }
 
+/** Especificação de uma coluna: índice padrão (legado) + tokens de cabeçalho. */
+type ColumnSpec = Record<string, { index: number; tokens: string[] }>;
+
 /**
- * Aba 💰 ENTRADAS — cabeçalho na linha 4 (índice 3); dados a partir do índice 4.
+ * Localiza a linha de cabeçalho de forma tolerante a linhas de título/instrução
+ * extras no topo. Uma linha é cabeçalho se contém a coluna "Valor" E pelo menos
+ * mais um rótulo conhecido (evita confundir com frases de instrução).
+ * Retorna -1 quando não há cabeçalho reconhecível (cai no offset legado).
+ */
+function findHeaderRow(matrix: SheetMatrix): number {
+  const known = [
+    "mesref",
+    "mes",
+    "data",
+    "categoria",
+    "grupo",
+    "marca",
+    "projeto",
+    "fornecedor",
+    "descricao",
+    "status",
+  ];
+
+  for (let i = 0; i < matrix.length; i += 1) {
+    const cells = (matrix[i] ?? []).map((cell) => normalizeText(cell));
+    const hasValor = cells.some((cell) => cell.includes("valor"));
+    if (!hasValor) continue;
+    const hits = known.filter((token) =>
+      cells.some((cell) => cell.includes(token)),
+    ).length;
+    if (hits >= 1) return i;
+  }
+
+  return -1;
+}
+
+/**
+ * Resolve o índice de cada coluna a partir do cabeçalho real. Se um rótulo não
+ * for encontrado pelo nome, mantém o índice fixo legado — garantindo
+ * compatibilidade total com a planilha já validada.
+ */
+function resolveColumns(
+  header: unknown[] | undefined,
+  spec: ColumnSpec,
+): Record<string, number> {
+  const cells = (header ?? []).map((cell) => normalizeText(cell));
+  const resolved: Record<string, number> = {};
+
+  // Tokens curtos (ex.: "nf") exigem igualdade exata para não casar por
+  // substring com outras colunas (ex.: "Grupo (NF)" contém "nf").
+  const matches = (cell: string, token: string) =>
+    token.length >= 3 ? cell.includes(token) : cell === token;
+
+  for (const [field, { index, tokens }] of Object.entries(spec)) {
+    const found = cells.findIndex((cell) =>
+      tokens.some((token) => matches(cell, token)),
+    );
+    resolved[field] = found >= 0 ? found : index;
+  }
+
+  return resolved;
+}
+
+const ENTRADAS_COLUMNS: ColumnSpec = {
+  mesRef: { index: 0, tokens: ["mesref", "competencia", "referencia"] },
+  grupo: { index: 1, tokens: ["grupo"] },
+  marca: { index: 2, tokens: ["marca"] },
+  projeto: { index: 3, tokens: ["projeto"] },
+  valor: { index: 4, tokens: ["valor"] },
+  nf: { index: 5, tokens: ["nf", "notafiscal", "documento"] },
+  status: { index: 6, tokens: ["status"] },
+  dataEmissao: { index: 7, tokens: ["emissao"] },
+  prevRecebimento: { index: 8, tokens: ["recebimento", "previsao", "prev"] },
+  recebido: { index: 10, tokens: ["recebido"] },
+  obs: { index: 11, tokens: ["obs", "observacao"] },
+};
+
+/**
+ * Aba 💰 ENTRADAS — cabeçalho detectado dinamicamente (legado: linha 4 / índice 3).
  * Colunas: 0 Mês Ref. | 1 Grupo | 2 Marca | 3 Projeto | 4 Valor | 5 NF |
  * 6 Status | 7 Data Emissão | 8 Prev. Recebimento | 10 Recebido? | 11 Obs | 12 ID
  */
 export function parseEntradas(matrix: SheetMatrix): ParsedFinancialRow[] {
+  const headerRow = findHeaderRow(matrix);
+  const dataStart = headerRow >= 0 ? headerRow + 1 : 4;
+  const col =
+    headerRow >= 0
+      ? resolveColumns(matrix[headerRow], ENTRADAS_COLUMNS)
+      : Object.fromEntries(
+          Object.entries(ENTRADAS_COLUMNS).map(([f, c]) => [f, c.index]),
+        );
+
   return matrix
-    .slice(4)
+    .slice(dataStart)
     .map((row, index): ParsedFinancialRow | null => {
-      const mesRef = row[0];
-      const grupo = text(row[1]);
-      const marca = text(row[2]);
-      const projeto = text(row[3]);
-      const valor = money(row[4]);
-      const nf = text(row[5]);
-      const status = text(row[6]);
-      const dataEmissao = row[7];
-      const prevRecebimento = row[8];
-      const recebido = text(row[10]);
-      const obs = text(row[11]);
+      const mesRef = row[col.mesRef];
+      const grupo = text(row[col.grupo]);
+      const marca = text(row[col.marca]);
+      const projeto = text(row[col.projeto]);
+      const valor = money(row[col.valor]);
+      const nf = text(row[col.nf]);
+      const status = text(row[col.status]);
+      const dataEmissao = row[col.dataEmissao];
+      const prevRecebimento = row[col.prevRecebimento];
+      const recebido = text(row[col.recebido]);
+      const obs = text(row[col.obs]);
 
       // Competência = Mês Ref.; fallback para datas reais se ausente.
       const date =
@@ -184,7 +288,7 @@ export function parseEntradas(matrix: SheetMatrix): ParsedFinancialRow[] {
         sourceType: "SPREADSHEET",
         isManual: false,
         editable: false,
-        sourceRow: index + 5,
+        sourceRow: dataStart + index + 1,
         issuedAt,
         dueAt,
         paidAt: isPaid ? (dueAt ?? date) : null,
@@ -198,26 +302,49 @@ export function parseEntradas(matrix: SheetMatrix): ParsedFinancialRow[] {
     .filter((row): row is ParsedFinancialRow => row !== null);
 }
 
+const SAIDAS_COLUMNS: ColumnSpec = {
+  mesRef: { index: 0, tokens: ["mesref", "competencia", "referencia"] },
+  data: { index: 1, tokens: ["data"] },
+  categoria: { index: 2, tokens: ["categoriaprincipal", "categoria"] },
+  fornecedor: { index: 3, tokens: ["fornecedor", "nome"] },
+  descricao: { index: 4, tokens: ["descricao"] },
+  valor: { index: 5, tokens: ["valor"] },
+  status: { index: 6, tokens: ["status", "pagto", "pagamento"] },
+  recorrencia: { index: 7, tokens: ["recorrencia"] },
+  obs: { index: 8, tokens: ["obs", "observacao"] },
+  subcategoria: { index: 10, tokens: ["subcategoria"] },
+  natureza: { index: 11, tokens: ["natureza"] },
+};
+
 /**
- * Aba 💸 SAÍDAS — cabeçalho na linha 5 (índice 4); dados a partir do índice 5.
+ * Aba 💸 SAÍDAS — cabeçalho detectado dinamicamente (legado: linha 5 / índice 4).
  * Colunas: 0 Mês Ref. | 1 Data | 2 Categoria Principal | 3 Fornecedor | 4 Descrição |
  * 5 Valor | 6 Status Pagto | 7 Recorrência | 8 Obs | 9 ID | 10 Subcategoria | 11 Natureza
  */
 export function parseSaidas(matrix: SheetMatrix): ParsedFinancialRow[] {
+  const headerRow = findHeaderRow(matrix);
+  const dataStart = headerRow >= 0 ? headerRow + 1 : 5;
+  const col =
+    headerRow >= 0
+      ? resolveColumns(matrix[headerRow], SAIDAS_COLUMNS)
+      : Object.fromEntries(
+          Object.entries(SAIDAS_COLUMNS).map(([f, c]) => [f, c.index]),
+        );
+
   return matrix
-    .slice(5)
+    .slice(dataStart)
     .map((row, index): ParsedFinancialRow | null => {
-      const mesRef = row[0];
-      const data = row[1];
-      const categoria = text(row[2]);
-      const fornecedor = text(row[3]);
-      const descricao = text(row[4]);
-      const valor = money(row[5]);
-      const status = text(row[6]);
-      const recorrencia = text(row[7]);
-      const obs = text(row[8]);
-      const subcategoria = text(row[10]);
-      const natureza = text(row[11]);
+      const mesRef = row[col.mesRef];
+      const data = row[col.data];
+      const categoria = text(row[col.categoria]);
+      const fornecedor = text(row[col.fornecedor]);
+      const descricao = text(row[col.descricao]);
+      const valor = money(row[col.valor]);
+      const status = text(row[col.status]);
+      const recorrencia = text(row[col.recorrencia]);
+      const obs = text(row[col.obs]);
+      const subcategoria = text(row[col.subcategoria]);
+      const natureza = text(row[col.natureza]);
 
       const date = excelDate(mesRef) ?? excelDate(data);
       const launchDate = excelDate(data) ?? date;
@@ -244,7 +371,7 @@ export function parseSaidas(matrix: SheetMatrix): ParsedFinancialRow[] {
         sourceType: "SPREADSHEET",
         isManual: false,
         editable: false,
-        sourceRow: index + 6,
+        sourceRow: dataStart + index + 1,
         issuedAt: launchDate,
         dueAt: launchDate,
         paidAt: isPaid ? launchDate : null,
