@@ -20,10 +20,84 @@ type FinanceEntry = {
   costAmount: unknown;
   profitAmount: unknown;
   marginPercent: unknown;
+  sourceType: string | null;
   sourceSheet: string | null;
   sourceRow: number | null;
   createdAt: Date;
+  updatedAt: Date;
 };
+
+const SORT_OPTIONS = [
+  "recent",
+  "oldest",
+  "date-desc",
+  "date-asc",
+  "value-desc",
+  "value-asc",
+  "updated-desc",
+] as const;
+
+type SortOption = (typeof SORT_OPTIONS)[number];
+
+function parseSort(value: string | null): SortOption {
+  return (SORT_OPTIONS as readonly string[]).includes(value ?? "")
+    ? (value as SortOption)
+    : "recent";
+}
+
+/** Instante (ms) da competência/data para ordenação; null quando ausente. */
+function entryDateTime(entry: FinanceEntry): number | null {
+  if (entry.date instanceof Date && !Number.isNaN(entry.date.getTime())) {
+    return entry.date.getTime();
+  }
+
+  if (entry.competence) {
+    const match = entry.competence.match(/(\d{1,2})\/(\d{4})/);
+    if (match) {
+      return new Date(Number(match[2]), Number(match[1]) - 1, 1).getTime();
+    }
+  }
+
+  return null;
+}
+
+function timeOf(value: Date | null | undefined): number {
+  return value instanceof Date && !Number.isNaN(value.getTime())
+    ? value.getTime()
+    : 0;
+}
+
+/** Ordena os lançamentos conforme a opção; datas ausentes vão para o fim. */
+function sortEntries(entries: FinanceEntry[], sort: SortOption): FinanceEntry[] {
+  const byDate = (a: FinanceEntry, b: FinanceEntry, dir: 1 | -1) => {
+    const ta = entryDateTime(a);
+    const tb = entryDateTime(b);
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1; // ausente sempre por último
+    if (tb === null) return -1;
+    return (ta - tb) * dir;
+  };
+
+  const sorted = [...entries];
+
+  switch (sort) {
+    case "oldest":
+      return sorted.sort((a, b) => timeOf(a.createdAt) - timeOf(b.createdAt));
+    case "date-desc":
+      return sorted.sort((a, b) => byDate(a, b, -1));
+    case "date-asc":
+      return sorted.sort((a, b) => byDate(a, b, 1));
+    case "value-desc":
+      return sorted.sort((a, b) => getEntryValue(b) - getEntryValue(a));
+    case "value-asc":
+      return sorted.sort((a, b) => getEntryValue(a) - getEntryValue(b));
+    case "updated-desc":
+      return sorted.sort((a, b) => timeOf(b.updatedAt) - timeOf(a.updatedAt));
+    case "recent":
+    default:
+      return sorted.sort((a, b) => timeOf(b.createdAt) - timeOf(a.createdAt));
+  }
+}
 
 type EditableFinancialEntryType =
   | "REVENUE"
@@ -193,6 +267,7 @@ export async function GET(request: Request) {
     const year = Number(url.searchParams.get("year") ?? "2026");
     const type = url.searchParams.get("type") ?? "all";
     const search = (url.searchParams.get("search") ?? "").trim().toLowerCase();
+    const sort = parseSort(url.searchParams.get("sort"));
 
     const entries = (await prisma.financialEntry.findMany({
       where: {
@@ -285,7 +360,9 @@ export async function GET(request: Request) {
     // Resultado de caixa = recebido - saídas pagas (não misturar com competência).
     const cashResult = roundMoney(receivedTotal - paidExpenses);
 
-    const tableEntries = filtered.map((entry) => {
+    const sortedEntries = sortEntries(filtered, sort);
+
+    const tableEntries = sortedEntries.map((entry) => {
       const value = getEntryValue(entry);
       const month = getEntryMonth(entry);
 
@@ -307,8 +384,11 @@ export async function GET(request: Request) {
         value,
         revenue: revenueAmount(entry),
         expense: expenseAmount(entry),
+        sourceType: entry.sourceType,
         sourceSheet: entry.sourceSheet,
         sourceRow: entry.sourceRow,
+        createdAt: entry.createdAt,
+        updatedAt: entry.updatedAt,
       };
     });
 
@@ -318,6 +398,7 @@ export async function GET(request: Request) {
       filters: {
         type: type as Parameters<typeof prisma.financialEntry.update>[0]["data"]["type"],
         search,
+        sort,
       },
       summary: {
         entries: yearEntries.length,
